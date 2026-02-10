@@ -26,6 +26,7 @@ Pillow==10.3.0
 # Email & Redis Cache
 django-anymail==10.3
 django-redis==5.4.0
+hiredis==2.3.2
 
 # Celery (DOWGRADED for Django 4.2 compatibility)
 celery==5.3.6  # DOWGRADED from 5.4.0

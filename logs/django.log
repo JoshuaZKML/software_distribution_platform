@@ -1,0 +1,739 @@
+WARNING 2026-02-10 09:14:25,655 log 5320 3740 Not Found: /loin
+WARNING 2026-02-10 09:14:25,656 basehttp 5320 3740 "GET /loin HTTP/1.1" 404 12689
+ERROR 2026-02-10 09:17:18,858 log 5320 408 Internal Server Error: /admin/login/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\module_loading.py", line 30, in import_string
+    return cached_import(module_path, class_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\module_loading.py", line 16, in cached_import
+    return getattr(module, class_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'redis.connection' has no attribute 'HiredisParser'. Did you mean: '_HiredisParser'?
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 441, in login
+    return LoginView.as_view(**defaults)(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\debug.py", line 92, in sensitive_post_parameters_wrapper
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\views.py", line 90, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\base.py", line 144, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\edit.py", line 153, in post
+    return self.form_valid(form)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\views.py", line 109, in form_valid
+    auth_login(self.request, form.get_user())
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\__init__.py", line 118, in login
+    request.session.cycle_key()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\base.py", line 304, in cycle_key
+    self.create()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\cache.py", line 42, in create
+    self._session_key = self._get_new_session_key()
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\base.py", line 150, in _get_new_session_key
+    if not self.exists(session_key):
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\cache.py", line 73, in exists
+    bool(session_key) and (self.cache_key_prefix + session_key) in self._cache
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\cache\backends\base.py", line 299, in __contains__
+    return self.has_key(key)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\debug_toolbar\panels\cache.py", line 42, in wrapper
+    return panel._record_call(cache, name, original_method, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\debug_toolbar\panels\cache.py", line 149, in _record_call
+    value = original_method(*args, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 29, in _decorator
+    return method(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 138, in has_key
+    return self.client.has_key(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 664, in has_key
+    client = self.get_client(write=False)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 105, in get_client
+    self._clients[index] = self.connect(index)
+                           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 118, in connect
+    return self.connection_factory.connect(self._server[index])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\pool.py", line 70, in connect
+    params = self.make_connection_params(url)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\pool.py", line 42, in make_connection_params
+    "parser_class": self.get_parser_cls(),
+                    ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\pool.py", line 99, in get_parser_cls
+    return import_string(cls)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\module_loading.py", line 32, in import_string
+    raise ImportError(
+ImportError: Module "redis.connection" does not define a "HiredisParser" attribute/class
+ERROR 2026-02-10 09:17:18,950 basehttp 5320 408 "POST /admin/login/?next=/admin/ HTTP/1.1" 500 240374
+ERROR 2026-02-10 09:36:57,913 log 11672 7828 Internal Server Error: /admin/login/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 29, in _decorator
+    return method(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 138, in has_key
+    return self.client.has_key(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 670, in has_key
+    raise ConnectionInterrupted(connection=client) from e
+django_redis.exceptions.ConnectionInterrupted: Redis ConnectionError: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 441, in login
+    return LoginView.as_view(**defaults)(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\debug.py", line 92, in sensitive_post_parameters_wrapper
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\views.py", line 90, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\base.py", line 144, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\edit.py", line 153, in post
+    return self.form_valid(form)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\views.py", line 109, in form_valid
+    auth_login(self.request, form.get_user())
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\__init__.py", line 118, in login
+    request.session.cycle_key()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\base.py", line 304, in cycle_key
+    self.create()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\cache.py", line 42, in create
+    self._session_key = self._get_new_session_key()
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\base.py", line 150, in _get_new_session_key
+    if not self.exists(session_key):
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\cache.py", line 73, in exists
+    bool(session_key) and (self.cache_key_prefix + session_key) in self._cache
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\cache\backends\base.py", line 299, in __contains__
+    return self.has_key(key)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\debug_toolbar\panels\cache.py", line 42, in wrapper
+    return panel._record_call(cache, name, original_method, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\debug_toolbar\panels\cache.py", line 149, in _record_call
+    value = original_method(*args, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 36, in _decorator
+    raise e.__cause__
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 668, in has_key
+    return client.exists(key) == 1
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\redis\commands\core.py", line 1736, in exists
+    return self.execute_command("EXISTS", *names)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\redis\client.py", line 533, in execute_command
+    conn = self.connection or pool.get_connection(command_name, **options)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\redis\connection.py", line 1086, in get_connection
+    connection.connect()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\redis\connection.py", line 270, in connect
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+ERROR 2026-02-10 09:36:58,046 basehttp 11672 7828 "POST /admin/login/?next=/admin/ HTTP/1.1" 500 233484
+ERROR 2026-02-10 09:37:17,907 log 11672 7828 Internal Server Error: /admin/login/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 29, in _decorator
+    return method(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 138, in has_key
+    return self.client.has_key(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 670, in has_key
+    raise ConnectionInterrupted(connection=client) from e
+django_redis.exceptions.ConnectionInterrupted: Redis ConnectionError: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 441, in login
+    return LoginView.as_view(**defaults)(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\debug.py", line 92, in sensitive_post_parameters_wrapper
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\views.py", line 90, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\base.py", line 144, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\edit.py", line 153, in post
+    return self.form_valid(form)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\views.py", line 109, in form_valid
+    auth_login(self.request, form.get_user())
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\__init__.py", line 118, in login
+    request.session.cycle_key()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\base.py", line 304, in cycle_key
+    self.create()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\cache.py", line 42, in create
+    self._session_key = self._get_new_session_key()
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\base.py", line 150, in _get_new_session_key
+    if not self.exists(session_key):
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\cache.py", line 73, in exists
+    bool(session_key) and (self.cache_key_prefix + session_key) in self._cache
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\cache\backends\base.py", line 299, in __contains__
+    return self.has_key(key)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\debug_toolbar\panels\cache.py", line 42, in wrapper
+    return panel._record_call(cache, name, original_method, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\debug_toolbar\panels\cache.py", line 149, in _record_call
+    value = original_method(*args, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 36, in _decorator
+    raise e.__cause__
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 668, in has_key
+    return client.exists(key) == 1
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\redis\commands\core.py", line 1736, in exists
+    return self.execute_command("EXISTS", *names)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\redis\client.py", line 533, in execute_command
+    conn = self.connection or pool.get_connection(command_name, **options)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\redis\connection.py", line 1086, in get_connection
+    connection.connect()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\redis\connection.py", line 270, in connect
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+ERROR 2026-02-10 09:37:17,990 basehttp 11672 7828 "POST /admin/login/?next=/admin/ HTTP/1.1" 500 233484
+ERROR 2026-02-10 09:39:31,628 log 7944 14176 Internal Server Error: /admin/login/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\module_loading.py", line 30, in import_string
+    return cached_import(module_path, class_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\module_loading.py", line 16, in cached_import
+    return getattr(module, class_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'redis.connection' has no attribute 'HiredisParser'. Did you mean: '_HiredisParser'?
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 441, in login
+    return LoginView.as_view(**defaults)(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\debug.py", line 92, in sensitive_post_parameters_wrapper
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\views.py", line 90, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\base.py", line 144, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\edit.py", line 153, in post
+    return self.form_valid(form)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\views.py", line 109, in form_valid
+    auth_login(self.request, form.get_user())
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\__init__.py", line 118, in login
+    request.session.cycle_key()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\base.py", line 304, in cycle_key
+    self.create()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\cache.py", line 42, in create
+    self._session_key = self._get_new_session_key()
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\base.py", line 150, in _get_new_session_key
+    if not self.exists(session_key):
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\cache.py", line 73, in exists
+    bool(session_key) and (self.cache_key_prefix + session_key) in self._cache
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\cache\backends\base.py", line 299, in __contains__
+    return self.has_key(key)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\debug_toolbar\panels\cache.py", line 42, in wrapper
+    return panel._record_call(cache, name, original_method, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\debug_toolbar\panels\cache.py", line 149, in _record_call
+    value = original_method(*args, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 29, in _decorator
+    return method(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 138, in has_key
+    return self.client.has_key(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 664, in has_key
+    client = self.get_client(write=False)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 105, in get_client
+    self._clients[index] = self.connect(index)
+                           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 118, in connect
+    return self.connection_factory.connect(self._server[index])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\pool.py", line 70, in connect
+    params = self.make_connection_params(url)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\pool.py", line 42, in make_connection_params
+    "parser_class": self.get_parser_cls(),
+                    ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\pool.py", line 99, in get_parser_cls
+    return import_string(cls)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\module_loading.py", line 32, in import_string
+    raise ImportError(
+ImportError: Module "redis.connection" does not define a "HiredisParser" attribute/class
+ERROR 2026-02-10 09:39:31,746 basehttp 7944 14176 "POST /admin/login/?next=/admin/ HTTP/1.1" 500 240374
+ERROR 2026-02-10 09:46:24,771 log 15076 7460 Internal Server Error: /admin/login/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 29, in _decorator
+    return method(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 138, in has_key
+    return self.client.has_key(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 670, in has_key
+    raise ConnectionInterrupted(connection=client) from e
+django_redis.exceptions.ConnectionInterrupted: Redis ConnectionError: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 441, in login
+    return LoginView.as_view(**defaults)(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\debug.py", line 92, in sensitive_post_parameters_wrapper
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\views.py", line 90, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\base.py", line 144, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\edit.py", line 153, in post
+    return self.form_valid(form)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\views.py", line 109, in form_valid
+    auth_login(self.request, form.get_user())
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\__init__.py", line 118, in login
+    request.session.cycle_key()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\base.py", line 304, in cycle_key
+    self.create()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\cache.py", line 42, in create
+    self._session_key = self._get_new_session_key()
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\base.py", line 150, in _get_new_session_key
+    if not self.exists(session_key):
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\cache.py", line 73, in exists
+    bool(session_key) and (self.cache_key_prefix + session_key) in self._cache
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\cache\backends\base.py", line 299, in __contains__
+    return self.has_key(key)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\debug_toolbar\panels\cache.py", line 42, in wrapper
+    return panel._record_call(cache, name, original_method, args, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\debug_toolbar\panels\cache.py", line 149, in _record_call
+    value = original_method(*args, **kwargs)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 36, in _decorator
+    raise e.__cause__
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 668, in has_key
+    return client.exists(key) == 1
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\redis\commands\core.py", line 1736, in exists
+    return self.execute_command("EXISTS", *names)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\redis\client.py", line 533, in execute_command
+    conn = self.connection or pool.get_connection(command_name, **options)
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\redis\connection.py", line 1086, in get_connection
+    connection.connect()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\redis\connection.py", line 270, in connect
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+ERROR 2026-02-10 09:46:24,886 basehttp 15076 7460 "POST /admin/login/?next=/admin/ HTTP/1.1" 500 233484
+ERROR 2026-02-10 13:43:35,905 log 10508 7400 Internal Server Error: /admin/login/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\module_loading.py", line 30, in import_string
+    return cached_import(module_path, class_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\module_loading.py", line 16, in cached_import
+    return getattr(module, class_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'redis.connection' has no attribute 'HiredisParser'. Did you mean: '_HiredisParser'?
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 441, in login
+    return LoginView.as_view(**defaults)(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\debug.py", line 92, in sensitive_post_parameters_wrapper
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\views.py", line 90, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\base.py", line 144, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\edit.py", line 153, in post
+    return self.form_valid(form)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\views.py", line 109, in form_valid
+    auth_login(self.request, form.get_user())
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\__init__.py", line 118, in login
+    request.session.cycle_key()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\base.py", line 304, in cycle_key
+    self.create()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\db.py", line 50, in create
+    self._session_key = self._get_new_session_key()
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\base.py", line 150, in _get_new_session_key
+    if not self.exists(session_key):
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\cached_db.py", line 49, in exists
+    and (self.cache_key_prefix + session_key) in self._cache
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\cache\backends\base.py", line 299, in __contains__
+    return self.has_key(key)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 29, in _decorator
+    return method(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 138, in has_key
+    return self.client.has_key(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 734, in has_key
+    client = self.get_client(write=False)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 128, in get_client
+    self._clients[index] = self.connect(index)
+                           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 157, in connect
+    return self.connection_factory.connect(self._server[index])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\pool.py", line 69, in connect
+    params = self.make_connection_params(url)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\pool.py", line 41, in make_connection_params
+    "parser_class": self.get_parser_cls(),
+                    ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\pool.py", line 97, in get_parser_cls
+    return import_string(cls)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\module_loading.py", line 32, in import_string
+    raise ImportError(
+ImportError: Module "redis.connection" does not define a "HiredisParser" attribute/class
+ERROR 2026-02-10 13:43:35,936 basehttp 10508 7400 "POST /admin/login/?next=/admin/ HTTP/1.1" 500 220642
+ERROR 2026-02-10 13:45:34,423 log 10508 14296 Internal Server Error: /admin/login/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\module_loading.py", line 30, in import_string
+    return cached_import(module_path, class_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\module_loading.py", line 16, in cached_import
+    return getattr(module, class_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: module 'redis.connection' has no attribute 'HiredisParser'. Did you mean: '_HiredisParser'?
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 441, in login
+    return LoginView.as_view(**defaults)(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\debug.py", line 92, in sensitive_post_parameters_wrapper
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 46, in _wrapper
+    return bound_method(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\views.py", line 90, in dispatch
+    return super().dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\base.py", line 144, in dispatch
+    return handler(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\generic\edit.py", line 153, in post
+    return self.form_valid(form)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\views.py", line 109, in form_valid
+    auth_login(self.request, form.get_user())
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\__init__.py", line 118, in login
+    request.session.cycle_key()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\base.py", line 304, in cycle_key
+    self.create()
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\db.py", line 50, in create
+    self._session_key = self._get_new_session_key()
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\base.py", line 150, in _get_new_session_key
+    if not self.exists(session_key):
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\sessions\backends\cached_db.py", line 49, in exists
+    and (self.cache_key_prefix + session_key) in self._cache
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\cache\backends\base.py", line 299, in __contains__
+    return self.has_key(key)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 29, in _decorator
+    return method(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\cache.py", line 138, in has_key
+    return self.client.has_key(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 734, in has_key
+    client = self.get_client(write=False)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 128, in get_client
+    self._clients[index] = self.connect(index)
+                           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\client\default.py", line 157, in connect
+    return self.connection_factory.connect(self._server[index])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\pool.py", line 69, in connect
+    params = self.make_connection_params(url)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\pool.py", line 41, in make_connection_params
+    "parser_class": self.get_parser_cls(),
+                    ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django_redis\pool.py", line 97, in get_parser_cls
+    return import_string(cls)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\module_loading.py", line 32, in import_string
+    raise ImportError(
+ImportError: Module "redis.connection" does not define a "HiredisParser" attribute/class
+ERROR 2026-02-10 13:45:34,440 basehttp 10508 14296 "POST /admin/login/?next=/admin/ HTTP/1.1" 500 220642
+WARNING 2026-02-10 15:11:29,689 log 14200 9808 Not Found: /user
+WARNING 2026-02-10 15:11:29,690 basehttp 14200 9808 "GET /user HTTP/1.1" 404 3665
+WARNING 2026-02-10 15:12:08,576 log 14200 9808 Not Found: /licenses
+WARNING 2026-02-10 15:12:08,578 basehttp 14200 9808 "GET /licenses HTTP/1.1" 404 3677
+WARNING 2026-02-10 15:12:25,848 log 14200 9808 Unauthorized: /api/v1/licenses/
+WARNING 2026-02-10 15:12:25,851 basehttp 14200 9808 "GET /api/v1/licenses/ HTTP/1.1" 401 152
