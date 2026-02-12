@@ -139,14 +139,17 @@ CACHES = {
     }
 }
 
-# Celery
+# ============================================================================
+# CELERY CONFIGURATION
+# ============================================================================
+
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=REDIS_URL)
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=REDIS_URL)
 
-#Fallback to database if Redis not available
+# Fallback to database if Redis not available - CORRECTED TYPO
 if not CELERY_BROKER_URL.startswith("redis://"):
     CELERY_BROKER_URL = "django://"
-    CELERY_RESULT_BACKEND = "django-database"
+    CELERY_RESULT_BACKEND = "django-db"  # ✅ FIXED: Changed from "django-database" to "django-db"
 
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
@@ -154,6 +157,27 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=DEBUG)
+
+# ============================================================================
+# CELERY ENHANCED SETTINGS (Safe additions only)
+# ============================================================================
+
+# Celery enhanced settings (safe additions only)
+CELERY_ENABLE_UTC = True
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_TASK_EAGER_PROPAGATES = True
+CELERY_TASK_IGNORE_RESULT = False
+CELERY_TASK_STORE_ERRORS_EVEN_IF_IGNORED = True
+
+# Task default queue (safe to add)
+CELERY_TASK_DEFAULT_QUEUE = 'default'
+
+# Worker settings with env vars (safe to add)
+CELERY_WORKER_CONCURRENCY = env.int('CELERY_WORKER_CONCURRENCY', default=4)
+CELERY_WORKER_PREFETCH_MULTIPLIER = env.int('CELERY_WORKER_PREFETCH_MULTIPLIER', default=1)
+CELERY_WORKER_MAX_TASKS_PER_CHILD = env.int('CELERY_WORKER_MAX_TASKS_PER_CHILD', default=1000)
+
+# ============================================================================
 
 # Authentication
 AUTH_PASSWORD_VALIDATORS = [
@@ -238,7 +262,10 @@ SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_AGE = 1209600
 
-# Email
+# ============================================================================
+# EMAIL CONFIGURATION
+# ============================================================================
+
 EMAIL_BACKEND = env(
     "EMAIL_BACKEND",
     default="django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend"
@@ -249,6 +276,20 @@ EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@softwareplatform.com")
+
+# Additional email settings (safe to add)
+EMAIL_TIMEOUT = 30
+SUPPORT_EMAIL = env('SUPPORT_EMAIL', default='support@softwareplatform.com')
+SERVER_EMAIL = env('SERVER_EMAIL', default='server@softwareplatform.com')
+
+# ============================================================================
+# FRONTEND URLS FOR EMAIL LINKS (Safe addition)
+# ============================================================================
+
+FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:3000')
+ADMIN_FRONTEND_URL = env('ADMIN_FRONTEND_URL', default='http://localhost:3000/admin')
+
+# ============================================================================
 
 # Admin
 ADMINS = [("System Admin", env("ADMIN_EMAIL", default="admin@example.com"))]
@@ -299,10 +340,30 @@ LOGGING = {
 FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50MB
 
-# Activation keys
+# Activation keys (legacy)
 ACTIVATION_KEY_LENGTH = 25
 ACTIVATION_KEY_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 ACTIVATION_EXPIRY_DAYS = 365
+
+# ============================================================================
+# LICENSE KEY AND ENCRYPTION SETTINGS (New consolidated settings)
+# ============================================================================
+LICENSE_KEY_SETTINGS = {
+    'DEFAULT_KEY_FORMAT': 'STANDARD',
+    'DEFAULT_KEY_LENGTH': 25,
+    'DEFAULT_KEY_GROUPS': 4,
+    'MAX_ACTIVATIONS_PER_KEY': 10,
+    'DEFAULT_EXPIRY_DAYS': 365,
+    'ALLOWED_KEY_FORMATS': ['STANDARD', 'EXTENDED', 'ALPHANUM'],
+    'MIN_KEY_LENGTH': 20,
+    'MAX_KEY_LENGTH': 30,
+    'HARDWARE_ID_SALT': env('HARDWARE_ID_SALT', default=SECRET_KEY),
+    'MAX_DEVICE_CHANGES': 3,
+    'DEVICE_CHANGE_WINDOW_HOURS': 24,
+    'LICENSE_ENCRYPTION_KEY_PATH': env('LICENSE_ENCRYPTION_KEY_PATH', default=None),
+    'LICENSE_PRIVATE_KEY_PATH': env('LICENSE_PRIVATE_KEY_PATH', default=None),
+    'LICENSE_PUBLIC_KEY_PATH': env('LICENSE_PUBLIC_KEY_PATH', default=None),
+}
 
 # AWS S3
 AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID", default="")

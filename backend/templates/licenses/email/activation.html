@@ -1,0 +1,144 @@
+<!-- FILE: backend/templates/licenses/email/activation.html -->
+<!--
+    ⚠️  IMPORTANT: This file must be placed in the GLOBAL templates directory:
+         backend/templates/licenses/email/activation.html
+    Do NOT place it inside the licenses app folder unless you have customized
+    the Django TEMPLATES['DIRS'] setting.
+-->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>License Activated</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            border: 1px solid #e1e1e1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .header {
+            background: #2c3e50;
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+        }
+        .content {
+            padding: 40px;
+            background: #ffffff;
+        }
+        .license-info {
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            padding: 25px;
+            margin: 25px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        .info-item {
+            margin: 12px 0;
+            font-size: 15px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #7f8c8d;
+            width: 140px;
+            display: inline-block;
+        }
+        .code-display {
+            background: #ffffff;
+            border: 1px dashed #3498db;
+            color: #2980b9;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+            text-align: center;
+            margin-top: 8px;
+            border-radius: 4px;
+        }
+        .button {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+        }
+        .footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #bdc3c7;
+            background: #f4f7f6;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="margin:0;">Software Distribution Platform</h1>
+        </div>
+        <div class="content">
+            <h2 style="color: #2c3e50; margin-top: 0;">License Activated Successfully</h2>
+            <p>Hello {{ user.first_name|default:"there" }},</p>
+            <p>Your license for <strong>{{ software }}</strong> has been activated. You are now ready to use the software.</p>
+
+            <div class="license-info">
+                <div class="info-item">
+                    <span class="info-label">Software:</span> {{ software }}
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Version:</span> {{ version|default:"Latest" }}
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Activation Code:</span>
+                    <span class="code-display">{{ activation_code }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Expiration:</span>
+                    {{ expires_at|date:"F d, Y"|default:"Perpetual (no expiry)" }}
+                </div>
+            </div>
+
+            <p style="margin-top: 30px;">
+                <strong>Next Steps:</strong>
+            </p>
+            <ol style="margin-bottom: 30px;">
+                <li>Open your <strong>{{ software }}</strong> application.</li>
+                <li>Enter the activation code shown above when prompted.</li>
+                <li>Your software will verify the license automatically.</li>
+            </ol>
+
+            <p>
+                You can download the latest version and manage your licenses from your
+                <a href="{{ frontend_url }}/dashboard">account dashboard</a>.
+            </p>
+
+            <p style="color: #e74c3c; font-size: 14px; margin-top: 40px;">
+                If you did not perform this activation, please contact our support team immediately.
+            </p>
+        </div>
+        <div class="footer">
+            <p>© {% now "Y" %} Software Distribution Platform. All rights reserved.</p>
+            <p>
+                Need help? Contact us at
+                <a href="mailto:{{ support_email }}">{{ support_email }}</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

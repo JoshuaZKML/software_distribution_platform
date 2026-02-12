@@ -2,11 +2,14 @@
 Products models for Software Distribution Platform.
 """
 import uuid
+import hashlib
+import os
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-import hashlib
-import os
+from django.urls import reverse
+from django.conf import settings
+
 
 class Category(models.Model):
     """Software category for organization."""
@@ -42,6 +45,7 @@ class Category(models.Model):
     @property
     def software_count(self):
         return self.software.filter(is_active=True).count()
+
 
 class Software(models.Model):
     """Software product model."""
@@ -137,10 +141,16 @@ class Software(models.Model):
         verbose_name_plural = _("software")
         ordering = ["display_order", "name"]
         indexes = [
+            # Existing indexes (preserved)
             models.Index(fields=["slug"]),
             models.Index(fields=["app_code"]),
             models.Index(fields=["is_active", "is_featured"]),
             models.Index(fields=["category", "is_active"]),
+            # New performance indexes (with custom names to avoid conflicts)
+            models.Index(fields=["-download_count"], name="software_download_idx"),
+            models.Index(fields=["-released_at"], name="software_release_idx"),
+            models.Index(fields=["license_type"], name="software_license_idx"),
+            models.Index(fields=["base_price"], name="software_price_idx"),
         ]
     
     def __str__(self):
@@ -149,12 +159,85 @@ class Software(models.Model):
     @property
     def current_version(self):
         """Get current active version."""
-        return self.versions.filter(is_active=True).order_by("-version_number").first()
+        return self.get_latest_version(include_beta=False)
     
     @property
     def price_formatted(self):
         """Get formatted price."""
         return f"{self.currency} {self.base_price:.2f}"
+    
+    # ---------- Enhanced methods (fully aligned) ----------
+    
+    def get_latest_version(self, include_beta=False):
+        """Get latest version of software."""
+        queryset = self.versions.filter(is_active=True)
+        if not include_beta:
+            queryset = queryset.filter(is_beta=False)
+        return queryset.order_by('-version_number').first()
+    
+    def get_download_url(self, version=None):
+        """Get secure download URL for software version (valid 1 hour)."""
+        if not version:
+            version = self.get_latest_version(include_beta=False)
+        if not version:
+            return None
+        
+        # Generate secure token
+        token_data = f"{self.id}|{version.id}|{int(timezone.now().timestamp())}"
+        token = hashlib.sha256(f"{token_data}{settings.SECRET_KEY}".encode()).hexdigest()[:32]
+        
+        return reverse('software-version-download', kwargs={
+            'slug': self.slug,
+            'version_id': version.id,
+            'token': token
+        })
+    
+    def increment_download_count(self):
+        """Increment download counter atomically."""
+        from django.db.models import F
+        Software.objects.filter(id=self.id).update(download_count=F('download_count') + 1)
+        self.refresh_from_db()
+    
+    def get_supported_os_list(self):
+        """Get list of supported operating systems across all active versions."""
+        supported_os = set()
+        for version in self.versions.filter(is_active=True):
+            if version.supported_os:
+                supported_os.update(version.supported_os)
+        return list(supported_os)
+    
+    def get_pricing_tiers(self):
+        """
+        Get available pricing tiers based on license type.
+        Returns a dictionary compatible with frontend pricing display.
+        """
+        tiers = {
+            'trial': {
+                'available': self.has_trial,
+                'days': self.trial_days,
+                'price': 0.00,
+                'features': self.trial_features or []
+            },
+            'standard': {
+                'available': True,
+                'price': float(self.base_price),
+                'features': self.features or []
+            }
+        }
+        
+        # Define "premium" tier for non‑trial, paid license types
+        is_paid = self.license_type not in ['TRIAL'] and self.base_price > 0
+        tiers['premium'] = {
+            'available': is_paid,
+            'price': float(self.base_price * 1.5),  # example multiplier
+            'features': (self.features or []) + [
+                'Priority Support',
+                'Advanced Features',
+                'Custom Integration'
+            ]
+        }
+        return tiers
+
 
 class SoftwareVersion(models.Model):
     """Specific version of software."""
@@ -243,16 +326,21 @@ class SoftwareVersion(models.Model):
         ordering = ["-version_number"]
         unique_together = ["software", "version_number"]
         indexes = [
+            # Existing indexes
             models.Index(fields=["software", "is_active"]),
             models.Index(fields=["is_active", "is_stable"]),
             models.Index(fields=["released_at"]),
+            # New performance indexes (with custom names)
+            models.Index(fields=["-download_count"], name="version_download_idx"),
+            models.Index(fields=["version_number"], name="version_num_idx"),
+            models.Index(fields=["binary_checksum"], name="version_checksum_idx"),
         ]
     
     def __str__(self):
         return f"{self.software.name} v{self.version_number}"
     
     def save(self, *args, **kwargs):
-        """Calculate checksum on save."""
+        """Calculate checksum and update file size on save."""
         if self.binary_file and not self.binary_checksum:
             self.binary_checksum = self.calculate_checksum()
         if self.binary_file:
@@ -263,11 +351,8 @@ class SoftwareVersion(models.Model):
         """Calculate SHA-256 checksum of binary file."""
         sha256 = hashlib.sha256()
         self.binary_file.seek(0)
-        
-        # Read file in chunks
         for chunk in iter(lambda: self.binary_file.read(4096), b""):
             sha256.update(chunk)
-        
         self.binary_file.seek(0)
         return sha256.hexdigest()
     
@@ -285,6 +370,7 @@ class SoftwareVersion(models.Model):
                 return f"{size:.2f} {unit}"
             size /= 1024.0
         return f"{size:.2f} PB"
+
 
 class SoftwareImage(models.Model):
     """Images for software (screenshots, logos, etc.)."""
@@ -323,6 +409,7 @@ class SoftwareImage(models.Model):
     
     def __str__(self):
         return f"{self.software.name} - {self.get_image_type_display()}"
+
 
 class SoftwareDocument(models.Model):
     """Documents for software (manuals, guides, etc.)."""

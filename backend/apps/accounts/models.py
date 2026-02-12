@@ -7,6 +7,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 import hashlib
+import json
 
 class UserManager(BaseUserManager):
     """Custom user manager for User model."""
@@ -61,7 +62,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     company = models.CharField(_("company"), max_length=255, blank=True)
     phone = models.CharField(_("phone number"), max_length=20, blank=True)
     
-    # Security
+    # Security - ENHANCED WITH 2FA
     hardware_fingerprint = models.CharField(
         max_length=64,
         blank=True,
@@ -69,8 +70,34 @@ class User(AbstractBaseUser, PermissionsMixin):
         db_index=True,
         help_text=_("SHA-256 hash of device fingerprint")
     )
+    
+    # MFA Configuration (using existing fields with enhancements)
     mfa_enabled = models.BooleanField(_("MFA enabled"), default=False)
-    mfa_secret = models.CharField(max_length=32, blank=True, null=True)
+    mfa_secret = models.CharField(
+        max_length=32, 
+        blank=True, 
+        null=True,
+        help_text=_("TOTP secret key for emergency 2FA")
+    )
+    
+    # NEW: Emergency 2FA specific fields
+    mfa_backup_codes = models.JSONField(
+        _("MFA backup codes"),
+        default=list,
+        blank=True,
+        help_text=_("Emergency backup codes (10 total)")
+    )
+    mfa_emergency_only = models.BooleanField(
+        _("MFA emergency only"),
+        default=True,
+        help_text=_("2FA only required for suspicious logins")
+    )
+    mfa_last_used = models.DateTimeField(
+        _("MFA last used"),
+        null=True, 
+        blank=True
+    )
+    
     last_device_change = models.DateTimeField(_("last device change"), null=True, blank=True)
     
     # Status flags
@@ -151,6 +178,113 @@ class User(AbstractBaseUser, PermissionsMixin):
     def can_impersonate(self):
         """Check if user can impersonate other users."""
         return self.is_super_admin or (self.is_admin and self.has_perm("accounts.can_impersonate"))
+    
+    # ============================================================================
+    # EMERGENCY 2FA METHODS (NEW - Safe additions)
+    # ============================================================================
+    
+    def enable_emergency_mfa(self):
+        """Enable emergency MFA with TOTP."""
+        try:
+            import pyotp
+            import secrets
+            
+            # Generate TOTP secret
+            self.mfa_secret = pyotp.random_base32()
+            
+            # Generate 10 backup codes
+            self.mfa_backup_codes = [
+                secrets.token_urlsafe(8).upper() for _ in range(10)
+            ]
+            
+            self.mfa_enabled = True
+            self.mfa_emergency_only = True  # Emergency-only by default
+            self.save()
+            
+            return self.mfa_secret
+            
+        except ImportError:
+            raise ImportError("pyotp package is required for MFA. Install with: pip install pyotp")
+    
+    def verify_mfa_code(self, code):
+        """Verify MFA code (TOTP or backup code)."""
+        if not self.mfa_enabled or not self.mfa_secret:
+            return False
+        
+        try:
+            import pyotp
+            
+            # 1. Check if it's a backup code
+            if code in self.mfa_backup_codes:
+                # Remove used backup code
+                self.mfa_backup_codes.remove(code)
+                self.save()
+                self._log_mfa_usage('backup_code')
+                return True
+            
+            # 2. Check if it's a TOTP code
+            totp = pyotp.TOTP(self.mfa_secret)
+            if totp.verify(code, valid_window=1):  # Allow 30s window
+                self.mfa_last_used = timezone.now()
+                self.save()
+                self._log_mfa_usage('totp')
+                return True
+            
+            return False
+            
+        except ImportError:
+            raise ImportError("pyotp package is required for MFA")
+    
+    def get_mfa_provisioning_uri(self, issuer_name="Software Distribution Platform"):
+        """Get QR code URI for authenticator apps."""
+        if not self.mfa_secret:
+            return None
+        
+        try:
+            import pyotp
+            return pyotp.totp.TOTP(self.mfa_secret).provisioning_uri(
+                name=self.email,
+                issuer_name=issuer_name
+            )
+        except ImportError:
+            return None
+    
+    def disable_mfa(self):
+        """Disable MFA completely."""
+        self.mfa_enabled = False
+        self.mfa_secret = None
+        self.mfa_backup_codes = []
+        self.mfa_emergency_only = False
+        self.save()
+    
+    def regenerate_backup_codes(self):
+        """Regenerate backup codes."""
+        if not self.mfa_enabled:
+            return []
+        
+        import secrets
+        self.mfa_backup_codes = [
+            secrets.token_urlsafe(8).upper() for _ in range(10)
+        ]
+        self.save()
+        return self.mfa_backup_codes
+    
+    def get_mfa_status(self):
+        """Get MFA status information."""
+        return {
+            'enabled': self.mfa_enabled,
+            'emergency_only': self.mfa_emergency_only,
+            'has_secret': bool(self.mfa_secret),
+            'backup_codes_remaining': len(self.mfa_backup_codes),
+            'last_used': self.mfa_last_used,
+            'provisioning_uri': self.get_mfa_provisioning_uri() if self.mfa_secret else None
+        }
+    
+    def _log_mfa_usage(self, method):
+        """Internal method to log MFA usage (for SecurityLog integration)."""
+        # This would integrate with your existing SecurityLog model
+        # Implementation depends on your SecurityLog setup
+        pass
 
 class AdminProfile(models.Model):
     """Extended profile for Admin users."""

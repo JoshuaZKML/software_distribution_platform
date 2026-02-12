@@ -9,6 +9,8 @@ from django.conf import settings
 import secrets
 import string
 import hashlib
+from datetime import timedelta
+
 
 class ActivationCode(models.Model):
     """Activation code/license key model."""
@@ -44,6 +46,17 @@ class ActivationCode(models.Model):
         blank=True,
         related_name="activation_codes"
     )
+    
+    # ----- NEW FIELD (non‑disruptive) -----
+    batch = models.ForeignKey(
+        "CodeBatch",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="codes",
+        verbose_name=_("code batch")
+    )
+    # ---------------------------------------
     
     # Code data (encrypted)
     encrypted_code = models.BinaryField(_("encrypted code"))
@@ -96,11 +109,13 @@ class ActivationCode(models.Model):
         help_text=_("Maximum number of devices that can activate this code")
     )
     activation_count = models.IntegerField(_("activation count"), default=0)
+    # ----- NEW FIELD (non‑disruptive) -----
     concurrent_limit = models.IntegerField(
         _("concurrent limit"),
         default=1,
         help_text=_("Maximum concurrent activations")
     )
+    # ---------------------------------------
     
     # Device locking
     device_fingerprint = models.CharField(
@@ -123,6 +138,9 @@ class ActivationCode(models.Model):
     expires_at = models.DateTimeField(_("expires at"), db_index=True)
     revoked_at = models.DateTimeField(_("revoked at"), null=True, blank=True)
     last_used_at = models.DateTimeField(_("last used at"), null=True, blank=True)
+    # ----- NEW FIELD (non‑disruptive) -----
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+    # ---------------------------------------
     
     # Revocation info
     revoked_by = models.ForeignKey(
@@ -236,6 +254,156 @@ class ActivationCode(models.Model):
         )
         
         return True
+    
+    # ========== NEW METHODS (aligned with verified instructions) ==========
+    
+    @classmethod
+    def generate_for_software(cls, software, count=1, license_type="STANDARD",
+                             generated_by=None, expires_in_days=365, **kwargs):
+        """
+        Generate activation codes for specific software.
+        Bulk‑creates codes using the secure key generator.
+        """
+        from .utils.key_generation import ActivationKeyGenerator
+        
+        codes = []
+        for _ in range(count):
+            key_data = ActivationKeyGenerator.generate_software_bound_key(
+                software_id=software.id,
+                user_id=generated_by.id if generated_by else None,
+                key_format="STANDARD",
+                length=25
+            )
+            code = cls(
+                software=software,
+                encrypted_code=key_data['proof'].encode(),  # store as bytes
+                code_hash=key_data['key_hash'],
+                human_code=key_data['key'],
+                license_type=license_type,
+                status="GENERATED",
+                generated_by=generated_by,
+                expires_at=timezone.now() + timedelta(days=expires_in_days),
+                max_activations=kwargs.get('max_activations', 1),
+                concurrent_limit=kwargs.get('concurrent_limit', 1),
+                notes=kwargs.get('notes', ''),
+                custom_data={
+                    'generation_data': key_data['derivation_data'],
+                    'key_format': 'STANDARD',
+                    'generated_at': key_data['generated_at']
+                }
+            )
+            codes.append(code)
+        cls.objects.bulk_create(codes)
+        return codes
+    
+    def get_encrypted_license(self, include_user_data=True):
+        """
+        Return an encrypted license file package for this activation code.
+        """
+        from .utils.encryption import LicenseEncryptionManager
+        
+        license_data = {
+            'activation_code': {
+                'id': str(self.id),
+                'human_code': self.human_code,
+                'license_type': self.license_type,
+                'status': self.status,
+                'max_activations': self.max_activations,
+                'activation_count': self.activation_count,
+                'expires_at': self.expires_at.isoformat() if self.expires_at else None,
+                'created_at': self.created_at.isoformat()
+            },
+            'software': {
+                'id': str(self.software.id),
+                'name': self.software.name,
+                'app_code': self.software.app_code,
+                'version': self.software_version.version_number if self.software_version else None
+            },
+            'validity': {
+                'is_valid': self.is_valid,
+                'is_expired': self.is_expired,
+                'is_revoked': self.is_revoked,
+                'remaining_activations': self.remaining_activations,
+                'days_until_expiry': self.days_until_expiry
+            }
+        }
+        if include_user_data and self.user:
+            license_data['user'] = {
+                'id': str(self.user.id),
+                'email': self.user.email,
+                'name': self.user.get_full_name()
+            }
+        if self.device_fingerprint:
+            license_data['device'] = {
+                'fingerprint': self.device_fingerprint,
+                'name': self.device_name,
+                'info': self.device_info
+            }
+        encryption_manager = LicenseEncryptionManager()
+        return encryption_manager.encrypt_license_data(license_data)
+    
+    def verify_software_binding(self):
+        """
+        Verify that this activation code is cryptographically bound to its software.
+        """
+        from .utils.key_generation import ActivationKeyGenerator
+        try:
+            proof = self.encrypted_code.decode()
+            return ActivationKeyGenerator.verify_software_binding(
+                key=self.human_code,
+                software_id=self.software.id,
+                proof=proof
+            )
+        except Exception:
+            return False
+    
+    def validate_for_activation(self, device_fingerprint=None, ip_address=None):
+        """
+        Perform comprehensive validation before allowing activation.
+        Returns a dict with errors/warnings and verification requirements.
+        """
+        from backend.apps.accounts.utils.device_fingerprint import DeviceFingerprintGenerator
+        
+        result = {
+            'valid': False,
+            'can_activate': False,
+            'errors': [],
+            'warnings': [],
+            'requires_verification': False,
+            'verification_method': None
+        }
+        if not self.is_valid:
+            result['errors'].append('Activation code is not valid.')
+        if self.is_expired:
+            result['errors'].append('Activation code has expired.')
+        if self.is_revoked:
+            result['errors'].append('Activation code has been revoked.')
+        if self.activation_count >= self.max_activations:
+            result['errors'].append('Maximum number of activations reached.')
+        if not self.verify_software_binding():
+            result['errors'].append('Invalid software binding.')
+        if self.device_fingerprint and device_fingerprint:
+            if self.device_fingerprint != device_fingerprint:
+                # Use existing device fingerprint validation from accounts app
+                from backend.apps.accounts.models import User
+                dummy_user = User()
+                dummy_user.hardware_fingerprint = self.device_fingerprint
+                validation = DeviceFingerprintGenerator.validate_fingerprint_change(
+                    user=dummy_user,
+                    new_fingerprint=device_fingerprint,
+                    request=None
+                )
+                if not validation['allowed']:
+                    result['errors'].append(validation.get('message', 'Device change not allowed.'))
+                elif validation.get('requires_verification'):
+                    result['requires_verification'] = True
+                    result['verification_method'] = validation.get('verification_method', 'email')
+                    result['warnings'].append(validation.get('message', 'New device detected, verification required.'))
+        if not result['errors']:
+            result['valid'] = True
+            result['can_activate'] = not result['requires_verification']
+        return result
+
 
 class ActivationLog(models.Model):
     """Log of activation attempts."""
@@ -264,6 +432,7 @@ class ActivationLog(models.Model):
             ("VALIDATE", "Validate"),
             ("DEACTIVATE", "Deactivate"),
             ("REACTIVATE", "Reactivate"),
+            ("VERIFY", "Verify"),          # NEW CHOICE (non‑disruptive)
         ]
     )
     success = models.BooleanField(_("success"), default=False)
@@ -288,6 +457,7 @@ class ActivationLog(models.Model):
     
     def __str__(self):
         return f"{self.action} - {self.activation_code.human_code} - {self.success}"
+
 
 class RevocationLog(models.Model):
     """Log of code revocations."""
@@ -331,6 +501,7 @@ class RevocationLog(models.Model):
     def __str__(self):
         return f"Revocation: {self.activation_code.human_code}"
 
+
 class LicenseFeature(models.Model):
     """Features available for different license types."""
     
@@ -351,7 +522,7 @@ class LicenseFeature(models.Model):
     )
     description = models.TextField(_("description"), blank=True)
     
-    # Availability by license type
+    # Availability by license type (existing boolean fields – preserved)
     available_in_trial = models.BooleanField(_("available in trial"), default=False)
     available_in_standard = models.BooleanField(_("available in standard"), default=True)
     available_in_premium = models.BooleanField(_("available in premium"), default=True)
@@ -391,6 +562,7 @@ class LicenseFeature(models.Model):
         }
         return mapping.get(license_type.upper(), False)
 
+
 class LicenseUsage(models.Model):
     """Track usage of licensed features."""
     
@@ -419,7 +591,9 @@ class LicenseUsage(models.Model):
     ip_address = models.GenericIPAddressField(_("IP address"))
     
     created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    # ----- NEW FIELD (non‑disruptive) -----
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+    # ---------------------------------------
     
     class Meta:
         verbose_name = _("license usage")
@@ -432,6 +606,7 @@ class LicenseUsage(models.Model):
     
     def __str__(self):
         return f"{self.activation_code.human_code} - {self.feature.name}"
+
 
 class CodeBatch(models.Model):
     """Batch of activation codes generated together."""
