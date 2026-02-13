@@ -56,7 +56,7 @@ app_includes = [
     ("backend.apps.dashboard.urls", "api/v1/dashboard/"),
     ("backend.apps.security.urls", "api/v1/security/"),
     ("backend.apps.api.urls", "api/v1/"),
-    ("health_check.urls", "health/"),
+    ("backend.apps.health_check.urls", "health/"),
 ]
 
 for mod, prefix in app_includes:

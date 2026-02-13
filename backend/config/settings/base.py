@@ -25,9 +25,11 @@ DEBUG = env.bool("DEBUG", default=False)
 # Allowed hosts
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
-# Application definition
+# ============================================================================
+# APPLICATION DEFINITION
+# ============================================================================
 INSTALLED_APPS = [
-    # Custom apps (must be first for User model)
+    # ----- Custom apps (must be first for User model) -----
     "backend.apps.accounts",
     "backend.apps.products",
     "backend.apps.licenses",
@@ -38,16 +40,18 @@ INSTALLED_APPS = [
     "backend.apps.dashboard",
     "backend.apps.api",
     "backend.apps.security",
-    
-    # Django apps
-    "django.contrib.admin",
+
+    # ----- Django admin replacement (point to NEW admin_config module) -----
+    "backend.apps.health_check.admin_config.CustomAdminConfig",
+
+    # ----- Django contrib apps (NO django.contrib.admin) -----
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    
-    # Third party apps
+
+    # ----- Third‑party apps -----
     "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
@@ -58,22 +62,36 @@ INSTALLED_APPS = [
     "django_celery_results",
     "django_extensions",
     "debug_toolbar",
+
+    # ----- Health check app itself (views, templates, URLs) -----
+    "backend.apps.health_check",
 ]
 
-# Middleware
+# ============================================================================
+# MIDDLEWARE – CRITICAL: This was MISSING in your file
+# ============================================================================
 MIDDLEWARE = [
+    # ----- Security & Performance (must be early) -----
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",               # Must be before CommonMiddleware
+
+    # ----- Django core (required for admin & sessions) -----
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
+
+    # ----- Development tools -----
+    "debug_toolbar.middleware.DebugToolbarMiddleware",    # Last before custom middleware
+
+    # ----- Custom security & audit (order as per Verified Instructions) -----
     "backend.core.middleware.SecurityHeadersMiddleware",
     "backend.core.middleware.PermissionAuditMiddleware",
+    "backend.core.middleware.RateLimitMiddleware",         # ✅ ADDED – abuse prevention
+    "backend.core.middleware.DeviceFingerprintMiddleware", # ✅ ADDED – hardware binding
 ]
 
 # URL configuration
@@ -127,7 +145,6 @@ CACHES = {
         "LOCATION": REDIS_URL,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            # REMOVED THIS LINE:"PARSER_CLASS": "redis.connection.HiredisParser",
             "CONNECTION_POOL_KWARGS": {"max_connections": 100, "retry_on_timeout": True},
             "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
             "IGNORE_EXCEPTIONS": not DEBUG,
@@ -146,10 +163,10 @@ CACHES = {
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=REDIS_URL)
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=REDIS_URL)
 
-# Fallback to database if Redis not available - CORRECTED TYPO
+# ✅ FIXED: Fallback to database broker – correct scheme is "django" (not "django://")
 if not CELERY_BROKER_URL.startswith("redis://"):
-    CELERY_BROKER_URL = "django://"
-    CELERY_RESULT_BACKEND = "django-db"  # ✅ FIXED: Changed from "django-database" to "django-db"
+    CELERY_BROKER_URL = "django"          # ✅ Correct
+    CELERY_RESULT_BACKEND = "django-db"
 
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
@@ -159,27 +176,22 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=DEBUG)
 
 # ============================================================================
-# CELERY ENHANCED SETTINGS (Safe additions only)
+# CELERY ENHANCED SETTINGS
 # ============================================================================
 
-# Celery enhanced settings (safe additions only)
 CELERY_ENABLE_UTC = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_TASK_EAGER_PROPAGATES = True
 CELERY_TASK_IGNORE_RESULT = False
 CELERY_TASK_STORE_ERRORS_EVEN_IF_IGNORED = True
-
-# Task default queue (safe to add)
 CELERY_TASK_DEFAULT_QUEUE = 'default'
-
-# Worker settings with env vars (safe to add)
 CELERY_WORKER_CONCURRENCY = env.int('CELERY_WORKER_CONCURRENCY', default=4)
 CELERY_WORKER_PREFETCH_MULTIPLIER = env.int('CELERY_WORKER_PREFETCH_MULTIPLIER', default=1)
 CELERY_WORKER_MAX_TASKS_PER_CHILD = env.int('CELERY_WORKER_MAX_TASKS_PER_CHILD', default=1000)
 
 # ============================================================================
-
-# Authentication
+# AUTHENTICATION
+# ============================================================================
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator", "OPTIONS": {"min_length": 12}},
@@ -189,25 +201,30 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = "accounts.User"
 
-# Internationalization
+# ============================================================================
+# INTERNATIONALIZATION
+# ============================================================================
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-# Static files
+# ============================================================================
+# STATIC & MEDIA FILES
+# ============================================================================
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 
-# Media files
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# REST Framework
+# ============================================================================
+# REST FRAMEWORK & JWT
+# ============================================================================
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -231,7 +248,6 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "backend.core.exceptions.custom_exception_handler",
 }
 
-# JWT
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -245,18 +261,21 @@ SIMPLE_JWT = {
     "USER_ID_CLAIM": "user_id",
 }
 
+# ============================================================================
 # CORS
+# ============================================================================
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[
     "http://localhost:3000",
     "http://127.0.0.1:3000",
 ])
 CORS_ALLOW_CREDENTIALS = True
 
-# Security
+# ============================================================================
+# SECURITY
+# ============================================================================
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = "DENY"
-
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
@@ -265,7 +284,6 @@ SESSION_COOKIE_AGE = 1209600
 # ============================================================================
 # EMAIL CONFIGURATION
 # ============================================================================
-
 EMAIL_BACKEND = env(
     "EMAIL_BACKEND",
     default="django.core.mail.backends.console.EmailBackend" if DEBUG else "django.core.mail.backends.smtp.EmailBackend"
@@ -276,25 +294,24 @@ EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@softwareplatform.com")
-
-# Additional email settings (safe to add)
 EMAIL_TIMEOUT = 30
 SUPPORT_EMAIL = env('SUPPORT_EMAIL', default='support@softwareplatform.com')
 SERVER_EMAIL = env('SERVER_EMAIL', default='server@softwareplatform.com')
 
 # ============================================================================
-# FRONTEND URLS FOR EMAIL LINKS (Safe addition)
+# FRONTEND URLS
 # ============================================================================
-
 FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:3000')
 ADMIN_FRONTEND_URL = env('ADMIN_FRONTEND_URL', default='http://localhost:3000/admin')
 
 # ============================================================================
-
-# Admin
+# ADMIN
+# ============================================================================
 ADMINS = [("System Admin", env("ADMIN_EMAIL", default="admin@example.com"))]
 
-# Logging
+# ============================================================================
+# LOGGING
+# ============================================================================
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -336,17 +353,21 @@ LOGGING = {
     },
 }
 
-# File uploads
+# ============================================================================
+# FILE UPLOADS
+# ============================================================================
 FILE_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50MB
 
-# Activation keys (legacy)
+# ============================================================================
+# ACTIVATION KEYS (legacy)
+# ============================================================================
 ACTIVATION_KEY_LENGTH = 25
 ACTIVATION_KEY_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 ACTIVATION_EXPIRY_DAYS = 365
 
 # ============================================================================
-# LICENSE KEY AND ENCRYPTION SETTINGS (New consolidated settings)
+# LICENSE KEY AND ENCRYPTION SETTINGS
 # ============================================================================
 LICENSE_KEY_SETTINGS = {
     'DEFAULT_KEY_FORMAT': 'STANDARD',
@@ -365,7 +386,9 @@ LICENSE_KEY_SETTINGS = {
     'LICENSE_PUBLIC_KEY_PATH': env('LICENSE_PUBLIC_KEY_PATH', default=None),
 }
 
+# ============================================================================
 # AWS S3
+# ============================================================================
 AWS_ACCESS_KEY_ID = env("AWS_ACCESS_KEY_ID", default="")
 AWS_SECRET_ACCESS_KEY = env("AWS_SECRET_ACCESS_KEY", default="")
 AWS_STORAGE_BUCKET_NAME = env("AWS_STORAGE_BUCKET_NAME", default="")
@@ -376,7 +399,9 @@ AWS_DEFAULT_ACL = "private"
 AWS_QUERYSTRING_AUTH = True
 AWS_QUERYSTRING_EXPIRE = 3600
 
-# DRF Spectacular
+# ============================================================================
+# DRF SPECTACULAR
+# ============================================================================
 SPECTACULAR_SETTINGS = {
     "TITLE": "Software Distribution Platform API",
     "DESCRIPTION": "Comprehensive API for software distribution",

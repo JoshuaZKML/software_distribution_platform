@@ -1,4 +1,5 @@
-# FILE: /backend/apps/accounts/serializers.py (FULLY UPDATED – with enhanced device verification)
+# FILE: /backend/apps/accounts/serializers.py (FULLY UPDATED – with non‑disruptive refactoring)
+from typing import Optional
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import authenticate
@@ -107,25 +108,10 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         if user.is_blocked:
             raise serializers.ValidationError({'email': 'Your account has been blocked. Please contact support.'})
 
-        # Device fingerprint validation for admins
-        if user.role in [User.Role.ADMIN, User.Role.SUPER_ADMIN]:
-            if device_fingerprint:
-                if user.hardware_fingerprint and user.hardware_fingerprint != device_fingerprint:
-                    from .models import DeviceChangeLog
-                    DeviceChangeLog.objects.create(
-                        user=user,
-                        old_fingerprint=user.hardware_fingerprint,
-                        new_fingerprint=device_fingerprint,
-                        ip_address=request.META.get('REMOTE_ADDR', ''),
-                        user_agent=request.META.get('HTTP_USER_AGENT', '')
-                    )
-                    if not self.context.get('skip_device_check', False):
-                        self._send_device_verification_email(user, device_fingerprint, request)
-                        raise serializers.ValidationError({
-                            'device_change': True,
-                            'message': 'New device detected. Verification email sent.'
-                        })
+        # Device fingerprint validation for admins – extracted for clarity
+        self._validate_admin_device(user, device_fingerprint, request)
 
+        # Update user login metadata
         user.last_login = timezone.now()
         user.last_login_ip = request.META.get('REMOTE_ADDR', '')
         if device_fingerprint and not user.hardware_fingerprint:
@@ -162,36 +148,81 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             data['mfa_token'] = self._generate_mfa_token(user)
         return data
 
-    # ============ UPDATED: Enhanced device verification email ============
-    def _send_device_verification_email(self, user, new_fingerprint, request):
+    # ------------------------------------------------------------------
+    # Helper methods (non‑disruptive extraction)
+    # ------------------------------------------------------------------
+
+    def _validate_admin_device(self, user: User, device_fingerprint: str, request) -> None:
+        """
+        Perform device‑based security checks for admin users.
+        Logs device changes and triggers verification if necessary.
+        """
+        if user.role not in [User.Role.ADMIN, User.Role.SUPER_ADMIN]:
+            return
+        if not device_fingerprint:
+            return
+
+        if user.hardware_fingerprint and user.hardware_fingerprint != device_fingerprint:
+            from .models import DeviceChangeLog
+            DeviceChangeLog.objects.create(
+                user=user,
+                old_fingerprint=user.hardware_fingerprint,
+                new_fingerprint=device_fingerprint,
+                ip_address=request.META.get('REMOTE_ADDR', ''),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')
+            )
+            if not self.context.get('skip_device_check', False):
+                self._send_device_verification_email(user, device_fingerprint, request)
+                raise serializers.ValidationError({
+                    'device_change': True,
+                    'message': 'New device detected. Verification email sent.'
+                })
+
+    def _send_device_verification_email(self, user: User, new_fingerprint: str, request) -> None:
+        """
+        Create a device verification record and dispatch an email asynchronously.
+        """
         from .utils.device_verification import DeviceVerificationManager
         from .tasks import send_device_verification_email
 
-        # Create DeviceChangeLog record and obtain token + code
         device_log, verification_code = DeviceVerificationManager.create_verification(
             user, new_fingerprint, request
         )
-
-        # Send email with the pre‑generated token and code
         send_device_verification_email.delay(
             user_id=user.id,
             device_log_id=device_log.id,
             verification_token=device_log.verification_token,
             verification_code=verification_code
         )
-    # ====================================================================
 
-    def _generate_mfa_token(self, user):
+    def _generate_mfa_token(self, user: User) -> str:
+        """
+        Generate a current TOTP token for a user with MFA enabled.
+        """
         import pyotp
         totp = pyotp.TOTP(user.mfa_secret)
         return totp.now()
 
-    def _get_location_from_ip(self, ip_address):
+    def _get_location_from_ip(self, ip_address: str) -> str:
+        """
+        Attempt to geolocate an IP address.
+        If geoip2 is not installed, gracefully fall back to a placeholder.
+        """
         try:
             import geoip2.database  # noqa: F401
+            # To actually use GeoIP, you need to:
+            #   - install geoip2 (pip install geoip2)
+            #   - download a GeoLite2 database and set GEOIP_PATH in settings
+            #   - uncomment the lines below and remove the placeholder return.
+            # from django.conf import settings
+            # with geoip2.database.Reader(settings.GEOIP_PATH) as reader:
+            #     response = reader.city(ip_address)
+            #     return f"{response.city.name}, {response.country.name}"
             return "Unknown Location"
         except ImportError:
             return "Location service not available"
+        except Exception:
+            return "Unknown"
 
 
 # ----------------------------

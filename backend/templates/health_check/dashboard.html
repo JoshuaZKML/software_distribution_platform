@@ -1,0 +1,611 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health · Nexus SDP</title>
+    <!-- Inter Variable + IBM Plex Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ---------- DESIGN TOKENS – FROM STRATEGIC BLUEPRINT ---------- */
+        :root {
+            /* Light mode */
+            --light-bg: #FFFFFF;
+            --light-surface: #F8FAFC;
+            --light-surface-raised: #FFFFFF;
+            --light-surface-overlay: #FFFFFF;
+            --light-text-primary: #0F172A;
+            --light-text-secondary: #1E293B;
+            --light-text-muted: #475569;
+            --light-border: #E2E8F0;
+            --light-border-strong: #CBD5E1;
+            
+            /* Dark mode */
+            --dark-bg: #0F172A;
+            --dark-surface: #1E293B;
+            --dark-surface-raised: #334155;
+            --dark-surface-overlay: #334155;
+            --dark-text-primary: #F8FAFC;
+            --dark-text-secondary: #E2E8F0;
+            --dark-text-muted: #94A3B8;
+            --dark-border: #334155;
+            --dark-border-strong: #475569;
+
+            /* Brand & semantic */
+            --primary-deep-blue: #1E3A8A;
+            --action-emerald: #16A34A;
+            --success: #16A34A;
+            --warning: #F59E0B;
+            --error: #DC2626;
+            
+            --success-dark: #22C55E;
+            --warning-dark: #F59E0B;
+            --error-dark: #EF4444;
+
+            /* Spacing – 8px base */
+            --space-4: 0.25rem;
+            --space-8: 0.5rem;
+            --space-12: 0.75rem;
+            --space-16: 1rem;
+            --space-24: 1.5rem;
+            --space-32: 2rem;
+            --space-48: 3rem;
+
+            /* Typography */
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+            --text-base: 0.875rem;      /* 14px */
+            --text-xs: 0.6875rem;       /* 11px */
+            --text-sm: 0.75rem;         /* 12px */
+            --text-lg: 1rem;            /* 16px */
+            --text-xl: 1.25rem;         /* 20px */
+            --text-2xl: 1.5rem;         /* 24px */
+
+            /* Elevation – pure luminance */
+            --elevation-flat: var(--light-surface);
+            --elevation-raised: var(--light-surface-raised);
+            --elevation-overlay: var(--light-surface-overlay);
+
+            /* Motion */
+            --duration-instant: 120ms;
+            --duration-short: 200ms;
+            --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* ---------- BUCKET TEXT – THEME AWARE ---------- */
+            --bucket-text: var(--primary-deep-blue);
+        }
+
+        /* ---------- THEME APPLICATION ---------- */
+        body.light {
+            --bg: var(--light-bg);
+            --surface: var(--light-surface);
+            --surface-raised: var(--light-surface-raised);
+            --surface-overlay: var(--light-surface-overlay);
+            --text-primary: var(--light-text-primary);
+            --text-secondary: var(--light-text-secondary);
+            --text-muted: var(--light-text-muted);
+            --border: var(--light-border);
+            --border-strong: var(--light-border-strong);
+            --success-color: var(--success);
+            --warning-color: var(--warning);
+            --error-color: var(--error);
+            --grid-dot: rgba(30, 58, 138, 0.06);
+            /* Light mode – keep brand blue */
+            --bucket-text: var(--primary-deep-blue);
+        }
+
+        body.dark {
+            --bg: var(--dark-bg);
+            --surface: var(--dark-surface);
+            --surface-raised: var(--dark-surface-raised);
+            --surface-overlay: var(--dark-surface-overlay);
+            --text-primary: var(--dark-text-primary);
+            --text-secondary: var(--dark-text-secondary);
+            --text-muted: var(--dark-text-muted);
+            --border: var(--dark-border);
+            --border-strong: var(--dark-border-strong);
+            --success-color: var(--success-dark);
+            --warning-color: var(--warning-dark);
+            --error-color: var(--error-dark);
+            --grid-dot: rgba(59, 130, 246, 0.1);
+            /* Dark mode – perfect contrast light grey */
+            --bucket-text: var(--dark-text-secondary);
+        }
+
+        /* ---------- PRECISION GRID MOTIF (8px dotted) ---------- */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(var(--grid-dot) 1.2px, transparent 1.2px);
+            background-size: 8px 8px;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.7;
+        }
+
+        /* ---------- RESET / GLOBAL ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg);
+            color: var(--text-primary);
+            font-size: var(--text-base);
+            line-height: 1.5;
+            padding: var(--space-32) var(--space-24);
+            min-height: 100vh;
+            position: relative;
+            transition: background-color var(--duration-instant) var(--ease-standard),
+                        color var(--duration-instant) var(--ease-standard),
+                        border-color var(--duration-instant) var(--ease-standard);
+        }
+
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ---------- HEADER ---------- */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-48);
+            flex-wrap: wrap;
+            gap: var(--space-24);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-16);
+        }
+
+        .brand-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-deep-blue);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: -0.01em;
+            transition: background var(--duration-instant) var(--ease-standard);
+        }
+
+        .brand-title h1 {
+            font-size: var(--text-2xl);
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--primary-deep-blue);
+            margin-bottom: var(--space-4);
+            line-height: 1.2;
+        }
+
+        body.dark .brand-title h1 {
+            color: white;
+        }
+
+        .timestamp {
+            font-family: var(--font-mono);
+            font-size: var(--text-sm);
+            color: var(--text-muted);
+            letter-spacing: -0.01em;
+        }
+
+        /* ---------- THEME TOGGLE ---------- */
+        .theme-switch {
+            display: flex;
+            align-items: center;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 2px;
+        }
+
+        .theme-btn {
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            padding: var(--space-8) var(--space-16);
+            border-radius: 40px;
+            font-size: var(--text-sm);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+            cursor: pointer;
+            transition: background var(--duration-instant) var(--ease-standard),
+                        color var(--duration-instant) var(--ease-standard);
+        }
+
+        .theme-btn.active {
+            background: var(--surface-raised);
+            color: var(--text-primary);
+            border: 1px solid var(--border-strong);
+            padding: calc(var(--space-8) - 1px) calc(var(--space-16) - 1px);
+        }
+
+        .theme-btn:active {
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* ---------- STATUS BADGE / INDICATOR – EXTREMELY SMALL GAP (2px) ---------- */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.125rem;          /* 2px – extremely small */
+            padding: var(--space-8) var(--space-16);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            font-size: var(--text-sm);
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 0.625rem;
+            height: 0.625rem;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .status-dot.ok { background-color: var(--success-color); }
+        .status-dot.degraded { background-color: var(--warning-color); }
+        .status-dot.unavailable { background-color: var(--error-color); }
+        .status-dot.skipped { background-color: var(--text-muted); }
+
+        /* ---------- CARD ---------- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: var(--space-24);
+            margin-bottom: var(--space-48);
+        }
+
+        .card {
+            background: var(--surface-raised);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: var(--space-24);
+            transition: border-color var(--duration-instant) var(--ease-standard),
+                        background var(--duration-instant) var(--ease-standard);
+        }
+
+        .card:hover {
+            border-color: var(--primary-deep-blue);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-20);
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+            font-size: var(--text-lg);
+            font-weight: 650;
+            color: var(--text-primary);
+        }
+
+        .card-title span {
+            color: var(--primary-deep-blue);
+            font-weight: 600;
+        }
+
+        /* ---------- STATUS INDICATOR – EXTREMELY SMALL GAP (2px) ---------- */
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.125rem;          /* 2px – extremely small */
+            font-size: var(--text-xs);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: var(--text-muted);
+        }
+
+        /* ---------- DETAILS TABLE ---------- */
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--text-sm);
+        }
+
+        .details-table tr {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .details-table tr:last-child {
+            border-bottom: none;
+        }
+
+        .details-table td {
+            padding: var(--space-12) 0;
+        }
+
+        .details-table td:first-child {
+            color: var(--text-muted);
+            width: 42%;
+            font-weight: 450;
+        }
+
+        .details-table td:last-child {
+            font-weight: 500;
+            word-break: break-word;
+            font-family: var(--font-mono);
+            color: var(--text-secondary);
+        }
+
+        /* ---------- BUCKET VALUE – THEME‑AWARE ---------- */
+        .bucket-value {
+            color: var(--bucket-text);
+            font-weight: 600;
+        }
+
+        .error-text {
+            color: var(--error-color);
+            font-weight: 600;
+        }
+
+        .warning-text {
+            color: var(--warning-color);
+            font-weight: 600;
+        }
+
+        /* ---------- FOOTER ---------- */
+        .footer {
+            margin-top: var(--space-48);
+            padding-top: var(--space-24);
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--space-16);
+            color: var(--text-muted);
+            font-size: var(--text-sm);
+        }
+
+        .environment-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-6);
+            background: var(--surface);
+            padding: var(--space-6) var(--space-16);
+            border-radius: 40px;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: var(--text-xs);
+            text-transform: uppercase;
+        }
+
+        .footer-meta {
+            display: flex;
+            gap: var(--space-24);
+            font-family: var(--font-mono);
+        }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 720px) {
+            body { padding: var(--space-24) var(--space-16); }
+            .brand-title h1 { font-size: var(--text-xl); }
+            .grid { grid-template-columns: 1fr; }
+            .footer-meta { flex-direction: column; gap: var(--space-8); }
+        }
+    </style>
+</head>
+<!-- Default dark (product) -->
+<body class="dark">
+    <div class="container">
+        <header class="dashboard-header">
+            <div class="brand">
+                <div class="brand-icon">SDP</div>
+                <div class="brand-title">
+                    <h1>System Health</h1>
+                    <div class="timestamp">{{ timestamp|slice:":10" }} · {{ timestamp|slice:"11:19" }} UTC</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: var(--space-16);">
+                <div class="theme-switch">
+                    <button id="theme-light" class="theme-btn">🌞 Light</button>
+                    <button id="theme-dark" class="theme-btn active">🌙 Dark</button>
+                </div>
+                <div class="status-badge">
+                    <span class="status-dot {{ overall_status }}"></span>
+                    <span>Overall <strong style="color: var(--primary-deep-blue);">{{ overall_status|upper }}</strong></span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid">
+            <!-- DATABASE -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title"><span>🗄️</span> DATABASE</span>
+                    <span class="status-indicator">
+                        <span class="status-dot {{ components.database.status }}"></span>
+                        {{ components.database.status|upper }}
+                    </span>
+                </div>
+                <table class="details-table">
+                    <tr><td>Connection</td><td>{{ components.database.details.connection|default:'–' }}</td></tr>
+                    <tr><td>Backend</td><td>{{ components.database.details.backend|default:'–' }}</td></tr>
+                    {% if components.database.details.error %}
+                    <tr><td>Error</td><td class="error-text">{{ components.database.details.error }}</td></tr>
+                    {% endif %}
+                </table>
+            </div>
+
+            <!-- REDIS -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title"><span>⚡</span> REDIS</span>
+                    <span class="status-indicator">
+                        <span class="status-dot {{ components.redis.status }}"></span>
+                        {{ components.redis.status|upper }}
+                    </span>
+                </div>
+                <table class="details-table">
+                    <tr><td>Version</td><td>{{ components.redis.details.version|default:'–' }}</td></tr>
+                    <tr><td>Memory</td><td>{{ components.redis.details.used_memory_human|default:'–' }}</td></tr>
+                    <tr><td>Cache op</td><td>{{ components.redis.details.cache_operation|default:'–'|upper }}</td></tr>
+                    {% if components.redis.details.error %}
+                    <tr><td>Error</td><td class="warning-text">{{ components.redis.details.error }}</td></tr>
+                    {% endif %}
+                </table>
+            </div>
+
+            <!-- CELERY -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title"><span>🔄</span> CELERY</span>
+                    <span class="status-indicator">
+                        <span class="status-dot {{ components.celery.status }}"></span>
+                        {{ components.celery.status|upper }}
+                    </span>
+                </div>
+                <table class="details-table">
+                    <tr><td>Broker</td><td>{{ components.celery.details.broker.status|default:'–'|upper }}</td></tr>
+                    <tr><td>Broker URL</td><td style="font-size: 0.8rem;">{{ components.celery.details.broker.url|default:'–' }}</td></tr>
+                    <tr><td>Workers</td><td>
+                        {% if components.celery.details.workers.status == 'ok' %}
+                            <span style="color: var(--success-color);">{{ components.celery.details.workers.count }} ACTIVE</span>
+                        {% elif components.celery.details.workers.status == 'no_workers' %}
+                            <span class="warning-text">NO WORKERS</span>
+                        {% else %}–{% endif %}
+                    </td></tr>
+                    {% if components.celery.details.error %}
+                    <tr><td>Error</td><td class="warning-text">{{ components.celery.details.error }}</td></tr>
+                    {% endif %}
+                </table>
+            </div>
+
+            <!-- EMAIL -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title"><span>📧</span> EMAIL</span>
+                    <span class="status-indicator">
+                        <span class="status-dot {{ components.email.status }}"></span>
+                        {{ components.email.status|upper }}
+                    </span>
+                </div>
+                <table class="details-table">
+                    <tr><td>Backend</td><td>{{ components.email.details.backend|default:'smtp' }}</td></tr>
+                    {% if components.email.details.smtp %}
+                    <tr><td>SMTP test</td><td style="color: var(--success-color);">{{ components.email.details.smtp|upper }}</td></tr>
+                    {% endif %}
+                    {% if components.email.details.error %}
+                    <tr><td>Error</td><td class="warning-text">{{ components.email.details.error }}</td></tr>
+                    {% endif %}
+                </table>
+            </div>
+
+            <!-- STORAGE – FIXED: BUCKET VALUE NOW THEME‑AWARE -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title"><span>☁️</span> STORAGE</span>
+                    <span class="status-indicator">
+                        <span class="status-dot {{ components.storage.status }}"></span>
+                        {{ components.storage.status|upper }}
+                    </span>
+                </div>
+                <table class="details-table">
+                    <!-- ✅ REPLACED inline style with theme‑aware class -->
+                    <tr><td>Bucket</td><td class="bucket-value">{{ aws_bucket_name }}</td></tr>
+                    {% if components.storage.details.bucket %}
+                    <tr><td>Status</td><td>{{ components.storage.details.bucket|upper }}</td></tr>
+                    {% endif %}
+                    {% if components.storage.details.note %}
+                    <tr><td>Note</td><td>{{ components.storage.details.note }}</td></tr>
+                    {% endif %}
+                    {% if components.storage.details.error %}
+                    <tr><td>Error</td><td class="warning-text">{{ components.storage.details.error }}</td></tr>
+                    {% endif %}
+                </table>
+            </div>
+
+            <!-- SYSTEM -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title"><span>💻</span> SYSTEM</span>
+                    <span class="status-indicator">
+                        <span class="status-dot {{ components.system.status }}"></span>
+                        {{ components.system.status|upper }}
+                    </span>
+                </div>
+                <table class="details-table">
+                    <tr><td>Disk usage</td><td>{{ components.system.details.disk_usage_percent|floatformat:1 }}%</td></tr>
+                    <tr><td>Disk free</td><td>{{ components.system.details.disk_free_gb }} GB</td></tr>
+                    <tr><td>Python</td><td>{{ components.system.details.python_version }}</td></tr>
+                    <tr><td>Django</td><td>{{ components.system.details.django_version }}</td></tr>
+                    <tr><td>Process ID</td><td class="font-mono">{{ components.system.details.process_id }}</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="environment-badge">
+                <span>⚙️</span> {{ environment|upper }}
+            </div>
+            <div class="footer-meta">
+                <span>⏱️ {{ response_time_ms }} ms</span>
+                <span>🔐 {{ super_admin_email }}</span>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        (function() {
+            const body = document.body;
+            const lightBtn = document.getElementById('theme-light');
+            const darkBtn = document.getElementById('theme-dark');
+
+            function getInitialTheme() {
+                const stored = localStorage.getItem('health-dashboard-theme');
+                if (stored === 'light' || stored === 'dark') return stored;
+                return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+
+            function setTheme(theme) {
+                body.classList.remove('light', 'dark');
+                body.classList.add(theme);
+                localStorage.setItem('health-dashboard-theme', theme);
+                lightBtn.classList.toggle('active', theme === 'light');
+                darkBtn.classList.toggle('active', theme === 'dark');
+            }
+
+            setTheme(getInitialTheme());
+
+            lightBtn.addEventListener('click', () => setTheme('light'));
+            darkBtn.addEventListener('click', () => setTheme('dark'));
+
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('health-dashboard-theme')) {
+                    setTheme(e.matches ? 'dark' : 'light');
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

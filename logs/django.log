@@ -4329,3 +4329,490 @@ LINE 1: SELECT COUNT(*) AS "__count" FROM "licenses_revocationlog"
                                           ^
 
 ERROR 2026-02-11 18:19:16,888 basehttp 5072 8688 "GET /admin/licenses/revocationlog/ HTTP/1.1" 500 194854
+ERROR 2026-02-12 08:29:19,668 log 1324 18208 Internal Server Error: /health/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+               ^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\response.py", line 90, in rendered_content
+    template = self.resolve_template(self.template_name)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\response.py", line 72, in resolve_template
+    return select_template(template, using=self.using)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\loader.py", line 47, in select_template
+    raise TemplateDoesNotExist(", ".join(template_name_list), chain=chain)
+django.template.exceptions.TemplateDoesNotExist: health_check/index.html
+ERROR 2026-02-12 08:29:19,714 basehttp 1324 18208 "GET /health/ HTTP/1.1" 500 102933
+ERROR 2026-02-12 10:28:51,673 log 2488 16504 Internal Server Error: /health/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+               ^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\response.py", line 90, in rendered_content
+    template = self.resolve_template(self.template_name)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\response.py", line 72, in resolve_template
+    return select_template(template, using=self.using)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\loader.py", line 47, in select_template
+    raise TemplateDoesNotExist(", ".join(template_name_list), chain=chain)
+django.template.exceptions.TemplateDoesNotExist: health_check/index.html
+ERROR 2026-02-12 10:28:51,684 basehttp 2488 16504 "GET /health/ HTTP/1.1" 500 103495
+ERROR 2026-02-12 10:28:53,715 log 2488 16504 Internal Server Error: /health/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 220, in _get_response
+    response = response.render()
+               ^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\response.py", line 114, in render
+    self.content = self.rendered_content
+                   ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\response.py", line 90, in rendered_content
+    template = self.resolve_template(self.template_name)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\response.py", line 72, in resolve_template
+    return select_template(template, using=self.using)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\loader.py", line 47, in select_template
+    raise TemplateDoesNotExist(", ".join(template_name_list), chain=chain)
+django.template.exceptions.TemplateDoesNotExist: health_check/index.html
+ERROR 2026-02-12 10:28:53,734 basehttp 2488 16504 "GET /health/ HTTP/1.1" 500 103495
+ERROR 2026-02-12 10:29:03,615 log 2488 16504 Internal Server Error: /admin/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 261, in wrapper
+    return self.admin_view(view, cacheable)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 242, in inner
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\backend\apps\health_check\admin.py", line 12, in index
+    extra_context['health_check_url'] = reverse('health_check')
+                                        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\urls\resolvers.py", line 828, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'health_check' not found. 'health_check' is not a valid view function or pattern name.
+ERROR 2026-02-12 10:29:03,639 basehttp 2488 16504 "GET /admin/ HTTP/1.1" 500 114142
+ERROR 2026-02-12 10:29:05,150 log 2488 16504 Internal Server Error: /admin/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 261, in wrapper
+    return self.admin_view(view, cacheable)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 242, in inner
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\backend\apps\health_check\admin.py", line 12, in index
+    extra_context['health_check_url'] = reverse('health_check')
+                                        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\urls\resolvers.py", line 828, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'health_check' not found. 'health_check' is not a valid view function or pattern name.
+ERROR 2026-02-12 10:29:05,176 basehttp 2488 16504 "GET /admin/ HTTP/1.1" 500 114103
+ERROR 2026-02-12 10:29:08,421 log 2488 16504 Internal Server Error: /admin/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 261, in wrapper
+    return self.admin_view(view, cacheable)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 242, in inner
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\backend\apps\health_check\admin.py", line 12, in index
+    extra_context['health_check_url'] = reverse('health_check')
+                                        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\urls\resolvers.py", line 828, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'health_check' not found. 'health_check' is not a valid view function or pattern name.
+ERROR 2026-02-12 10:29:08,462 basehttp 2488 16504 "GET /admin/ HTTP/1.1" 500 114410
+ERROR 2026-02-12 10:29:09,838 log 2488 16504 Internal Server Error: /admin/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 261, in wrapper
+    return self.admin_view(view, cacheable)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 242, in inner
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\backend\apps\health_check\admin.py", line 12, in index
+    extra_context['health_check_url'] = reverse('health_check')
+                                        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\urls\resolvers.py", line 828, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'health_check' not found. 'health_check' is not a valid view function or pattern name.
+ERROR 2026-02-12 10:29:09,876 basehttp 2488 16504 "GET /admin/ HTTP/1.1" 500 114410
+ERROR 2026-02-12 10:29:13,175 log 2488 16504 Internal Server Error: /admin/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 261, in wrapper
+    return self.admin_view(view, cacheable)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\utils\decorators.py", line 134, in _wrapper_view
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\admin\sites.py", line 242, in inner
+    return view(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\backend\apps\health_check\admin.py", line 12, in index
+    extra_context['health_check_url'] = reverse('health_check')
+                                        ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\urls\base.py", line 88, in reverse
+    return resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\urls\resolvers.py", line 828, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'health_check' not found. 'health_check' is not a valid view function or pattern name.
+ERROR 2026-02-12 10:29:13,194 basehttp 2488 16504 "GET /admin/ HTTP/1.1" 500 114097
+ERROR 2026-02-12 10:40:15,756 log 19792 13500 Internal Server Error: /health/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\backend\apps\health_check\views.py", line 216, in super_admin_health_check
+    import psutil
+ModuleNotFoundError: No module named 'psutil'
+ERROR 2026-02-12 10:40:15,772 basehttp 19792 13500 "GET /health/ HTTP/1.1" 500 105140
+ERROR 2026-02-12 10:47:10,236 log 19792 17560 Internal Server Error: /health/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\backend\apps\health_check\views.py", line 217, in super_admin_health_check
+    disk = psutil.disk_usage(settings.BASE_DIR)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\psutil\__init__.py", line 2081, in disk_usage
+    return _psplatform.disk_usage(path)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\psutil\_pswindows.py", line 242, in disk_usage
+    total, used, free = cext.disk_usage(path)
+                        ^^^^^^^^^^^^^^^^^^^^^
+TypeError: argument 1 must be str, not WindowsPath
+ERROR 2026-02-12 10:47:10,256 basehttp 19792 17560 "GET /health/ HTTP/1.1" 500 113186
+ERROR 2026-02-12 10:47:14,111 log 19792 17560 Internal Server Error: /health/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\backend\apps\health_check\views.py", line 217, in super_admin_health_check
+    disk = psutil.disk_usage(settings.BASE_DIR)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\psutil\__init__.py", line 2081, in disk_usage
+    return _psplatform.disk_usage(path)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\psutil\_pswindows.py", line 242, in disk_usage
+    total, used, free = cext.disk_usage(path)
+                        ^^^^^^^^^^^^^^^^^^^^^
+TypeError: argument 1 must be str, not WindowsPath
+ERROR 2026-02-12 10:47:14,135 basehttp 19792 17560 "GET /health/ HTTP/1.1" 500 113188
+ERROR 2026-02-12 10:49:19,115 log 19792 17560 Internal Server Error: /health/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\backend\apps\health_check\views.py", line 217, in super_admin_health_check
+    disk = psutil.disk_usage(settings.BASE_DIR)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\psutil\__init__.py", line 2081, in disk_usage
+    return _psplatform.disk_usage(path)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\psutil\_pswindows.py", line 242, in disk_usage
+    total, used, free = cext.disk_usage(path)
+                        ^^^^^^^^^^^^^^^^^^^^^
+TypeError: argument 1 must be str, not WindowsPath
+ERROR 2026-02-12 10:49:19,143 basehttp 19792 17560 "GET /health/ HTTP/1.1" 500 113188
+WARNING 2026-02-12 11:14:12,369 log 17660 7484 Not Found: /health/
+WARNING 2026-02-12 11:14:12,371 basehttp 17660 7484 "GET /health/ HTTP/1.1" 404 3339
+WARNING 2026-02-12 11:14:13,764 log 17660 7484 Not Found: /health/
+WARNING 2026-02-12 11:14:13,764 basehttp 17660 7484 "GET /health/ HTTP/1.1" 404 3339
+WARNING 2026-02-12 11:14:14,759 log 17660 7484 Not Found: /health/
+WARNING 2026-02-12 11:14:14,760 basehttp 17660 7484 "GET /health/ HTTP/1.1" 404 3339
+WARNING 2026-02-12 11:14:15,910 log 17660 7484 Not Found: /health/
+WARNING 2026-02-12 11:14:15,912 basehttp 17660 7484 "GET /health/ HTTP/1.1" 404 3339
+ERROR 2026-02-12 11:33:38,550 log 15324 12108 Internal Server Error: /health/dashboard/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\backend\apps\health_check\views.py", line 256, in health_dashboard
+    return render(request, 'health_check/dashboard.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\backends\django.py", line 33, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\engine.py", line 175, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\engine.py", line 157, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\base.py", line 200, in compile_nodelist
+    return parser.parse()
+           ^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\base.py", line 484, in parse
+    raise self.error(token, e)
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\base.py", line 482, in parse
+    filter_expression = self.compile_filter(token.contents)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\base.py", line 600, in compile_filter
+    return FilterExpression(token, self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\base.py", line 698, in __init__
+    filter_func = parser.find_filter(filter_name)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\base.py", line 606, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'replace'
+ERROR 2026-02-12 11:33:38,573 basehttp 15324 12108 "GET /health/dashboard/ HTTP/1.1" 500 250822
+ERROR 2026-02-12 11:41:32,885 log 12100 1180 Internal Server Error: /health/dashboard/
+Traceback (most recent call last):
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\http.py", line 43, in inner
+    return func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\views\decorators\cache.py", line 62, in _wrapper_view_func
+    response = view_func(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 23, in _wrapper_view
+    return view_func(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\backend\apps\health_check\views.py", line 264, in health_dashboard
+    return render(request, 'health_check/dashboard.html', context)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\shortcuts.py", line 24, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\backends\django.py", line 33, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\engine.py", line 175, in get_template
+    template, origin = self.find_template(template_name)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\engine.py", line 157, in find_template
+    template = loader.get_template(name, skip=skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+           ^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\base.py", line 200, in compile_nodelist
+    return parser.parse()
+           ^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\base.py", line 484, in parse
+    raise self.error(token, e)
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\base.py", line 482, in parse
+    filter_expression = self.compile_filter(token.contents)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\base.py", line 600, in compile_filter
+    return FilterExpression(token, self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\base.py", line 698, in __init__
+    filter_func = parser.find_filter(filter_name)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\LENOVO\Documents\My Software\software_distribution_platform\venv\Lib\site-packages\django\template\base.py", line 606, in find_filter
+    raise TemplateSyntaxError("Invalid filter: '%s'" % filter_name)
+django.template.exceptions.TemplateSyntaxError: Invalid filter: 'replace'
+ERROR 2026-02-12 11:41:32,907 basehttp 12100 1180 "GET /health/dashboard/ HTTP/1.1" 500 251328
+WARNING 2026-02-12 15:33:58,321 log 18536 16956 Not Found: /POST /api/payments/paystack/initialize
+WARNING 2026-02-12 15:33:58,334 basehttp 18536 16956 "GET /POST%20/api/payments/paystack/initialize HTTP/1.1" 404 3541
+WARNING 2026-02-12 16:00:44,727 log 18536 12916 Not Found: /kkk
+WARNING 2026-02-12 16:00:44,727 basehttp 18536 12916 "GET /kkk HTTP/1.1" 404 3434
+WARNING 2026-02-12 18:24:16,794 log 14536 11100 Not Found: /admin/health
+WARNING 2026-02-12 18:24:16,812 basehttp 14536 11100 "GET /admin/health HTTP/1.1" 404 7804
+WARNING 2026-02-12 18:24:44,286 log 14536 11100 Not Found: /admin/health
+WARNING 2026-02-12 18:24:44,286 basehttp 14536 11100 "GET /admin/health HTTP/1.1" 404 7804
+WARNING 2026-02-12 18:24:45,552 log 14536 11100 Not Found: /admin/health
+WARNING 2026-02-12 18:24:45,552 basehttp 14536 11100 "GET /admin/health HTTP/1.1" 404 7804
+WARNING 2026-02-12 18:27:49,157 log 14536 1716 Not Found: /admin/health
+WARNING 2026-02-12 18:27:49,157 basehttp 14536 1716 "GET /admin/health HTTP/1.1" 404 7804
+WARNING 2026-02-12 18:29:00,556 log 14536 9264 Not Found: /admin/health check
+WARNING 2026-02-12 18:29:00,556 basehttp 14536 9264 "GET /admin/health%20check HTTP/1.1" 404 7824
+WARNING 2026-02-12 18:39:40,214 log 1412 16360 Not Found: /admin/health
+WARNING 2026-02-12 18:39:43,777 log 1412 13420 Not Found: /admin/health
+WARNING 2026-02-12 18:39:43,777 basehttp 1412 13420 "GET /admin/health HTTP/1.1" 404 7804
+WARNING 2026-02-12 18:39:47,330 log 1412 13420 Not Found: /admin/health
+WARNING 2026-02-12 18:39:47,330 basehttp 1412 13420 "GET /admin/health HTTP/1.1" 404 7804
+WARNING 2026-02-12 19:18:53,105 log 4716 20328 Not Found: /health/Jsaon
+WARNING 2026-02-12 19:18:53,105 basehttp 4716 20328 "GET /health/Jsaon HTTP/1.1" 404 3598
+WARNING 2026-02-12 19:19:13,948 log 4716 20328 Not Found: /health/health/ json/ [name='health_check_json']
+WARNING 2026-02-12 19:19:13,964 basehttp 4716 20328 "GET /health/health/%20json/%20[name='health_check_json'] HTTP/1.1" 404 3743
+WARNING 2026-02-12 19:19:30,210 log 4716 20328 Not Found: /health/health/ json/ 
+WARNING 2026-02-12 19:19:30,212 basehttp 4716 20328 "GET /health/health/%20json/%20 HTTP/1.1" 404 3629
+WARNING 2026-02-12 19:19:34,333 log 4716 20328 Not Found: /health/health/ json/ 
+WARNING 2026-02-12 19:19:34,334 basehttp 4716 20328 "GET /health/health/%20json/%20 HTTP/1.1" 404 3629
+WARNING 2026-02-12 19:19:43,623 log 4716 20328 Not Found: /health/health/ json
+WARNING 2026-02-12 19:19:43,623 basehttp 4716 20328 "GET /health/health/%20json HTTP/1.1" 404 3621
+WARNING 2026-02-12 19:20:09,339 log 4716 20328 Not Found: /health/ json
+WARNING 2026-02-12 19:20:09,339 basehttp 4716 20328 "GET /health/%20json HTTP/1.1" 404 3600
