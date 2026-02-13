@@ -1,4 +1,4 @@
-# FILE: /backend/apps/accounts/urls.py (UPDATED - Added Unsubscribe URL)
+# FILE: /backend/apps/accounts/urls.py (UPDATED - Added Notification Preferences URL)
 from django.urls import path, include
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenVerifyView
@@ -25,6 +25,8 @@ from .views import (
     DeviceManagementView,
     # ===== NEW: Unsubscribe view (added 2026‑02‑13) =====
     unsubscribe,
+    # ===== NEW: Notification preferences view =====
+    NotificationPreferencesView,
 )
 
 router = routers.DefaultRouter()
@@ -66,4 +68,7 @@ urlpatterns = [
     path('device/verify/confirm/', DeviceVerificationConfirmView.as_view(), name='device-verify-confirm'),
     path('devices/', DeviceManagementView.as_view(), name='device-management'),
     path('devices/<uuid:session_id>/', DeviceManagementView.as_view(), name='device-management-detail'),
+
+    # ===== NEW: Notification preferences endpoint =====
+    path('preferences/notifications/', NotificationPreferencesView.as_view(), name='notification-preferences'),
 ]

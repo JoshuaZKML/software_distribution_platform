@@ -1,4 +1,4 @@
-# FILE: /backend/config/celery.py (UPDATED - Production Hardened)
+# FILE: /backend/config/celery.py (UPDATED - Added Daily Aggregates Task)
 import os
 from celery import Celery
 from celery.schedules import crontab
@@ -30,6 +30,7 @@ app.conf.task_queues = (
     Queue('licenses'),
     Queue('products'),
     Queue('maintenance'),
+    Queue('analytics'),    # <-- NEW: dedicated queue for analytics tasks
 )
 
 # Default exchange/routing settings for safety
@@ -89,11 +90,17 @@ app.conf.beat_schedule = {
     },
 
     # Send license expiry reminders daily at 8 AM (added 2026‑02‑13)
-    # FIXED: task path now matches the full dotted convention used elsewhere.
     'send-license-expiry-reminders': {
         'task': 'backend.apps.licenses.tasks.send_license_expiry_reminders',
         'schedule': crontab(hour=8, minute=0),  # 8 AM daily
         'options': {'queue': 'licenses'}
+    },
+
+    # ===== NEW: Daily aggregates for analytics =====
+    'compute-daily-aggregates': {
+        'task': 'analytics.tasks.compute_daily_aggregates',
+        'schedule': crontab(hour=1, minute=0),  # 1 AM daily (UTC)
+        'options': {'queue': 'analytics'}
     },
 }
 
@@ -119,6 +126,10 @@ app.conf.task_routes = {
     # Product/software tasks
     'backend.apps.products.tasks.*': {
         'queue': 'products'
+    },
+    # Analytics tasks (NEW)
+    'analytics.tasks.*': {
+        'queue': 'analytics'
     },
     # All other tasks fall back to default queue (handled by task_default_queue)
 }

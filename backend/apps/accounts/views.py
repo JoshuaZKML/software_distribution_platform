@@ -33,6 +33,7 @@ from .serializers import (
     PasswordResetConfirmSerializer,
     PasswordResetRequestSerializer,
     UserRegistrationSerializer,
+    NotificationPreferencesSerializer,  # Added for notification preferences
 )
 
 logger = logging.getLogger(__name__)
@@ -653,6 +654,64 @@ class DeviceManagementView(APIView):
                 'message': f'{revoked_count} other sessions revoked.',
                 'revoked_count': revoked_count
             }, status=status.HTTP_200_OK)
+
+
+# ============================================================================
+# NOTIFICATION PREFERENCES VIEW (ADDED – production‑ready)
+# ============================================================================
+
+class NotificationPreferencesView(APIView):
+    """
+    Get or update notification preferences for the authenticated user.
+    Uses GET to retrieve current preferences and POST to update (merge).
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        """Return the user's current notification preferences."""
+        prefs = request.user.notification_preferences or {}
+        serializer = NotificationPreferencesSerializer(data=prefs)
+        serializer.is_valid(raise_exception=True)  # Validate stored data (should always be valid)
+        return Response(serializer.data)
+
+    def post(self, request):
+        """
+        Update notification preferences.
+        Merges incoming data with existing preferences, validates the combined result,
+        and saves if valid. Returns the updated preferences.
+        """
+        user = request.user
+        current_prefs = user.notification_preferences or {}
+
+        # Merge incoming data with current preferences
+        merged_prefs = current_prefs.copy()
+        merged_prefs.update(request.data)
+
+        # Validate the merged preferences using the serializer
+        serializer = NotificationPreferencesSerializer(data=merged_prefs)
+        serializer.is_valid(raise_exception=True)
+
+        # Save the validated, merged preferences
+        user.notification_preferences = serializer.validated_data
+        try:
+            user.save(update_fields=['notification_preferences'])
+        except Exception as e:
+            logger.exception("Failed to save notification preferences for user %s", user.id)
+            return Response(
+                {'error': 'Failed to save preferences. Please try again later.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        # Log the change for audit (optional)
+        _log_security_event(
+            actor=user,
+            action='NOTIFICATION_PREFERENCES_UPDATED',
+            target=f"user:{user.id}",
+            request=request,
+            metadata={'changed_fields': list(request.data.keys())}
+        )
+
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
 
 # ============================================================================

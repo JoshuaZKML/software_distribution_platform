@@ -81,3 +81,7 @@ maxminddb==3.0.0
 multidict==6.7.1
 propcache==0.4.1
 yarl==1.22.0
+
+#Chnnels
+channels==4.0.0
+channels-redis==4.1.0

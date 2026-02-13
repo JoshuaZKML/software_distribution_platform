@@ -433,3 +433,46 @@ class DeviceChangeLogSerializer(serializers.ModelSerializer):
             'created_at'
         ]
         read_only_fields = fields
+
+
+# ============================================================================
+# NOTIFICATION PREFERENCES SERIALIZER (ADDED – Production‑grade version)
+# ============================================================================
+
+class ChannelPreferencesSerializer(serializers.Serializer):
+    """
+    Preferences for a single notification channel (email, in‑app, etc.).
+    Each field corresponds to a notification category.
+    """
+    marketing = serializers.BooleanField(required=False)
+    expiry = serializers.BooleanField(required=False)
+    broadcast = serializers.BooleanField(required=False)
+
+
+class NotificationPreferencesSerializer(serializers.Serializer):
+    """
+    Main serializer for user notification preferences.
+    Groups preferences by channel (email, in‑app) for scalability.
+    """
+    email = ChannelPreferencesSerializer(required=False)
+    in_app = ChannelPreferencesSerializer(required=False)
+
+    def validate(self, data):
+        """
+        Example validation: ensure at least one expiry notification channel is enabled.
+        Modify or extend based on business rules.
+        """
+        email = data.get("email", {})
+        in_app = data.get("in_app", {})
+
+        expiry_enabled = (
+            email.get("expiry", True) or
+            in_app.get("expiry", True)
+        )
+
+        if not expiry_enabled:
+            raise serializers.ValidationError(
+                "At least one expiry notification channel must remain enabled."
+            )
+
+        return data

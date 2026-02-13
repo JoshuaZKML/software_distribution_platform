@@ -38,6 +38,14 @@ else:
     ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")  # No default – crashes if missing
 
 # ============================================================================
+# CRITICAL: Redis – required in production for cache; development gets default.
+# ============================================================================
+if DEBUG:
+    REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/1")
+else:
+    REDIS_URL = env("REDIS_URL")  # No default – crashes if missing
+
+# ============================================================================
 # APPLICATION DEFINITION
 # ============================================================================
 INSTALLED_APPS = [
@@ -83,6 +91,13 @@ INSTALLED_APPS = [
 # ============================================================================
 if DEBUG:
     INSTALLED_APPS += ["debug_toolbar"]
+
+# ============================================================================
+# CHANNELS (WebSocket) – ADDED for real‑time notifications
+# ============================================================================
+INSTALLED_APPS += [
+    'channels',
+]
 
 # ============================================================================
 # MIDDLEWARE – CRITICAL: This was MISSING in your file
@@ -139,6 +154,18 @@ WSGI_APPLICATION = "backend.config.wsgi.application"
 ASGI_APPLICATION = "backend.config.asgi.application"
 
 # ============================================================================
+# CHANNELS LAYER – WebSocket message broker (uses your existing Redis)
+# ============================================================================
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [REDIS_URL],  # reuse your existing REDIS_URL
+        },
+    },
+}
+
+# ============================================================================
 # CRITICAL: Database – must have explicit credentials in production.
 # ============================================================================
 def _db_setting(name, default_dev):
@@ -166,13 +193,8 @@ SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 SESSION_CACHE_ALIAS = "default"
 
 # ============================================================================
-# CRITICAL: Redis – required in production for cache; development gets default.
+# CACHES – uses REDIS_URL (now defined above)
 # ============================================================================
-if DEBUG:
-    REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/1")
-else:
-    REDIS_URL = env("REDIS_URL")  # No default – crashes if missing
-
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",

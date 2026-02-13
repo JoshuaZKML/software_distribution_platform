@@ -8,7 +8,11 @@ import os
 from django.conf import settings
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
-from .models import Category, Software, SoftwareVersion, SoftwareImage, SoftwareDocument
+from .models import (
+    Category, Software, SoftwareVersion,
+    SoftwareImage, SoftwareDocument,
+    SoftwareUsageEvent   # <-- ADDED for telemetry serializer
+)
 
 
 # ----------------------------------------------------------------------
@@ -354,3 +358,58 @@ class SoftwareSerializer(serializers.ModelSerializer):
         _assign_default_category(software)
 
         return software
+
+
+# ============================================================================
+# TELEMETRY SERIALIZER – ADDED FOR PRODUCT USAGE EVENT RECORDING
+# ============================================================================
+
+class SoftwareUsageEventSerializer(serializers.ModelSerializer):
+    """
+    Serializer for recording software usage events.
+    Accepts software_id (UUID) and optional human‑readable activation code,
+    and automatically associates the event with the authenticated user.
+    """
+    software_id = serializers.UUIDField(write_only=True)
+    activation_code = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        write_only=True,
+        help_text="Human‑readable activation code (optional)"
+    )
+
+    class Meta:
+        model = SoftwareUsageEvent
+        fields = ['software_id', 'event_type', 'metadata', 'activation_code']
+        # event_type is already validated by model choices
+
+    def validate_software_id(self, value):
+        """Ensure software exists and return the instance."""
+        try:
+            return Software.objects.get(id=value)
+        except Software.DoesNotExist:
+            raise serializers.ValidationError("Software not found.")
+
+    def validate_activation_code(self, value):
+        """If provided, validate and return the ActivationCode instance."""
+        if value:
+            # Local import to avoid circular dependency and keep existing imports untouched
+            from licenses.models import ActivationCode
+            try:
+                return ActivationCode.objects.get(human_code=value)
+            except ActivationCode.DoesNotExist:
+                raise serializers.ValidationError("Invalid activation code.")
+        return None
+
+    def create(self, validated_data):
+        """Create the usage event, automatically setting the user from request."""
+        software = validated_data.pop('software_id')
+        activation_code = validated_data.pop('activation_code', None)
+        user = self.context['request'].user
+
+        return SoftwareUsageEvent.objects.create(
+            software=software,
+            user=user,
+            activation_code=activation_code,
+            **validated_data
+        )

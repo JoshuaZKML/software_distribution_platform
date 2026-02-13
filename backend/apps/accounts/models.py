@@ -113,6 +113,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text=_("User opted out of non‑transactional emails.")
     )
 
+    # Notification preferences (added as per instruction)
+    notification_preferences = models.JSONField(
+        _("notification preferences"),
+        default=dict,
+        blank=True,
+        help_text=_("JSON dict of notification preferences, e.g. {'email_marketing': True, 'email_expiry': False}")
+    )
+
     blocked_reason = models.TextField(_("blocked reason"), blank=True)
     blocked_at = models.DateTimeField(_("blocked at"), null=True, blank=True)
     blocked_by = models.ForeignKey(

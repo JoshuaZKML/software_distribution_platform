@@ -10,6 +10,8 @@ router.register(r'abuse-attempts', views.AbuseAttemptViewSet, basename='abuseatt
 router.register(r'alerts', views.AbuseAlertViewSet, basename='abusealert')
 router.register(r'ip-blacklist', views.IPBlacklistViewSet, basename='ipblacklist')
 router.register(r'code-blacklist', views.CodeBlacklistViewSet, basename='codeblacklist')
+# ----- NEW: Security notification logs -----
+router.register(r'security-logs', views.SecurityNotificationLogViewSet, basename='securitylog')
 
 urlpatterns = [
     path('', include(router.urls)),

@@ -19,19 +19,37 @@ from rest_framework import filters, generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView          # <-- ADDED for new endpoint
 
 from backend.apps.accounts.models import SecurityLog
 from backend.apps.accounts.permissions import IsAdmin
 
 from .filters import SoftwareFilter
-from .models import Category, Software, SoftwareDocument, SoftwareImage, SoftwareVersion
+from .models import (
+    Category, Software, SoftwareDocument,
+    SoftwareImage, SoftwareVersion,
+    SoftwareUsageEvent                     # <-- ADDED for telemetry
+)
 from .serializers import (
     CategorySerializer,
     SoftwareDocumentSerializer,
     SoftwareImageSerializer,
     SoftwareSerializer,
     SoftwareVersionSerializer,
+    SoftwareUsageEventSerializer            # <-- ADDED for telemetry
 )
+
+
+# ----------------------------------------------------------------------
+# Helper – get client IP (respecting proxies)
+# ----------------------------------------------------------------------
+def _get_client_ip(request):
+    """Extract the real client IP address, even behind reverse proxies."""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        # Take the first IP in the chain (client's real IP)
+        return x_forwarded_for.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '')
 
 
 # ----------------------------------------------------------------------
@@ -404,6 +422,41 @@ class SoftwareDownloadView(generics.GenericAPIView):
         return response
 
 
+# ============================================================================
+# TELEMETRY ENDPOINT – ADDED FOR PRODUCT USAGE EVENT RECORDING
+# ============================================================================
+
+class RecordUsageEventView(APIView):
+    """
+    Record a software usage event.
+    Requires authentication and optionally an activation code.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = SoftwareUsageEventSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+
+        # Let the serializer handle creation, adding IP and user agent
+        event = serializer.save(
+            ip_address=_get_client_ip(request),
+            user_agent=request.META.get('HTTP_USER_AGENT', '')
+        )
+
+        # Future enhancement: update license usage quota if needed
+
+        return Response(
+            {'id': str(event.id), 'status': 'recorded'},
+            status=status.HTTP_201_CREATED
+        )
+
+
+# ----------------------------------------------------------------------
+# Public software version list (with software metadata)
+# ----------------------------------------------------------------------
 class SoftwareVersionListView(generics.ListAPIView):
     """
     Get all versions for a software (public).

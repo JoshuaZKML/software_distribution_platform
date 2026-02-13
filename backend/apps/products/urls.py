@@ -4,6 +4,7 @@ Products app URLs for Software Distribution Platform.
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views
+from .views import RecordUsageEventView   # <-- ADDED for telemetry endpoint
 
 router = DefaultRouter()
 router.register(r'categories', views.CategoryViewSet, basename='category')
@@ -20,4 +21,6 @@ urlpatterns = [
     path('<slug:slug>/versions/', views.SoftwareVersionListView.as_view(), name='software-versions'),
     # Added: download specific version with token
     path('<slug:slug>/download/<uuid:version_id>/', views.SoftwareDownloadView.as_view(), name='software-version-download'),
+    # ===== NEW: Telemetry endpoint for recording usage events =====
+    path('usage/', RecordUsageEventView.as_view(), name='record-usage'),
 ]

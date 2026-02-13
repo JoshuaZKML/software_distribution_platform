@@ -615,3 +615,63 @@ class SoftwareDocument(models.Model):
     
     def __str__(self):
         return f"{self.software.name} - {self.title}"
+
+
+# ============================================================================
+# TELEMETRY MODEL – ADDED FOR PRODUCT USAGE ANALYTICS (non‑disruptive)
+# ============================================================================
+
+class SoftwareUsageEvent(models.Model):
+    """
+    Tracks usage events for software (e.g., launch, feature use).
+    This is separate from LicenseUsage (which tracks feature limits) for telemetry/analytics.
+    """
+
+    class EventTypes(models.TextChoices):
+        LAUNCH = "launch", _("Launch")
+        FEATURE_X_USED = "feature_x_used", _("Feature X Used")
+        # Add more as needed
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    software = models.ForeignKey(
+        'Software',
+        on_delete=models.CASCADE,
+        related_name='usage_events'
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='software_usage_events'
+    )
+    activation_code = models.ForeignKey(
+        'licenses.ActivationCode',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='usage_events'
+    )
+    event_type = models.CharField(
+        max_length=50,
+        choices=EventTypes.choices,
+        help_text=_("Type of usage event")
+    )
+    metadata = models.JSONField(default=dict, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = _("software usage event")
+        verbose_name_plural = _("software usage events")
+        indexes = [
+            models.Index(fields=['software', 'created_at']),
+            models.Index(fields=['user', 'created_at']),
+            models.Index(fields=['event_type']),
+            # Optional composite index for common analytics queries
+            models.Index(fields=['software', 'event_type', 'created_at']),
+        ]
+        ordering = ['-created_at']
+
+    def __str__(self):
+        # Anonymized: use user ID instead of email to avoid PII exposure in logs
+        return f"{self.event_type} – {self.software.name} – {self.user_id}"
