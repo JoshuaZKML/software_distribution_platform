@@ -1,0 +1,33 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+    &rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+    &rsaquo; <a href="{% url opts|admin_urlname:'change' object.pk %}">{{ object|truncatewords:"18" }}</a>
+    &rsaquo; {% trans 'Confirm sending' %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{% trans 'Are you sure?' %}</h1>
+    <p>
+        {% blocktrans with subject=object.subject count counter=recipient_count %}
+        You are about to send the broadcast "<strong>{{ subject }}</strong>" to <strong>{{ counter }}</strong> recipient.
+        {% plural %}
+        You are about to send the broadcast "<strong>{{ subject }}</strong>" to <strong>{{ counter }}</strong> recipients.
+        {% endblocktrans %}
+    </p>
+    <p>{% trans 'This action cannot be undone once started.' %}</p>
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            <input type="submit" value="{% trans 'Yes, I’m sure' %}">
+            <a href="{% url opts|admin_urlname:'change' object.pk %}" class="button cancel-link">{% trans 'No, take me back' %}</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -69,7 +69,7 @@ class PermissionAuditMiddleware(MiddlewareMixin):
 
 
 class RateLimitMiddleware(MiddlewareMixin):
-    """Atomic rate limiting middleware using cache.incr()."""
+    """Atomic rate limiting middleware using cache.incr() with robust error handling."""
 
     def process_request(self, request):
         # Skip rate limiting for certain paths
@@ -88,9 +88,25 @@ class RateLimitMiddleware(MiddlewareMixin):
             # Key does not exist yet; set initial value 1 with 60s expiry
             cache.set(key, 1, 60)
             current = 1
+        except Exception as e:
+            # FIX: Handle any other cache backend errors gracefully
+            # Log the error but allow the request to proceed
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Rate limiting error: {e}")
+            return None
 
-        if current > limit:
-            return HttpResponseForbidden('Rate limit exceeded. Please try again later.')
+        # FIX: Ensure current is an integer before comparison
+        if current is None:
+            # If for some reason we got None, treat as 1 (first request)
+            current = 1
+
+        try:
+            if int(current) > limit:
+                return HttpResponseForbidden('Rate limit exceeded. Please try again later.')
+        except (TypeError, ValueError):
+            # If conversion to int fails, allow the request
+            pass
 
         return None
 

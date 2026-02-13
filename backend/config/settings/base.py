@@ -16,14 +16,26 @@ APPS_DIR = BASE_DIR / "backend" / "apps"
 env = environ.Env()
 environ.Env.read_env(BASE_DIR / ".env")
 
-# Secret key
-SECRET_KEY = env("SECRET_KEY", default="django-insecure-development-key-change-in-production")
-
 # Debug mode
 DEBUG = env.bool("DEBUG", default=False)
 
-# Allowed hosts
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+# ============================================================================
+# CRITICAL: Secret key – must be explicitly set in production.
+# In development we allow a fallback for convenience.
+# ============================================================================
+if DEBUG:
+    SECRET_KEY = env("SECRET_KEY", default="django-insecure-development-key-change-in-production")
+else:
+    SECRET_KEY = env("SECRET_KEY")  # No default – crashes if missing
+
+
+# ============================================================================
+# CRITICAL: Allowed hosts – in production this must be set; development defaults are safe.
+# ============================================================================
+if DEBUG:
+    ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+else:
+    ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")  # No default – crashes if missing
 
 # ============================================================================
 # APPLICATION DEFINITION
@@ -61,11 +73,16 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "django_celery_results",
     "django_extensions",
-    "debug_toolbar",
 
     # ----- Health check app itself (views, templates, URLs) -----
     "backend.apps.health_check",
 ]
+
+# ============================================================================
+# CRITICAL: Debug toolbar should only be installed in DEBUG mode.
+# ============================================================================
+if DEBUG:
+    INSTALLED_APPS += ["debug_toolbar"]
 
 # ============================================================================
 # MIDDLEWARE – CRITICAL: This was MISSING in your file
@@ -84,15 +101,18 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 
-    # ----- Development tools -----
-    "debug_toolbar.middleware.DebugToolbarMiddleware",    # Last before custom middleware
-
     # ----- Custom security & audit (order as per Verified Instructions) -----
     "backend.core.middleware.SecurityHeadersMiddleware",
     "backend.core.middleware.PermissionAuditMiddleware",
     "backend.core.middleware.RateLimitMiddleware",         # ✅ ADDED – abuse prevention
     "backend.core.middleware.DeviceFingerprintMiddleware", # ✅ ADDED – hardware binding
 ]
+
+# ============================================================================
+# CRITICAL: Debug toolbar middleware – only in DEBUG mode.
+# ============================================================================
+if DEBUG:
+    MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
 
 # URL configuration
 ROOT_URLCONF = "backend.config.urls"
@@ -118,15 +138,24 @@ TEMPLATES = [
 WSGI_APPLICATION = "backend.config.wsgi.application"
 ASGI_APPLICATION = "backend.config.asgi.application"
 
-# Database - PostgreSQL is REQUIRED
+# ============================================================================
+# CRITICAL: Database – must have explicit credentials in production.
+# ============================================================================
+def _db_setting(name, default_dev):
+    """Helper to require env var in production, allow default in development."""
+    if DEBUG:
+        return env(name, default=default_dev)
+    else:
+        return env(name)  # No default – crashes if missing
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("POSTGRES_DB", default="software_platform"),
-        "USER": env("POSTGRES_USER", default="postgres"),
-        "PASSWORD": env("POSTGRES_PASSWORD", default="postgres"),
-        "HOST": env("POSTGRES_HOST", default="localhost"),
-        "PORT": env("POSTGRES_PORT", default="5432"),
+        "NAME": _db_setting("POSTGRES_DB", "software_platform"),
+        "USER": _db_setting("POSTGRES_USER", "postgres"),
+        "PASSWORD": _db_setting("POSTGRES_PASSWORD", "postgres"),
+        "HOST": _db_setting("POSTGRES_HOST", "localhost"),
+        "PORT": _db_setting("POSTGRES_PORT", "5432"),
         "CONN_MAX_AGE": 600,
         "OPTIONS": {"sslmode": "prefer"},
     }
@@ -136,8 +165,13 @@ DATABASES = {
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 SESSION_CACHE_ALIAS = "default"
 
-# Cache - Redis with graceful degradation
-REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/1")
+# ============================================================================
+# CRITICAL: Redis – required in production for cache; development gets default.
+# ============================================================================
+if DEBUG:
+    REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/1")
+else:
+    REDIS_URL = env("REDIS_URL")  # No default – crashes if missing
 
 CACHES = {
     "default": {
@@ -147,7 +181,8 @@ CACHES = {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {"max_connections": 100, "retry_on_timeout": True},
             "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",
-            "IGNORE_EXCEPTIONS": not DEBUG,
+            # In production we want to fail fast rather than silently ignore cache failures.
+            "IGNORE_EXCEPTIONS": env.bool("CACHE_IGNORE_EXCEPTIONS", default=False),
             "SOCKET_CONNECT_TIMEOUT": 5,
             "SOCKET_TIMEOUT": 5,
         },
@@ -157,16 +192,18 @@ CACHES = {
 }
 
 # ============================================================================
-# CELERY CONFIGURATION
+# CELERY CONFIGURATION – with deliberate fallback to database broker if not Redis.
+# This fallback is preserved exactly as originally designed (both dev and prod).
 # ============================================================================
 
 CELERY_BROKER_URL = env("CELERY_BROKER_URL", default=REDIS_URL)
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default=REDIS_URL)
 
-# ✅ FIXED: Fallback to database broker – correct scheme is "django" (not "django://")
+# ✅ PRESERVED: If the broker URL is not Redis, fall back to database broker.
+# This is the original behavior the user explicitly wants to keep.
 if not CELERY_BROKER_URL.startswith("redis://"):
-    CELERY_BROKER_URL = "django"          # ✅ Correct
-    CELERY_RESULT_BACKEND = "django-db"
+    CELERY_BROKER_URL = "django"          # Use database transport
+    CELERY_RESULT_BACKEND = "django-db"   # Store results in DB
 
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
@@ -267,7 +304,7 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-])
+] if DEBUG else [])
 CORS_ALLOW_CREDENTIALS = True
 
 # ============================================================================
@@ -305,6 +342,11 @@ FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:3000')
 ADMIN_FRONTEND_URL = env('ADMIN_FRONTEND_URL', default='http://localhost:3000/admin')
 
 # ============================================================================
+# SITE URL (for absolute URLs in emails, tracking, etc.)
+# ============================================================================
+SITE_URL = env('SITE_URL', default='http://localhost:8000')
+
+# ============================================================================
 # ADMIN
 # ============================================================================
 ADMINS = [("System Admin", env("ADMIN_EMAIL", default="admin@example.com"))]
@@ -312,6 +354,9 @@ ADMINS = [("System Admin", env("ADMIN_EMAIL", default="admin@example.com"))]
 # ============================================================================
 # LOGGING
 # ============================================================================
+# NOTE: The file handler requires that the 'logs' directory exists and is writable.
+# In production, consider using a logging handler that does not rely on files,
+# or ensure the directory is created during deployment.
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -369,6 +414,12 @@ ACTIVATION_EXPIRY_DAYS = 365
 # ============================================================================
 # LICENSE KEY AND ENCRYPTION SETTINGS
 # ============================================================================
+# CRITICAL: HARDWARE_ID_SALT should be independent of SECRET_KEY and must be set in production.
+if DEBUG:
+    HARDWARE_ID_SALT = env('HARDWARE_ID_SALT', default=SECRET_KEY)
+else:
+    HARDWARE_ID_SALT = env('HARDWARE_ID_SALT')  # No default – crashes if missing
+
 LICENSE_KEY_SETTINGS = {
     'DEFAULT_KEY_FORMAT': 'STANDARD',
     'DEFAULT_KEY_LENGTH': 25,
@@ -378,7 +429,7 @@ LICENSE_KEY_SETTINGS = {
     'ALLOWED_KEY_FORMATS': ['STANDARD', 'EXTENDED', 'ALPHANUM'],
     'MIN_KEY_LENGTH': 20,
     'MAX_KEY_LENGTH': 30,
-    'HARDWARE_ID_SALT': env('HARDWARE_ID_SALT', default=SECRET_KEY),
+    'HARDWARE_ID_SALT': HARDWARE_ID_SALT,
     'MAX_DEVICE_CHANGES': 3,
     'DEVICE_CHANGE_WINDOW_HOURS': 24,
     'LICENSE_ENCRYPTION_KEY_PATH': env('LICENSE_ENCRYPTION_KEY_PATH', default=None),

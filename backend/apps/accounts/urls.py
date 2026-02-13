@@ -1,4 +1,4 @@
-# FILE: /backend/apps/accounts/urls.py (UPDATED - Added Device Verification & Management URLs)
+# FILE: /backend/apps/accounts/urls.py (UPDATED - Added Unsubscribe URL)
 from django.urls import path, include
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenVerifyView
@@ -23,6 +23,8 @@ from .views import (
     # ===== NEW: Device verification & management views =====
     DeviceVerificationConfirmView,
     DeviceManagementView,
+    # ===== NEW: Unsubscribe view (added 2026‑02‑13) =====
+    unsubscribe,
 )
 
 router = routers.DefaultRouter()
@@ -51,6 +53,9 @@ urlpatterns = [
     path('reset-password/', PasswordResetRequestView.as_view(), name='reset-password'),
     path('reset-password/confirm/', PasswordResetConfirmView.as_view(), name='reset-password-confirm'),
     path('change-password/', ChangePasswordView.as_view(), name='change-password'),
+
+    # ===== NEW: Unsubscribe endpoint =====
+    path('unsubscribe/', unsubscribe, name='unsubscribe'),
 
     # ===== NEW: Emergency 2FA endpoints =====
     path('2fa/emergency/setup/', EmergencyTwoFactorSetupView.as_view(), name='emergency-2fa-setup'),

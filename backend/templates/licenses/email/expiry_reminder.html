@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .header { background-color: #f8f9fa; padding: 20px; text-align: center; }
+        .content { padding: 20px; }
+        .button { display: inline-block; padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; }
+        .footer { margin-top: 30px; font-size: 0.9em; color: #6c757d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>{{ software.name }} Licence</h2>
+        </div>
+        <div class="content">
+            <p>Hello {{ user.first_name|default:user.email }},</p>
+            {% if days_left > 0 %}
+                <p>Your licence for <strong>{{ software.name }}</strong> will expire in <strong>{{ days_left }} day{{ days_left|pluralize }}</strong>.</p>
+                <p><strong>Expiry date:</strong> {{ expiry_date|date:"F j, Y" }}</p>
+                <p>To continue using the software without interruption, please renew your licence now:</p>
+                <p style="text-align: center;">
+                    <a href="{{ renewal_url }}" class="button">Renew Licence</a>
+                </p>
+            {% else %}
+                <p>Your licence for <strong>{{ software.name }}</strong> has expired.</p>
+                <p>You can still renew it to regain access:</p>
+                <p style="text-align: center;">
+                    <a href="{{ renewal_url }}" class="button">Renew Now</a>
+                </p>
+            {% endif %}
+            <p>If you have any questions, please contact our support team at <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>
+        </div>
+        <div class="footer">
+            <p>This is an automated message. You are receiving this because you have an active licence for {{ software.name }}.</p>
+            <p><a href="{{ unsubscribe_url }}">Unsubscribe from marketing emails</a> (you will still receive transactional emails).</p>
+        </div>
+    </div>
+</body>
+</html>

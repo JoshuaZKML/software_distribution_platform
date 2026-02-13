@@ -142,6 +142,18 @@ class ActivationCode(models.Model):
     updated_at = models.DateTimeField(_("updated at"), auto_now=True)
     # ---------------------------------------
     
+    # Reminder tracking (new fields)
+    expiry_reminders_sent = models.JSONField(
+        default=list,
+        blank=True,
+        help_text=_("List of reminder days already sent (e.g., [21,14,7,1,0])")
+    )
+    last_reminder_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text=_("Timestamp of the most recent reminder sent")
+    )
+    
     # Revocation info
     revoked_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

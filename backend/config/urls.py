@@ -57,6 +57,8 @@ app_includes = [
     ("backend.apps.security.urls", "api/v1/security/"),
     ("backend.apps.api.urls", "api/v1/"),
     ("backend.apps.health_check.urls", "health/"),
+    # ----- NEW: Notifications app -----
+    ("backend.apps.notifications.urls", "notifications/"),
 ]
 
 for mod, prefix in app_includes:

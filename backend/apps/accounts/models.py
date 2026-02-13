@@ -1,3 +1,4 @@
+# backend/apps/accounts/models.py
 """
 Accounts models for Software Distribution Platform.
 """
@@ -37,8 +38,6 @@ class UserManager(BaseUserManager):
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Superuser must have is_superuser=True.")
 
-        # Role check is redundant because we set it above, but left for clarity.
-        # The condition is kept for backward compatibility but will never fail.
         return self.create_user(email, password, **extra_fields)
 
 
@@ -106,6 +105,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(_("staff status"), default=False)
     is_verified = models.BooleanField(_("verified"), default=False)
     is_blocked = models.BooleanField(_("blocked"), default=False)
+
+    # Marketing opt‑out (new field)
+    unsubscribed = models.BooleanField(
+        _("unsubscribed from marketing"),
+        default=False,
+        help_text=_("User opted out of non‑transactional emails.")
+    )
+
     blocked_reason = models.TextField(_("blocked reason"), blank=True)
     blocked_at = models.DateTimeField(_("blocked at"), null=True, blank=True)
     blocked_by = models.ForeignKey(
@@ -193,6 +200,27 @@ class User(AbstractBaseUser, PermissionsMixin):
         ]
         fingerprint_string = "|".join(components)
         return hashlib.sha256(fingerprint_string.encode()).hexdigest()
+
+    def get_unsubscribe_token(self):
+        """
+        Generate a secure, time‑limited token for use in unsubscribe links.
+        The token is tied to the user's password/last login; it will become invalid
+        if the user changes their password or logs in again.
+        """
+        from django.contrib.auth.tokens import default_token_generator
+        from django.utils.http import urlsafe_base64_encode
+        from django.utils.encoding import force_bytes
+        token = default_token_generator.make_token(self)
+        uid = urlsafe_base64_encode(force_bytes(self.pk))
+        return f"{uid}/{token}"
+
+    def get_unsubscribe_token_url(self):
+        """
+        Generate a full unsubscribe URL including the token.
+        Used in email templates.
+        """
+        token = self.get_unsubscribe_token()
+        return f"{settings.FRONTEND_URL}/unsubscribe?token={token}"
 
     def can_impersonate(self):
         """Check if user can impersonate other users."""

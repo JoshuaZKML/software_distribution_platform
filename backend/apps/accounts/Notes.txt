@@ -1,0 +1,20 @@
+🔗 Integration with Frontend
+Your frontend (React, Vue, etc.) should provide:
+
+Renewal page at /renew/{code.id} – calls your payment API.
+
+Unsubscribe page that reads uid and token from URL and POSTs to /api/accounts/unsubscribe/.
+
+🧪 Testing & Rollout
+Apply all migrations.
+
+Create a test broadcast in Django admin (Draft) and hit “Send Now”.
+Monitor Celery logs and email inboxes.
+
+Manually trigger the licence expiry task once:
+
+python
+from licenses.tasks import send_license_expiry_reminders
+send_license_expiry_reminders.delay()
+Enable the Celery beat schedule when ready.
+
