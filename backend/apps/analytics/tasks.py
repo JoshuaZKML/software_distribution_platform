@@ -3,15 +3,17 @@ import logging
 from datetime import timedelta, datetime
 
 from celery import shared_task
-from django.db.models import Sum
+from django.db.models import Sum, Count
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.core.cache import cache  # added for cohort lock
 
-from .models import DailyAggregate
+from .models import DailyAggregate, CohortAggregate  # added CohortAggregate
 from backend.apps.payments.models import Payment
 from backend.apps.licenses.models import ActivationCode
 from backend.apps.products.models import SoftwareUsageEvent
 from backend.apps.security.models import AbuseAttempt
+from backend.apps.accounts.models import UserSession  # added for login events
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -132,3 +134,129 @@ def compute_daily_aggregates(self, target_date=None):
         logger.error(f"Failed to compute daily aggregates for {target_date}: {exc}")
         # Retry with exponential backoff (Celery default)
         raise self.retry(exc=exc)
+
+
+@shared_task(name="analytics.tasks.compute_cohorts")
+def compute_cohorts():
+    """
+    Compute weekly and monthly retention cohorts using actual login events (UserSession).
+    Runs weekly (Sunday 2 AM) and processes the last 12 weeks and 12 months.
+    Uses a cache lock to prevent overlapping executions.
+    """
+    lock_id = "cohort_computation_lock"
+    # Acquire lock (expires after 6 hours – task should finish within that)
+    if not cache.add(lock_id, "locked", timeout=60*60*6):
+        logger.info("Cohort computation already running, skipping.")
+        return
+
+    try:
+        today = timezone.now().date()
+
+        # --- Weekly cohorts (last 12 weeks) ---
+        for weeks_ago in range(1, 13):
+            # Calculate Monday of that week
+            cohort_start = today - timedelta(weeks=weeks_ago)
+            # Adjust to Monday (weekday 0 = Monday)
+            cohort_start = cohort_start - timedelta(days=cohort_start.weekday())
+            cohort_end = cohort_start + timedelta(days=6)
+
+            # Users who registered in that week
+            user_ids = list(
+                User.objects.filter(
+                    date_joined__date__gte=cohort_start,
+                    date_joined__date__lte=cohort_end
+                ).values_list('id', flat=True)
+            )
+            total = len(user_ids)
+            if total == 0:
+                continue
+
+            # For each subsequent week up to today
+            max_weeks = (today - cohort_start).days // 7
+            for week_offset in range(1, max_weeks + 1):
+                period_start = cohort_start + timedelta(weeks=week_offset)
+                period_end = period_start + timedelta(days=6)
+
+                # Count distinct users who had a session created in this period
+                retained = UserSession.objects.filter(
+                    user_id__in=user_ids,
+                    created_at__date__gte=period_start,
+                    created_at__date__lte=period_end
+                ).values('user_id').distinct().count()
+
+                rate = (retained / total) * 100 if total else 0
+
+                CohortAggregate.objects.update_or_create(
+                    cohort_date=cohort_start,
+                    period='week',
+                    period_number=week_offset,
+                    defaults={
+                        'user_count': total,
+                        'retained_count': retained,
+                        'retention_rate': round(rate, 2),
+                    }
+                )
+
+        # --- Monthly cohorts (last 12 months) ---
+        for months_ago in range(1, 13):
+            # First day of the month, months_ago months ago
+            cohort_start = (today.replace(day=1) - timedelta(days=1)).replace(day=1)
+            for _ in range(months_ago - 1):
+                cohort_start = (cohort_start.replace(day=1) - timedelta(days=1)).replace(day=1)
+            # Now cohort_start is the first day of that month
+            # Compute end of month
+            if cohort_start.month == 12:
+                cohort_end = cohort_start.replace(year=cohort_start.year+1, month=1, day=1) - timedelta(days=1)
+            else:
+                cohort_end = cohort_start.replace(month=cohort_start.month+1, day=1) - timedelta(days=1)
+
+            user_ids = list(
+                User.objects.filter(
+                    date_joined__date__gte=cohort_start,
+                    date_joined__date__lte=cohort_end
+                ).values_list('id', flat=True)
+            )
+            total = len(user_ids)
+            if total == 0:
+                continue
+
+            # For each subsequent month up to today
+            current = cohort_start
+            month_offset = 1
+            while current <= today:
+                period_start = current.replace(day=1)
+                if period_start.month == 12:
+                    period_end = period_start.replace(year=period_start.year+1, month=1, day=1) - timedelta(days=1)
+                else:
+                    period_end = period_start.replace(month=period_start.month+1, day=1) - timedelta(days=1)
+
+                # Skip the cohort month itself (offset 0)
+                if period_start > cohort_start:
+                    retained = UserSession.objects.filter(
+                        user_id__in=user_ids,
+                        created_at__date__gte=period_start,
+                        created_at__date__lte=period_end
+                    ).values('user_id').distinct().count()
+
+                    rate = (retained / total) * 100 if total else 0
+
+                    CohortAggregate.objects.update_or_create(
+                        cohort_date=cohort_start,
+                        period='month',
+                        period_number=month_offset,
+                        defaults={
+                            'user_count': total,
+                            'retained_count': retained,
+                            'retention_rate': round(rate, 2),
+                        }
+                    )
+                    month_offset += 1
+
+                # Move to next month
+                if current.month == 12:
+                    current = current.replace(year=current.year+1, month=1)
+                else:
+                    current = current.replace(month=current.month+1)
+
+    finally:
+        cache.delete(lock_id)

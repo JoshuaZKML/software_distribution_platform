@@ -7,8 +7,9 @@ from . import views
 
 router = DefaultRouter()
 router.register(r'payments', views.PaymentViewSet, basename='payment')
-router.register(r'invoices', views.InvoiceViewSet, basename='invoice')
+router.register(r'plans', views.PlanViewSet, basename='plan')          # <-- new
 router.register(r'subscriptions', views.SubscriptionViewSet, basename='subscription')
+router.register(r'invoices', views.InvoiceViewSet, basename='invoice')
 router.register(r'coupons', views.CouponViewSet, basename='coupon')
 
 urlpatterns = [

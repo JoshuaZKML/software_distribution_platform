@@ -4,8 +4,9 @@ Payments models for Software Distribution Platform.
 import uuid
 import hashlib
 from datetime import timedelta
+from decimal import Decimal  # added for Plan price default
 from django.db import models, transaction
-from django.db.models import F, Q
+from django.db.models import F, Q, UniqueConstraint  # added UniqueConstraint
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
@@ -327,12 +328,264 @@ class Payment(models.Model):
         super().save(*args, **kwargs)
 
 
+# ============================================================================
+# NEW PLAN MODEL – added without disruption (used by enhanced Subscription)
+# ============================================================================
+
+class Plan(models.Model):
+    """
+    Defines a subscription plan (pricing, billing interval, features).
+    This is a new, independent model. Existing subscriptions are not affected.
+    """
+    INTERVAL_CHOICES = [
+        ('month', 'Monthly'),
+        ('year', 'Yearly'),
+        ('lifetime', 'Lifetime'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)               # e.g., "Pro Monthly"
+    code = models.SlugField(unique=True)                  # e.g., "pro_monthly"
+    description = models.TextField(blank=True)
+    price = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal('0.00'))
+    currency = models.CharField(max_length=3, default='USD')
+    interval = models.CharField(max_length=10, choices=INTERVAL_CHOICES)
+    trial_days = models.PositiveIntegerField(default=0)
+    features = models.JSONField(default=dict, blank=True)  # e.g., {"max_users": 10}
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("plan")
+        verbose_name_plural = _("plans")
+        ordering = ['sort_order', 'price']
+
+    def __str__(self):
+        return f"{self.name} ({self.currency} {self.price}/{self.interval})"
+
+
 # ----------------------------------------------------------------------
-# INVOICE MODEL (unchanged)
+# SUBSCRIPTION MODEL – enhanced with new fields (all nullable/optional)
+# ----------------------------------------------------------------------
+
+class Subscription(models.Model):
+    """Subscription for recurring payments."""
+
+    STATUS_CHOICES = [
+        ("ACTIVE", "Active"),
+        ("CANCELLED", "Cancelled"),
+        ("EXPIRED", "Expired"),
+        ("SUSPENDED", "Suspended"),
+        ("PENDING", "Pending"),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # Relationships
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="subscriptions"
+    )
+    software = models.ForeignKey(
+        "products.Software",
+        on_delete=models.CASCADE,
+        related_name="subscriptions"
+    )
+    activation_code = models.OneToOneField(
+        "licenses.ActivationCode",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="subscription"
+    )
+
+    # --- NEW: Plan reference (nullable, backward‑compatible) ---
+    plan = models.ForeignKey(
+        Plan,
+        on_delete=models.PROTECT,          # Financial records should not be deleted
+        null=True,
+        blank=True,
+        related_name="subscriptions"
+    )
+
+    # Subscription details
+    plan_name = models.CharField(_("plan name"), max_length=100)
+    billing_cycle = models.CharField(
+        _("billing cycle"),
+        max_length=20,
+        choices=[
+            ("MONTHLY", "Monthly"),
+            ("QUARTERLY", "Quarterly"),
+            ("YEARLY", "Yearly"),
+            ("LIFETIME", "Lifetime"),
+        ]
+    )
+
+    # Pricing
+    amount = models.DecimalField(_("amount"), max_digits=10, decimal_places=2)
+    currency = models.CharField(_("currency"), max_length=3, default="USD")
+    setup_fee = models.DecimalField(
+        _("setup fee"),
+        max_digits=10,
+        decimal_places=2,
+        default=0
+    )
+
+    # Status
+    status = models.CharField(
+        _("status"),
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="PENDING"
+    )
+
+    # Dates
+    start_date = models.DateTimeField(_("start date"))
+    end_date = models.DateTimeField(_("end date"))
+    next_billing_date = models.DateTimeField(_("next billing date"), null=True, blank=True)
+    cancelled_at = models.DateTimeField(_("cancelled at"), null=True, blank=True)
+
+    # --- NEW: Period anchor fields (nullable, backward‑compatible) ---
+    current_period_start = models.DateTimeField(null=True, blank=True)
+    current_period_end = models.DateTimeField(null=True, blank=True)
+    ended_at = models.DateTimeField(null=True, blank=True)   # actual termination time
+
+    # Grace period for failed renewals (enterprise expectation)
+    grace_period_until = models.DateTimeField(
+        _("grace period until"),
+        null=True,
+        blank=True,
+        help_text=_("If set, access remains valid until this date even after expiry.")
+    )
+
+    # Auto-renewal
+    auto_renew = models.BooleanField(_("auto renew"), default=True)
+    renewal_failed = models.BooleanField(_("renewal failed"), default=False)
+    renewal_failure_reason = models.TextField(_("renewal failure reason"), blank=True)
+
+    # --- NEW: Cancel‑at‑period‑end flag ---
+    cancel_at_period_end = models.BooleanField(default=False)
+
+    # Payment method
+    payment_method = models.CharField(
+        _("payment method"),
+        max_length=20,
+        choices=Payment.PAYMENT_METHODS
+    )
+    payment_gateway_id = models.CharField(
+        _("payment gateway ID"),
+        max_length=255,
+        blank=True
+    )
+
+    # Metadata
+    metadata = models.JSONField(_("metadata"), default=dict)
+
+    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
+
+    class Meta:
+        verbose_name = _("subscription")
+        verbose_name_plural = _("subscriptions")
+        indexes = [
+            models.Index(fields=["user", "status"]),
+            models.Index(fields=["software", "status"]),
+            models.Index(fields=["status", "end_date"]),
+            models.Index(fields=["next_billing_date"]),
+            # --- NEW INDEXES ---
+            models.Index(fields=["current_period_end"]),
+        ]
+        # --- NEW CONSTRAINT (safe only if no duplicate active subscriptions exist) ---
+        constraints = [
+            UniqueConstraint(
+                fields=['user'],
+                condition=Q(status='ACTIVE'),
+                name='unique_active_subscription_per_user'
+            ),
+        ]
+
+    def __str__(self):
+        return f"Subscription {self.id} - {self.user.email}"
+
+    @property
+    def is_active(self):
+        """Original active check – strictly between start and end date."""
+        now = timezone.now()
+        return (
+            self.status == "ACTIVE" and
+            self.start_date <= now <= self.end_date
+        )
+
+    @property
+    def has_active_access(self):
+        """
+        Extended access check that includes the grace period.
+        Use this for licensing decisions to avoid cutting off paying clients.
+        """
+        now = timezone.now()
+        if self.status != "ACTIVE":
+            return False
+        if self.start_date <= now <= self.end_date:
+            return True
+        # Outside strict period – check grace window
+        if self.grace_period_until and now <= self.grace_period_until:
+            return True
+        return False
+
+    @property
+    def days_remaining(self):
+        if not self.is_active:
+            return 0
+        delta = self.end_date - timezone.now()
+        return max(0, delta.days)
+
+    def cancel(self, immediate=False):
+        """Cancel subscription."""
+        self.status = "CANCELLED"
+        self.cancelled_at = timezone.now()
+        self.auto_renew = False
+
+        if immediate:
+            self.end_date = timezone.now()
+
+        self.save()
+        return True
+
+    def renew(self, new_end_date):
+        """Renew subscription."""
+        self.status = "ACTIVE"
+        self.end_date = new_end_date
+        self.renewal_failed = False
+        self.renewal_failure_reason = ""
+        self.save()
+        return True
+
+    # --- NEW VALIDATION METHOD (does not affect existing instances) ---
+    def clean(self):
+        """Validate period consistency for new fields (if present)."""
+        if self.current_period_start and self.current_period_end:
+            if self.current_period_start >= self.current_period_end:
+                raise ValidationError("current_period_end must be after current_period_start")
+
+
+# ----------------------------------------------------------------------
+# INVOICE MODEL – enhanced with currency, status, and immutability
 # ----------------------------------------------------------------------
 
 class Invoice(models.Model):
     """Invoice for payment."""
+
+    # --- NEW: status choices (backward‑compatible with existing is_paid) ---
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('issued', 'Issued'),
+        ('paid', 'Paid'),
+        ('void', 'Void'),
+    ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     payment = models.OneToOneField(
@@ -369,7 +622,17 @@ class Invoice(models.Model):
     discount = models.DecimalField(_("discount"), max_digits=10, decimal_places=2, default=0)
     total = models.DecimalField(_("total"), max_digits=10, decimal_places=2)
 
-    # Status
+    # --- NEW FIELDS (currency, status) – default ensures existing rows get 'USD' and 'draft' ---
+    currency = models.CharField(_("currency"), max_length=3, default='USD')
+    status = models.CharField(
+        _("status"),
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='draft'
+    )
+    issued_at = models.DateTimeField(null=True, blank=True)   # set when issued
+
+    # Original boolean field kept for backward compatibility
     is_paid = models.BooleanField(_("paid"), default=False)
     paid_at = models.DateTimeField(_("paid at"), null=True, blank=True)
 
@@ -392,6 +655,10 @@ class Invoice(models.Model):
         verbose_name = _("invoice")
         verbose_name_plural = _("invoices")
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['issued_at']),
+        ]
 
     def __str__(self):
         return f"Invoice {self.invoice_number} - {self.payment.user.email}"
@@ -399,6 +666,53 @@ class Invoice(models.Model):
     @property
     def amount_due(self):
         return self.total if not self.is_paid else 0
+
+    # --- NEW VALIDATION AND LIFECYCLE METHODS ---
+    def clean(self):
+        """Validate amounts and immutability after issue."""
+        # Ensure total = subtotal - discount + tax
+        expected_total = self.subtotal - self.discount + self.tax_amount
+        if self.total != expected_total:
+            raise ValidationError(
+                f"Total must equal subtotal - discount + tax ({expected_total})."
+            )
+
+        # Once issued, financial fields become immutable
+        if self.pk:
+            old = Invoice.objects.get(pk=self.pk)
+            if old.status in ['issued', 'paid', 'void']:
+                # Check if any financial field changed
+                if (old.subtotal != self.subtotal or old.discount != self.discount or
+                    old.tax_amount != self.tax_amount or old.total != self.total or
+                    old.currency != self.currency):
+                    raise ValidationError("Cannot modify financial fields after invoice is issued.")
+
+    def save(self, *args, **kwargs):
+        # Auto‑generate invoice number if missing and this is a draft
+        if not self.invoice_number and self.status == 'draft':
+            prefix = "INV"
+            timestamp = timezone.now().strftime("%Y%m%d%H%M%S")
+            suffix = str(uuid.uuid4())[:8].upper()
+            self.invoice_number = f"{prefix}-{timestamp}-{suffix}"
+
+        # Ensure status and is_paid are consistent
+        if self.status == 'paid' and not self.paid_at:
+            self.paid_at = timezone.now()
+        if self.status == 'paid':
+            self.is_paid = True
+        elif self.status == 'draft':
+            self.is_paid = False
+
+        self.full_clean()  # run validation before saving
+        super().save(*args, **kwargs)
+
+    def issue(self):
+        """Transition from draft to issued."""
+        if self.status != 'draft':
+            raise ValidationError("Only draft invoices can be issued.")
+        self.status = 'issued'
+        self.issued_at = timezone.now()
+        self.save()
 
 
 # ----------------------------------------------------------------------
@@ -555,177 +869,6 @@ class OfflinePayment(models.Model):
         self.appeal_reason = reason
         self.save()
 
-        return True
-
-
-# ----------------------------------------------------------------------
-# SUBSCRIPTION MODEL (unchanged, already robust)
-# ----------------------------------------------------------------------
-
-class Subscription(models.Model):
-    """Subscription for recurring payments."""
-
-    STATUS_CHOICES = [
-        ("ACTIVE", "Active"),
-        ("CANCELLED", "Cancelled"),
-        ("EXPIRED", "Expired"),
-        ("SUSPENDED", "Suspended"),
-        ("PENDING", "Pending"),
-    ]
-
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    # Relationships
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="subscriptions"
-    )
-    software = models.ForeignKey(
-        "products.Software",
-        on_delete=models.CASCADE,
-        related_name="subscriptions"
-    )
-    activation_code = models.OneToOneField(
-        "licenses.ActivationCode",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="subscription"
-    )
-
-    # Subscription details
-    plan_name = models.CharField(_("plan name"), max_length=100)
-    billing_cycle = models.CharField(
-        _("billing cycle"),
-        max_length=20,
-        choices=[
-            ("MONTHLY", "Monthly"),
-            ("QUARTERLY", "Quarterly"),
-            ("YEARLY", "Yearly"),
-            ("LIFETIME", "Lifetime"),
-        ]
-    )
-
-    # Pricing
-    amount = models.DecimalField(_("amount"), max_digits=10, decimal_places=2)
-    currency = models.CharField(_("currency"), max_length=3, default="USD")
-    setup_fee = models.DecimalField(
-        _("setup fee"),
-        max_digits=10,
-        decimal_places=2,
-        default=0
-    )
-
-    # Status
-    status = models.CharField(
-        _("status"),
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default="PENDING"
-    )
-
-    # Dates
-    start_date = models.DateTimeField(_("start date"))
-    end_date = models.DateTimeField(_("end date"))
-    next_billing_date = models.DateTimeField(_("next billing date"), null=True, blank=True)
-    cancelled_at = models.DateTimeField(_("cancelled at"), null=True, blank=True)
-
-    # Grace period for failed renewals (enterprise expectation)
-    grace_period_until = models.DateTimeField(
-        _("grace period until"),
-        null=True,
-        blank=True,
-        help_text=_("If set, access remains valid until this date even after expiry.")
-    )
-
-    # Auto-renewal
-    auto_renew = models.BooleanField(_("auto renew"), default=True)
-    renewal_failed = models.BooleanField(_("renewal failed"), default=False)
-    renewal_failure_reason = models.TextField(_("renewal failure reason"), blank=True)
-
-    # Payment method
-    payment_method = models.CharField(
-        _("payment method"),
-        max_length=20,
-        choices=Payment.PAYMENT_METHODS
-    )
-    payment_gateway_id = models.CharField(
-        _("payment gateway ID"),
-        max_length=255,
-        blank=True
-    )
-
-    # Metadata
-    metadata = models.JSONField(_("metadata"), default=dict)
-
-    created_at = models.DateTimeField(_("created at"), auto_now_add=True)
-    updated_at = models.DateTimeField(_("updated at"), auto_now=True)
-
-    class Meta:
-        verbose_name = _("subscription")
-        verbose_name_plural = _("subscriptions")
-        indexes = [
-            models.Index(fields=["user", "status"]),
-            models.Index(fields=["software", "status"]),
-            models.Index(fields=["status", "end_date"]),
-            models.Index(fields=["next_billing_date"]),
-        ]
-
-    def __str__(self):
-        return f"Subscription {self.id} - {self.user.email}"
-
-    @property
-    def is_active(self):
-        """Original active check – strictly between start and end date."""
-        now = timezone.now()
-        return (
-            self.status == "ACTIVE" and
-            self.start_date <= now <= self.end_date
-        )
-
-    @property
-    def has_active_access(self):
-        """
-        Extended access check that includes the grace period.
-        Use this for licensing decisions to avoid cutting off paying clients.
-        """
-        now = timezone.now()
-        if self.status != "ACTIVE":
-            return False
-        if self.start_date <= now <= self.end_date:
-            return True
-        # Outside strict period – check grace window
-        if self.grace_period_until and now <= self.grace_period_until:
-            return True
-        return False
-
-    @property
-    def days_remaining(self):
-        if not self.is_active:
-            return 0
-        delta = self.end_date - timezone.now()
-        return max(0, delta.days)
-
-    def cancel(self, immediate=False):
-        """Cancel subscription."""
-        self.status = "CANCELLED"
-        self.cancelled_at = timezone.now()
-        self.auto_renew = False
-
-        if immediate:
-            self.end_date = timezone.now()
-
-        self.save()
-        return True
-
-    def renew(self, new_end_date):
-        """Renew subscription."""
-        self.status = "ACTIVE"
-        self.end_date = new_end_date
-        self.renewal_failed = False
-        self.renewal_failure_reason = ""
-        self.save()
         return True
 
 

@@ -103,6 +103,9 @@ INSTALLED_APPS += [
 # MIDDLEWARE – CRITICAL: This was MISSING in your file
 # ============================================================================
 MIDDLEWARE = [
+    # ----- Custom BasicAuth for API docs (placed first to block early) -----
+    'backend.core.middleware.BasicAuthDocsMiddleware',
+
     # ----- Security & Performance (must be early) -----
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -369,6 +372,18 @@ ADMIN_FRONTEND_URL = env('ADMIN_FRONTEND_URL', default='http://localhost:3000/ad
 SITE_URL = env('SITE_URL', default='http://localhost:8000')
 
 # ============================================================================
+# BASIC AUTHENTICATION FOR API DOCS
+# ============================================================================
+BASIC_AUTH_USERNAME = env('DOCS_USERNAME', default='docs')
+BASIC_AUTH_PASSWORD = env('DOCS_PASSWORD', default='your-strong-password')
+# Paths that require Basic Authentication
+BASIC_AUTH_URLS = (
+    '/api/schema/',
+    '/api/schema/swagger-ui/',
+    '/api/schema/redoc/',
+)
+
+# ============================================================================
 # ADMIN
 # ============================================================================
 ADMINS = [("System Admin", env("ADMIN_EMAIL", default="admin@example.com"))]
@@ -471,6 +486,14 @@ AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
 AWS_DEFAULT_ACL = "private"
 AWS_QUERYSTRING_AUTH = True
 AWS_QUERYSTRING_EXPIRE = 3600
+
+# ============================================================================
+# FILE STORAGE (S3 for production, local for development)
+# ============================================================================
+if AWS_STORAGE_BUCKET_NAME:
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+else:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # ============================================================================
 # DRF SPECTACULAR

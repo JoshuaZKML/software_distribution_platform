@@ -74,6 +74,10 @@ class ActiveOnlyMixin:
     """
     def get_queryset(self):
         queryset = super().get_queryset()
+        # During schema generation, avoid evaluating request.user
+        if getattr(self, "swagger_fake_view", False):
+            return queryset.none()
+
         user = self.request.user
         if not (user and user.is_authenticated and getattr(user, 'role', None) in ['ADMIN', 'SUPER_ADMIN']):
             queryset = queryset.filter(is_active=True)
@@ -193,6 +197,10 @@ class SoftwareVersionViewSet(AdminWritePermissionMixin, ActiveOnlyMixin, viewset
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        # During schema generation, avoid evaluating request or params
+        if getattr(self, "swagger_fake_view", False):
+            return queryset.none()
+
         software_slug = self.request.query_params.get('software')
         if software_slug:
             queryset = queryset.filter(software__slug=software_slug)
@@ -465,6 +473,10 @@ class SoftwareVersionListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
+        # During schema generation, avoid evaluating request.user
+        if getattr(self, "swagger_fake_view", False):
+            return SoftwareVersion.objects.none()
+
         slug = self.kwargs.get('slug')
         software = get_object_or_404(Software, slug=slug, is_active=True)
         queryset = software.versions.filter(is_active=True).order_by('-version_number')

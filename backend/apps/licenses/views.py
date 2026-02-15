@@ -55,6 +55,10 @@ class ActivationCodeViewSet(viewsets.ModelViewSet):
     ordering = ["-created_at"]
 
     def get_queryset(self):
+        # During schema generation, avoid evaluating request.user or roles
+        if getattr(self, "swagger_fake_view", False):
+            return ActivationCode.objects.none()
+
         queryset = ActivationCode.objects.all().select_related(
             "software", "user", "generated_by", "revoked_by", "batch"
         )
@@ -556,6 +560,10 @@ class UserLicensesView(generics.ListAPIView):
     serializer_class = ActivationCodeSerializer
 
     def get_queryset(self):
+        # During schema generation, return empty queryset to avoid accessing user
+        if getattr(self, "swagger_fake_view", False):
+            return ActivationCode.objects.none()
+
         return ActivationCode.objects.filter(user=self.request.user).select_related(
             "software", "software_version"
         ).order_by("-created_at")
@@ -668,6 +676,10 @@ class LicenseFeatureViewSet(viewsets.ModelViewSet):
         return [p() for p in permission_classes]
 
     def get_queryset(self):
+        # During schema generation, avoid evaluating request.user.role
+        if getattr(self, "swagger_fake_view", False):
+            return LicenseFeature.objects.none()
+
         qs = super().get_queryset()
         if self.request.user.role not in ["ADMIN", "SUPER_ADMIN"]:
             qs = qs.filter(is_active=True)
@@ -720,6 +732,10 @@ class ActivationLogViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ["activation_code__human_code", "device_fingerprint", "ip_address"]
 
     def get_queryset(self):
+        # During schema generation, avoid evaluating request.user.role
+        if getattr(self, "swagger_fake_view", False):
+            return ActivationLog.objects.none()
+
         qs = super().get_queryset()
         if self.request.user.role not in ["ADMIN", "SUPER_ADMIN"]:
             qs = qs.filter(activation_code__user=self.request.user)
@@ -738,6 +754,10 @@ class LicenseUsageViewSet(viewsets.ModelViewSet):
     filterset_fields = ["activation_code", "feature", "device_fingerprint"]
 
     def get_queryset(self):
+        # During schema generation, avoid evaluating request.user.role
+        if getattr(self, "swagger_fake_view", False):
+            return LicenseUsage.objects.none()
+
         qs = super().get_queryset()
         if self.request.user.role not in ["ADMIN", "SUPER_ADMIN"]:
             qs = qs.filter(activation_code__user=self.request.user)

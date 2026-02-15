@@ -1,13 +1,16 @@
 """
 Custom middleware for Software Distribution Platform.
 """
-from django.utils.deprecation import MiddlewareMixin
-from django.http import HttpResponseForbidden
-from django.core.cache import cache
-from django.conf import settings
-from django.utils.crypto import get_random_string
+import base64
+import binascii
 import hashlib
 import time
+
+from django.conf import settings
+from django.core.cache import cache
+from django.http import HttpResponse, HttpResponseForbidden
+from django.utils.crypto import get_random_string
+from django.utils.deprecation import MiddlewareMixin
 
 
 class SecurityHeadersMiddleware(MiddlewareMixin):
@@ -152,3 +155,39 @@ class DeviceFingerprintMiddleware(MiddlewareMixin):
 
         fingerprint_string = '|'.join(components)
         return hashlib.sha256(fingerprint_string.encode()).hexdigest()
+
+
+class BasicAuthDocsMiddleware(MiddlewareMixin):
+    """
+    Protect only the API documentation URLs with Basic Authentication.
+    Credentials are taken from settings.BASIC_AUTH_USERNAME/PASSWORD.
+    """
+
+    def process_request(self, request):
+        # Check if the requested path matches any of the protected URLs
+        protected_paths = getattr(settings, 'BASIC_AUTH_URLS', [])
+        if not any(request.path.startswith(path) for path in protected_paths):
+            return None  # not protected
+
+        # Get credentials from Authorization header
+        auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+        if not auth_header.startswith('Basic '):
+            return self._unauthorized()
+
+        try:
+            auth_decoded = base64.b64decode(auth_header[6:]).decode('utf-8')
+            username, password = auth_decoded.split(':', 1)
+        except (binascii.Error, UnicodeDecodeError, ValueError):
+            return self._unauthorized()
+
+        expected_username = getattr(settings, 'BASIC_AUTH_USERNAME', 'docs')
+        expected_password = getattr(settings, 'BASIC_AUTH_PASSWORD', 'your-strong-password')
+
+        if username == expected_username and password == expected_password:
+            return None  # authenticated
+        return self._unauthorized()
+
+    def _unauthorized(self):
+        response = HttpResponse('Unauthorized', content_type='text/plain', status=401)
+        response['WWW-Authenticate'] = 'Basic realm="Documentation"'
+        return response

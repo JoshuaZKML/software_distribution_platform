@@ -1,0 +1,1657 @@
+openapi: 3.0.3
+info:
+  title: Software Distribution Platform API
+  version: 1.0.0
+  description: Comprehensive API for software distribution
+paths:
+  /analytics/cohorts/:
+    get:
+      operationId: analytics_cohorts_list
+      description: |-
+        List cohort aggregates, most recent first.
+        Supports filtering by cohort_date, period, and period_number.
+      parameters:
+      - in: query
+        name: cohort_date
+        schema:
+          type: string
+          format: date
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: period
+        schema:
+          type: string
+          enum:
+          - month
+          - week
+        description: |-
+          * `week` - Week
+          * `month` - Month
+      - in: query
+        name: period_number
+        schema:
+          type: integer
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CohortAggregate'
+          description: ''
+  /analytics/daily/:
+    get:
+      operationId: analytics_daily_list
+      description: |-
+        List daily aggregates, most recent first.
+        Supports filtering by date range and ordering.
+      parameters:
+      - in: query
+        name: date
+        schema:
+          type: string
+          format: date
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DailyAggregate'
+          description: ''
+  /analytics/daily/{id}/:
+    get:
+      operationId: analytics_daily_retrieve
+      description: |-
+        Retrieve a specific day's aggregate.
+        Accepts primary key or date (via lookup_field customization).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyAggregate'
+          description: ''
+  /analytics/exports/:
+    get:
+      operationId: analytics_exports_list
+      description: |-
+        List all export jobs for the current user (admin sees all).
+        Also allows creating a new export job (POST).
+      parameters:
+      - in: query
+        name: export_type
+        schema:
+          type: string
+          enum:
+          - daily_aggregates
+          - licenses
+          - payments
+          - users
+        description: |-
+          * `daily_aggregates` - Daily Aggregates
+          * `users` - Users
+          * `payments` - Payments
+          * `licenses` - Licenses
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - completed
+          - failed
+          - pending
+          - processing
+        description: |-
+          * `pending` - Pending
+          * `processing` - Processing
+          * `completed` - Completed
+          * `failed` - Failed
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedExportJobList'
+          description: ''
+    post:
+      operationId: analytics_exports_create
+      description: |-
+        List all export jobs for the current user (admin sees all).
+        Also allows creating a new export job (POST).
+      tags:
+      - analytics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportJobRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExportJobRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExportJobRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportJob'
+          description: ''
+  /analytics/exports/{id}/:
+    get:
+      operationId: analytics_exports_retrieve
+      description: Retrieve details of a specific export job.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportJob'
+          description: ''
+  /analytics/exports/{id}/download/:
+    get:
+      operationId: analytics_exports_download_retrieve
+      description: Securely download the exported file. Returns either the file (binary)
+        or a JSON with a download URL when using S3.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '403':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '500':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/payments/coupons/:
+    get:
+      operationId: v1_payments_coupons_list
+      description: Placeholder for Coupon CRUD operations.
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GenericResponse'
+          description: ''
+  /api/v1/payments/create-payment/:
+    post:
+      operationId: v1_payments_create_payment_create
+      description: |-
+        Placeholder for generic payment creation.
+        Will be replaced with actual gateway integration.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: ''
+  /api/v1/payments/invoices/:
+    get:
+      operationId: v1_payments_invoices_list
+      description: |-
+        Read‑only invoices. Users can view their own; admins view all.
+        PDF download added as a custom action.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInvoiceList'
+          description: ''
+  /api/v1/payments/invoices/{id}/:
+    get:
+      operationId: v1_payments_invoices_retrieve
+      description: |-
+        Read‑only invoices. Users can view their own; admins view all.
+        PDF download added as a custom action.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this invoice.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+  /api/v1/payments/invoices/{id}/download/:
+    get:
+      operationId: v1_payments_invoices_download_retrieve
+      description: Serve the invoice PDF securely.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this invoice.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+  /api/v1/payments/my-transactions/:
+    get:
+      operationId: v1_payments_my_transactions_retrieve
+      description: Placeholder for retrieving authenticated user's payment history.
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: ''
+  /api/v1/payments/payments/:
+    get:
+      operationId: v1_payments_payments_list
+      description: |-
+        Placeholder for Payment CRUD operations.
+        Replace with actual implementation when ready.
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentPlaceholder'
+          description: ''
+  /api/v1/payments/plans/:
+    get:
+      operationId: v1_payments_plans_list
+      description: |-
+        List and retrieve available subscription plans.
+        (New view, added without disruption)
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPlanList'
+          description: ''
+  /api/v1/payments/plans/{code}/:
+    get:
+      operationId: v1_payments_plans_retrieve
+      description: |-
+        List and retrieve available subscription plans.
+        (New view, added without disruption)
+      parameters:
+      - in: path
+        name: code
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+          description: ''
+  /api/v1/payments/process-offline/:
+    post:
+      operationId: v1_payments_process_offline_create
+      description: |-
+        Placeholder for initiating an offline payment (bank transfer).
+        Creates an OfflinePayment record linked to a Payment.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: ''
+  /api/v1/payments/subscriptions/:
+    get:
+      operationId: v1_payments_subscriptions_list
+      description: |-
+        CRUD for subscriptions. Only admins can list all; users can view their own.
+        Creation is disabled via serializer validation; use webhooks.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSubscriptionList'
+          description: ''
+    post:
+      operationId: v1_payments_subscriptions_create
+      description: |-
+        CRUD for subscriptions. Only admins can list all; users can view their own.
+        Creation is disabled via serializer validation; use webhooks.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+  /api/v1/payments/subscriptions/{id}/:
+    get:
+      operationId: v1_payments_subscriptions_retrieve
+      description: |-
+        CRUD for subscriptions. Only admins can list all; users can view their own.
+        Creation is disabled via serializer validation; use webhooks.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this subscription.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+    put:
+      operationId: v1_payments_subscriptions_update
+      description: |-
+        CRUD for subscriptions. Only admins can list all; users can view their own.
+        Creation is disabled via serializer validation; use webhooks.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this subscription.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+    patch:
+      operationId: v1_payments_subscriptions_partial_update
+      description: |-
+        CRUD for subscriptions. Only admins can list all; users can view their own.
+        Creation is disabled via serializer validation; use webhooks.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this subscription.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSubscriptionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSubscriptionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSubscriptionRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+    delete:
+      operationId: v1_payments_subscriptions_destroy
+      description: |-
+        CRUD for subscriptions. Only admins can list all; users can view their own.
+        Creation is disabled via serializer validation; use webhooks.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this subscription.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/payments/subscriptions/webhook/:
+    post:
+      operationId: v1_payments_subscriptions_webhook_create
+      description: |-
+        Endpoint for payment gateway webhooks to create/update subscriptions.
+        Implement idempotency key handling and signature verification.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+  /api/v1/payments/verify-offline/{payment_id}/:
+    post:
+      operationId: v1_payments_verify_offline_create
+      description: Placeholder for manual verification of offline payment receipts.
+      parameters:
+      - in: path
+        name: payment_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: ''
+  /api/v1/payments/webhook/paypal/:
+    post:
+      operationId: v1_payments_webhook_paypal_create
+      description: Placeholder for PayPal webhook endpoint.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: ''
+  /api/v1/payments/webhook/stripe/:
+    post:
+      operationId: v1_payments_webhook_stripe_create
+      description: |-
+        Placeholder for Stripe webhook endpoint.
+        Should be replaced with actual webhook verification and payment completion.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: ''
+  /notifications/api/notifications/:
+    get:
+      operationId: notifications_api_notifications_list
+      description: List notifications for the authenticated user.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+  /notifications/api/notifications/{id}/:
+    get:
+      operationId: notifications_api_notifications_retrieve
+      description: Retrieve a single notification (and mark it as read? optionally).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+components:
+  schemas:
+    ChannelEnum:
+      enum:
+      - email
+      - in_app
+      - push
+      type: string
+      description: |-
+        * `email` - Email
+        * `in_app` - In‑App
+        * `push` - Push
+    CohortAggregate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        cohort_date:
+          type: string
+          format: date
+          readOnly: true
+        period:
+          allOf:
+          - $ref: '#/components/schemas/PeriodEnum'
+          readOnly: true
+        period_number:
+          type: integer
+          readOnly: true
+        user_count:
+          type: integer
+          readOnly: true
+        retained_count:
+          type: integer
+          readOnly: true
+        retention_rate:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,3}(?:\.\d{0,2})?$
+          readOnly: true
+          description: Percentage (0.00 to 100.00)
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - cohort_date
+      - created_at
+      - id
+      - period
+      - period_number
+      - retained_count
+      - retention_rate
+      - user_count
+    DailyAggregate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        date:
+          type: string
+          format: date
+          readOnly: true
+        total_users:
+          type: integer
+          readOnly: true
+        active_users:
+          type: integer
+          readOnly: true
+        new_users:
+          type: integer
+          readOnly: true
+        total_sales:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        total_orders:
+          type: integer
+          readOnly: true
+        licenses_activated:
+          type: integer
+          readOnly: true
+        licenses_expired:
+          type: integer
+          readOnly: true
+        total_usage_events:
+          type: integer
+          readOnly: true
+        abuse_attempts:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - abuse_attempts
+      - active_users
+      - created_at
+      - date
+      - id
+      - licenses_activated
+      - licenses_expired
+      - new_users
+      - total_orders
+      - total_sales
+      - total_usage_events
+      - total_users
+      - updated_at
+    ExportJob:
+      type: object
+      description: |-
+        Serializer for ExportJob – provides a secure file URL (signed S3 URL if using private storage,
+        otherwise a link to the authenticated download endpoint).
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        export_type:
+          $ref: '#/components/schemas/ExportTypeEnum'
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ExportJobStatusEnum'
+          readOnly: true
+        parameters: {}
+        file:
+          type: string
+          format: uri
+          readOnly: true
+          nullable: true
+        file_url:
+          type: string
+          format: uri
+          description: Return a secure URL to download the file.
+          readOnly: true
+        error_message:
+          type: string
+          readOnly: true
+        created_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        completed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - completed_at
+      - created_at
+      - created_by
+      - error_message
+      - export_type
+      - file
+      - file_url
+      - id
+      - status
+      - updated_at
+    ExportJobRequest:
+      type: object
+      description: |-
+        Serializer for ExportJob – provides a secure file URL (signed S3 URL if using private storage,
+        otherwise a link to the authenticated download endpoint).
+      properties:
+        export_type:
+          $ref: '#/components/schemas/ExportTypeEnum'
+        parameters: {}
+      required:
+      - export_type
+    ExportJobStatusEnum:
+      enum:
+      - pending
+      - processing
+      - completed
+      - failed
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `processing` - Processing
+        * `completed` - Completed
+        * `failed` - Failed
+    ExportTypeEnum:
+      enum:
+      - daily_aggregates
+      - users
+      - payments
+      - licenses
+      type: string
+      description: |-
+        * `daily_aggregates` - Daily Aggregates
+        * `users` - Users
+        * `payments` - Payments
+        * `licenses` - Licenses
+    GenericResponse:
+      type: object
+      description: Generic response serializer for placeholder endpoints.
+      properties:
+        status:
+          type: string
+          description: Status message
+      required:
+      - status
+    GenericResponseRequest:
+      type: object
+      description: Generic response serializer for placeholder endpoints.
+      properties:
+        status:
+          type: string
+          minLength: 1
+          description: Status message
+      required:
+      - status
+    IntervalEnum:
+      enum:
+      - month
+      - year
+      - lifetime
+      type: string
+      description: |-
+        * `month` - Monthly
+        * `year` - Yearly
+        * `lifetime` - Lifetime
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          readOnly: true
+        payment:
+          type: string
+          format: uuid
+        number:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/InvoiceStatusEnum'
+          readOnly: true
+        currency:
+          type: string
+          maxLength: 3
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        tax:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        issued_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        paid_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        due_at:
+          type: string
+          format: date-time
+          readOnly: true
+        pdf_file:
+          type: string
+          format: uri
+          readOnly: true
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - amount
+      - created_at
+      - due_at
+      - id
+      - issued_at
+      - metadata
+      - number
+      - paid_at
+      - payment
+      - pdf_file
+      - status
+      - tax
+      - total
+      - updated_at
+      - user
+    InvoiceStatusEnum:
+      enum:
+      - draft
+      - issued
+      - paid
+      - void
+      type: string
+      description: |-
+        * `draft` - Draft
+        * `issued` - Issued
+        * `paid` - Paid
+        * `void` - Void
+    Notification:
+      type: object
+      description: |-
+        Serializer for Notification model.
+        All fields are read‑only by default to prevent client modification.
+        Includes user and context metadata for richer client integration.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        channel:
+          allOf:
+          - $ref: '#/components/schemas/ChannelEnum'
+          readOnly: true
+        subject:
+          type: string
+          readOnly: true
+        body:
+          type: string
+          readOnly: true
+        html_body:
+          type: string
+          readOnly: true
+        context:
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/NotificationStatusEnum'
+          readOnly: true
+        sent_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        opened_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        clicked_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - body
+      - channel
+      - clicked_at
+      - context
+      - created_at
+      - html_body
+      - id
+      - opened_at
+      - sent_at
+      - status
+      - subject
+      - user
+    NotificationStatusEnum:
+      enum:
+      - pending
+      - sent
+      - failed
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `sent` - Sent
+        * `failed` - Failed
+    PaginatedExportJobList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportJob'
+    PaginatedInvoiceList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invoice'
+    PaginatedNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+    PaginatedPlanList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Plan'
+    PaginatedSubscriptionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+    PatchedSubscriptionRequest:
+      type: object
+      properties:
+        plan:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          $ref: '#/components/schemas/SubscriptionStatusEnum'
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancel_at_period_end:
+          type: boolean
+        metadata: {}
+    PaymentPlaceholder:
+      type: object
+      description: Placeholder for Payment operations.
+      properties:
+        status:
+          type: string
+      required:
+      - status
+    PeriodEnum:
+      enum:
+      - week
+      - month
+      type: string
+      description: |-
+        * `week` - Week
+        * `month` - Month
+    Plan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        code:
+          type: string
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        currency:
+          type: string
+          maxLength: 3
+        interval:
+          $ref: '#/components/schemas/IntervalEnum'
+        trial_days:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        features: {}
+        is_active:
+          type: boolean
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - code
+      - created_at
+      - id
+      - interval
+      - name
+      - updated_at
+    PlanRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        code:
+          type: string
+          minLength: 1
+          maxLength: 50
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        currency:
+          type: string
+          minLength: 1
+          maxLength: 3
+        interval:
+          $ref: '#/components/schemas/IntervalEnum'
+        trial_days:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        features: {}
+        is_active:
+          type: boolean
+        sort_order:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+      required:
+      - code
+      - interval
+      - name
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        plan:
+          type: string
+          format: uuid
+          nullable: true
+        plan_detail:
+          allOf:
+          - $ref: '#/components/schemas/Plan'
+          readOnly: true
+        status:
+          $ref: '#/components/schemas/SubscriptionStatusEnum'
+        started_at:
+          type: string
+          format: date-time
+          readOnly: true
+        current_period_start:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        current_period_end:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        canceled_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancel_at_period_end:
+          type: boolean
+        gateway:
+          type: string
+          readOnly: true
+          nullable: true
+        gateway_subscription_id:
+          type: string
+          readOnly: true
+          nullable: true
+        metadata: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - canceled_at
+      - created_at
+      - current_period_end
+      - current_period_start
+      - gateway
+      - gateway_subscription_id
+      - id
+      - plan_detail
+      - started_at
+      - updated_at
+      - user
+    SubscriptionRequest:
+      type: object
+      properties:
+        plan:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          $ref: '#/components/schemas/SubscriptionStatusEnum'
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancel_at_period_end:
+          type: boolean
+        metadata: {}
+    SubscriptionStatusEnum:
+      enum:
+      - ACTIVE
+      - CANCELLED
+      - EXPIRED
+      - SUSPENDED
+      - PENDING
+      type: string
+      description: |-
+        * `ACTIVE` - Active
+        * `CANCELLED` - Cancelled
+        * `EXPIRED` - Expired
+        * `SUSPENDED` - Suspended
+        * `PENDING` - Pending
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

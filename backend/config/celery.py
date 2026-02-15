@@ -1,4 +1,4 @@
-# FILE: /backend/config/celery.py (UPDATED - Added Daily Aggregates Task)
+# FILE: /backend/config/celery.py (UPDATED - Added Dashboard Snapshot Task)
 import os
 from celery import Celery
 from celery.schedules import crontab
@@ -30,7 +30,8 @@ app.conf.task_queues = (
     Queue('licenses'),
     Queue('products'),
     Queue('maintenance'),
-    Queue('analytics'),    # <-- NEW: dedicated queue for analytics tasks
+    Queue('analytics'),    # dedicated queue for analytics tasks
+    Queue('dashboard'),    # <-- NEW: queue for dashboard snapshot tasks
 )
 
 # Default exchange/routing settings for safety
@@ -43,7 +44,7 @@ app.conf.task_serializer = 'json'
 app.conf.result_serializer = 'json'
 app.conf.accept_content = ['json']
 
-# Configure periodic tasks (Celery Beat schedule) - merging both configurations
+# Configure periodic tasks (Celery Beat schedule)
 app.conf.beat_schedule = {
     # Daily cleanup tasks
     'cleanup-expired-sessions-daily': {
@@ -59,7 +60,7 @@ app.conf.beat_schedule = {
         'options': {'queue': 'maintenance'}
     },
     
-    # Send weekly account summaries every Monday at 9 AM (from existing config)
+    # Send weekly account summaries every Monday at 9 AM
     'send-weekly-summaries': {
         'task': 'backend.apps.accounts.tasks.send_account_summary_email',
         'schedule': crontab(day_of_week='monday', hour=9, minute=0),
@@ -67,40 +68,54 @@ app.conf.beat_schedule = {
         'options': {'queue': 'emails'}
     },
     
-    # Email queue processing (keeping more frequent schedule from existing - every 5 minutes)
+    # Email queue processing (every 5 minutes)
     'process-email-queue': {
         'task': 'backend.apps.accounts.tasks.process_email_queue',
-        'schedule': crontab(minute='*/5'),  # Every 5 minutes (as in existing)
+        'schedule': crontab(minute='*/5'),
         'options': {'queue': 'emails'}
     },
     
-    # Check for expiring licenses (daily at 9 AM) - new from update
+    # Check for expiring licenses (daily at 9 AM)
     'check-expiring-licenses': {
         'task': 'backend.apps.licenses.tasks.check_expiring_licenses',
-        'schedule': crontab(hour=9, minute=0),  # 9 AM daily
+        'schedule': crontab(hour=9, minute=0),
         'args': (7,),  # 7 days warning
         'options': {'queue': 'licenses'}
     },
     
-    # Cleanup expired licenses (daily at midnight) - new from update
+    # Cleanup expired licenses (daily at midnight)
     'cleanup-expired-licenses': {
         'task': 'backend.apps.licenses.tasks.cleanup_expired_licenses',
-        'schedule': crontab(hour=0, minute=0),  # Midnight
+        'schedule': crontab(hour=0, minute=0),
         'options': {'queue': 'licenses'}
     },
 
-    # Send license expiry reminders daily at 8 AM (added 2026‑02‑13)
+    # Send license expiry reminders daily at 8 AM
     'send-license-expiry-reminders': {
         'task': 'backend.apps.licenses.tasks.send_license_expiry_reminders',
-        'schedule': crontab(hour=8, minute=0),  # 8 AM daily
+        'schedule': crontab(hour=8, minute=0),
         'options': {'queue': 'licenses'}
     },
 
-    # ===== NEW: Daily aggregates for analytics =====
+    # Daily aggregates for analytics (1 AM daily)
     'compute-daily-aggregates': {
         'task': 'analytics.tasks.compute_daily_aggregates',
-        'schedule': crontab(hour=1, minute=0),  # 1 AM daily (UTC)
+        'schedule': crontab(hour=1, minute=0),
         'options': {'queue': 'analytics'}
+    },
+
+    # Weekly cohorts computation (Sunday at 2 AM)
+    'compute-cohorts': {
+        'task': 'analytics.tasks.compute_cohorts',
+        'schedule': crontab(day_of_week='sunday', hour=2, minute=0),
+        'options': {'queue': 'analytics'}
+    },
+
+    # Dashboard snapshot update (every 10 minutes)
+    'update-dashboard-snapshot': {
+        'task': 'dashboard.tasks.update_dashboard_snapshot',
+        'schedule': 600.0,  # every 10 minutes
+        'options': {'queue': 'dashboard'}
     },
 }
 
@@ -127,9 +142,13 @@ app.conf.task_routes = {
     'backend.apps.products.tasks.*': {
         'queue': 'products'
     },
-    # Analytics tasks (NEW)
+    # Analytics tasks
     'analytics.tasks.*': {
         'queue': 'analytics'
+    },
+    # Dashboard tasks (NEW – optional, but included for consistency)
+    'dashboard.tasks.*': {
+        'queue': 'dashboard'
     },
     # All other tasks fall back to default queue (handled by task_default_queue)
 }
@@ -138,37 +157,34 @@ app.conf.task_routes = {
 app.conf.task_time_limit = 300  # 5 minutes max
 app.conf.task_soft_time_limit = 240  # 4 minutes soft limit
 
-# Task result settings (adding new settings while keeping existing)
+# Task result settings
 app.conf.result_expires = 3600  # Results expire after 1 hour
 app.conf.result_backend = 'django-db'  # Store results in Django database
-# NOTE: 'django-db' result backend may become a bottleneck at scale.
-# For high throughput, consider Redis or RPC backend.
 
-# Worker settings (adding new settings while keeping existing)
+# Worker settings
 app.conf.worker_prefetch_multiplier = 1  # Process one task at a time
-app.conf.worker_max_tasks_per_child = 1000  # Keep existing higher value for compatibility
-app.conf.worker_max_memory_per_child = 200000  # 200MB memory limit (new)
+app.conf.worker_max_tasks_per_child = 1000
+app.conf.worker_max_memory_per_child = 200000  # 200MB memory limit
 
-# Retry settings (new from update)
+# Retry settings
 app.conf.task_acks_late = True
 app.conf.task_reject_on_worker_lost = True
 
-# Redis settings (new from update)
+# Redis settings
 app.conf.broker_transport_options = {
     'visibility_timeout': 3600,  # 1 hour
     'socket_connect_timeout': 5,
     'retry_on_timeout': True,
 }
 
-# Debug task (enhanced version with ignore_result parameter)
+# Debug task
 @app.task(bind=True, ignore_result=True)
 def debug_task(self):
     """Debug task to test Celery is working."""
     print(f'Request: {self.request!r}')
     return 'Celery is working!'
 
-# Health check task (new from update)
-# Now uses the explicitly defined task_queues to return real data.
+# Health check task
 @app.task(bind=True, name='health_check')
 def health_check(self):
     """Health check endpoint for monitoring."""

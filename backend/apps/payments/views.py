@@ -21,6 +21,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
+from rest_framework.decorators import action
 
 from .models import (
     Coupon,
@@ -29,13 +30,22 @@ from .models import (
     Invoice,
     OfflinePayment,
     Payment,
+    Plan,                # added for PlanViewSet
     Subscription,
+)
+from .serializers import (   # added serializers
+    PaymentSerializer,
+    PlanSerializer,
+    SubscriptionSerializer,
+    InvoiceSerializer,
+    GenericResponseSerializer,
+    PaymentPlaceholderSerializer,
 )
 
 logger = logging.getLogger(__name__)
 
 # ----------------------------------------------------------------------
-# VIEWSETS – kept as placeholders (no disruption to existing workflows)
+# VIEWSETS – enhanced implementations (non‑disruptive replacements)
 # ----------------------------------------------------------------------
 
 class PaymentViewSet(viewsets.ViewSet):
@@ -43,30 +53,101 @@ class PaymentViewSet(viewsets.ViewSet):
     Placeholder for Payment CRUD operations.
     Replace with actual implementation when ready.
     """
+    serializer_class = PaymentPlaceholderSerializer
     def list(self, request):
         return Response({'status': 'PaymentViewSet placeholder'})
 
 
-class InvoiceViewSet(viewsets.ViewSet):
+class PlanViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    Placeholder for Invoice CRUD operations.
+    List and retrieve available subscription plans.
+    (New view, added without disruption)
     """
-    def list(self, request):
-        return Response({'status': 'InvoiceViewSet placeholder'})
+    queryset = Plan.objects.filter(is_active=True)
+    serializer_class = PlanSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'code'   # allow lookup by code (e.g., /plans/pro_monthly/)
 
 
-class SubscriptionViewSet(viewsets.ViewSet):
+class SubscriptionViewSet(viewsets.ModelViewSet):
     """
-    Placeholder for Subscription CRUD operations.
+    CRUD for subscriptions. Only admins can list all; users can view their own.
+    Creation is disabled via serializer validation; use webhooks.
     """
-    def list(self, request):
-        return Response({'status': 'SubscriptionViewSet placeholder'})
+    serializer_class = SubscriptionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # During schema generation, avoid accessing request.user
+        if getattr(self, "swagger_fake_view", False):
+            return Subscription.objects.none()
+
+        user = self.request.user
+        if user.is_staff:
+            return Subscription.objects.all()
+        return Subscription.objects.filter(user=user)
+
+    def perform_create(self, serializer):
+        # Disable creation – should be done via webhook.
+        self.permission_denied(self.request, message="Direct subscription creation is not allowed.")
+
+    def perform_update(self, serializer):
+        # Only allow status updates via webhooks, not client.
+        self.permission_denied(self.request, message="Subscription updates must be processed via payment gateway.")
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def webhook(self, request):
+        """
+        Endpoint for payment gateway webhooks to create/update subscriptions.
+        Implement idempotency key handling and signature verification.
+        """
+        # Placeholder – real implementation would verify signature and update accordingly.
+        return Response({"detail": "Webhook received"}, status=status.HTTP_200_OK)
+
+
+class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Read‑only invoices. Users can view their own; admins view all.
+    PDF download added as a custom action.
+    """
+    serializer_class = InvoiceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # During schema generation, avoid accessing request.user
+        if getattr(self, "swagger_fake_view", False):
+            return Invoice.objects.none()
+
+        user = self.request.user
+        # Optimise by selecting related payment to avoid N+1 when accessing payment.user
+        qs = Invoice.objects.select_related('payment').all()
+        if user.is_staff:
+            return qs
+        # Filter via payment.user because Invoice does not have a direct user FK
+        return qs.filter(payment__user=user)
+
+    @action(detail=True, methods=['get'], url_path='download')
+    def download_pdf(self, request, pk=None):
+        """
+        Serve the invoice PDF securely.
+        """
+        invoice = self.get_object()
+        if not invoice.pdf_file:
+            return Response({"detail": "PDF not available."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Use a secure file serving method (e.g., X-Accel-Redirect, signed S3 URL)
+        try:
+            file_url = invoice.pdf_file.url  # signed URL if AWS_QUERYSTRING_AUTH=True
+            return Response({"download_url": file_url})
+        except Exception as e:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class CouponViewSet(viewsets.ViewSet):
     """
     Placeholder for Coupon CRUD operations.
     """
+    serializer_class = GenericResponseSerializer
     def list(self, request):
         return Response({'status': 'CouponViewSet placeholder'})
 
@@ -81,6 +162,7 @@ class CreatePaymentView(APIView):
     Will be replaced with actual gateway integration.
     """
     permission_classes = [IsAuthenticated]
+    serializer_class = GenericResponseSerializer
 
     def post(self, request):
         return Response({'status': 'CreatePaymentView placeholder'})
@@ -92,6 +174,7 @@ class ProcessOfflinePaymentView(APIView):
     Creates an OfflinePayment record linked to a Payment.
     """
     permission_classes = [IsAuthenticated]
+    serializer_class = GenericResponseSerializer
 
     def post(self, request):
         return Response({'status': 'ProcessOfflinePaymentView placeholder'})
@@ -102,6 +185,7 @@ class VerifyOfflinePaymentView(APIView):
     Placeholder for manual verification of offline payment receipts.
     """
     permission_classes = [IsAuthenticated]
+    serializer_class = GenericResponseSerializer
 
     def post(self, request, payment_id=None):
         return Response({'status': f'VerifyOfflinePaymentView placeholder for {payment_id}'})
@@ -112,6 +196,7 @@ class UserTransactionsView(APIView):
     Placeholder for retrieving authenticated user's payment history.
     """
     permission_classes = [IsAuthenticated]
+    serializer_class = GenericResponseSerializer
 
     def get(self, request):
         return Response({'status': 'UserTransactionsView placeholder'})
@@ -127,6 +212,7 @@ class StripeWebhookView(APIView):
     Should be replaced with actual webhook verification and payment completion.
     """
     permission_classes = [AllowAny]  # Webhooks are external calls
+    serializer_class = GenericResponseSerializer
 
     def post(self, request):
         return Response({'status': 'StripeWebhookView placeholder'})
@@ -137,14 +223,14 @@ class PayPalWebhookView(APIView):
     Placeholder for PayPal webhook endpoint.
     """
     permission_classes = [AllowAny]
+    serializer_class = GenericResponseSerializer
 
     def post(self, request):
         return Response({'status': 'PayPalWebhookView placeholder'})
 
 
 # ----------------------------------------------------------------------
-# PAYSTACK INTEGRATION – FINANCIAL‑GRADE HARDENING
-# All changes are non‑disruptive; existing placeholders untouched.
+# PAYSTACK INTEGRATION – unchanged (preserved in full)
 # ----------------------------------------------------------------------
 
 PAYSTACK_SUPPORTED_CURRENCIES = getattr(
@@ -177,10 +263,6 @@ def mask_sensitive_data(payload):
         masked['data'] = mask_sensitive_data(masked['data'])
     return masked
 
-
-# ----------------------------------------------------------------------
-# EMAIL NOTIFICATION ON PAYMENT FAILURE (non‑disruptive addition)
-# ----------------------------------------------------------------------
 
 def send_payment_failed_email(payment):
     """

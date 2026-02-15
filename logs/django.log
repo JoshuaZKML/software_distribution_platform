@@ -6686,3 +6686,140 @@ LINE 1: ...er"."is_blocked", "accounts_user"."unsubscribed", "accounts_...
 ERROR 2026-02-13 18:48:15,412 basehttp 6216 20420 "GET /favicon.ico HTTP/1.1" 500 185120
 WARNING 2026-02-13 19:24:07,445 log 5332 18796 Not Found: /admin/jj
 WARNING 2026-02-13 19:24:07,447 basehttp 5332 18796 "GET /admin/jj HTTP/1.1" 404 8355
+WARNING 2026-02-14 13:28:17,383 log 16376 1292 Not Found: /api/
+ERROR 2026-02-14 15:31:05,078 log 10988 18952 Internal Server Error: /api/schema/
+ERROR 2026-02-14 15:31:05,097 basehttp 10988 18952 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 15:31:05,264 log 10988 18952 Internal Server Error: /api/schema/
+ERROR 2026-02-14 15:31:05,272 basehttp 10988 18952 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 15:31:12,726 log 10988 18952 Internal Server Error: /api/schema/
+ERROR 2026-02-14 15:31:12,744 basehttp 10988 18952 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 15:31:12,911 log 10988 18952 Internal Server Error: /api/schema/
+ERROR 2026-02-14 15:31:12,916 basehttp 10988 18952 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 15:31:48,558 log 10988 18952 Internal Server Error: /api/schema/
+ERROR 2026-02-14 15:31:48,568 basehttp 10988 18952 "GET /api/schema/ HTTP/1.1" 500 171
+ERROR 2026-02-14 16:26:09,256 log 16292 16536 Internal Server Error: /api/schema/
+ERROR 2026-02-14 16:26:09,259 basehttp 16292 16536 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 16:26:09,418 log 16292 16536 Internal Server Error: /api/schema/
+ERROR 2026-02-14 16:26:09,420 basehttp 16292 16536 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 17:21:19,496 log 8248 5688 Internal Server Error: /api/schema/
+ERROR 2026-02-14 17:21:19,496 basehttp 8248 5688 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 17:21:19,566 log 8248 5688 Internal Server Error: /api/schema/
+ERROR 2026-02-14 17:21:19,567 basehttp 8248 5688 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 17:25:02,571 log 8248 752 Internal Server Error: /api/schema/
+ERROR 2026-02-14 17:25:02,571 basehttp 8248 752 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 17:25:02,704 log 8248 752 Internal Server Error: /api/schema/
+ERROR 2026-02-14 17:25:02,704 basehttp 8248 752 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 17:26:58,294 log 8248 752 Internal Server Error: /api/schema/
+ERROR 2026-02-14 17:26:58,295 basehttp 8248 752 "GET /api/schema/ HTTP/1.1" 500 171
+ERROR 2026-02-14 17:57:50,758 log 8248 12296 Internal Server Error: /api/schema/
+ERROR 2026-02-14 17:57:50,758 basehttp 8248 12296 "GET /api/schema/ HTTP/1.1" 500 171
+ERROR 2026-02-14 17:57:54,863 log 8248 12296 Internal Server Error: /api/schema/
+ERROR 2026-02-14 17:57:54,864 basehttp 8248 12296 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 17:57:54,971 log 8248 12296 Internal Server Error: /api/schema/
+ERROR 2026-02-14 17:57:54,971 basehttp 8248 12296 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 18:05:54,092 log 10496 14804 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:05:54,092 basehttp 10496 14804 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 18:05:54,324 log 10496 14804 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:05:54,324 basehttp 10496 14804 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 18:05:56,607 log 10496 14804 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:05:56,607 basehttp 10496 14804 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 18:05:56,707 log 10496 14804 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:05:56,708 basehttp 10496 14804 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 18:14:05,277 log 13664 4688 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:14:05,277 basehttp 13664 4688 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 18:14:05,424 log 13664 4688 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:14:05,424 basehttp 13664 4688 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 18:14:06,760 log 13664 4688 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:14:06,760 basehttp 13664 4688 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 18:14:06,876 log 13664 4688 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:14:06,876 basehttp 13664 4688 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 18:14:08,109 log 13664 4688 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:14:08,109 basehttp 13664 4688 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 18:14:08,208 log 13664 4688 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:14:08,208 basehttp 13664 4688 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 18:14:25,169 log 11980 14080 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:14:25,169 basehttp 11980 14080 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 18:14:25,286 log 11980 14080 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:14:25,286 basehttp 11980 14080 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 18:15:33,809 log 12360 10932 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:15:33,811 basehttp 12360 10932 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 18:15:33,928 log 12360 10932 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:15:33,928 basehttp 12360 10932 "GET /api/schema/ HTTP/1.1" 500 205
+ERROR 2026-02-14 18:46:02,527 log 4688 9852 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:46:02,528 basehttp 4688 9852 "GET /api/schema/ HTTP/1.1" 500 221
+ERROR 2026-02-14 18:46:02,669 log 4688 9852 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:46:02,670 basehttp 4688 9852 "GET /api/schema/ HTTP/1.1" 500 221
+ERROR 2026-02-14 18:46:09,620 log 4688 9852 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:46:09,621 basehttp 4688 9852 "GET /api/schema/ HTTP/1.1" 500 221
+ERROR 2026-02-14 18:46:09,813 log 4688 9852 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:46:09,816 basehttp 4688 9852 "GET /api/schema/ HTTP/1.1" 500 221
+ERROR 2026-02-14 18:53:38,992 log 12776 12156 Internal Server Error: /api/schema/
+ERROR 2026-02-14 18:53:38,994 basehttp 12776 12156 "GET /api/schema/ HTTP/1.1" 500 187
+WARNING 2026-02-15 07:46:21,677 log 7288 16748 Unauthorized: /admin/login/
+WARNING 2026-02-15 07:46:21,677 basehttp 7288 16748 "GET /admin/login/?next=/admin/ HTTP/1.1" 401 120
+WARNING 2026-02-15 07:46:50,660 log 7288 2772 Unauthorized: /admin/login/
+WARNING 2026-02-15 07:46:50,665 basehttp 7288 2772 "GET /admin/login/?next=/admin/ HTTP/1.1" 401 120
+WARNING 2026-02-15 07:46:50,731 log 7288 9556 Unauthorized: /favicon.ico
+WARNING 2026-02-15 07:46:50,746 basehttp 7288 9556 "GET /favicon.ico HTTP/1.1" 401 120
+WARNING 2026-02-15 07:46:54,948 log 7288 9128 Unauthorized: /favicon.ico
+WARNING 2026-02-15 07:46:54,949 basehttp 7288 9128 "GET /favicon.ico HTTP/1.1" 401 120
+WARNING 2026-02-15 07:46:57,424 log 7288 7044 Unauthorized: /api/schema/swagger-ui/
+WARNING 2026-02-15 07:46:57,425 basehttp 7288 7044 "GET /api/schema/swagger-ui/ HTTP/1.1" 401 120
+WARNING 2026-02-15 07:47:00,667 log 7288 13856 Unauthorized: /favicon.ico
+WARNING 2026-02-15 07:47:00,669 basehttp 7288 13856 "GET /favicon.ico HTTP/1.1" 401 120
+WARNING 2026-02-15 07:47:02,000 log 7288 16832 Unauthorized: /api/schema/redoc/
+WARNING 2026-02-15 07:47:02,002 basehttp 7288 16832 "GET /api/schema/redoc/ HTTP/1.1" 401 120
+WARNING 2026-02-15 07:47:08,017 log 7288 10304 Unauthorized: /favicon.ico
+WARNING 2026-02-15 07:47:08,018 basehttp 7288 10304 "GET /favicon.ico HTTP/1.1" 401 120
+WARNING 2026-02-15 07:47:10,592 log 7288 14216 Unauthorized: /
+WARNING 2026-02-15 07:47:10,592 basehttp 7288 14216 "GET / HTTP/1.1" 401 120
+WARNING 2026-02-15 07:50:48,668 log 15268 8456 Unauthorized: /
+WARNING 2026-02-15 07:50:48,668 basehttp 15268 8456 "GET / HTTP/1.1" 401 120
+WARNING 2026-02-15 07:50:53,703 log 15268 13492 Unauthorized: /
+WARNING 2026-02-15 07:50:53,703 basehttp 15268 13492 "GET / HTTP/1.1" 401 120
+WARNING 2026-02-15 07:50:57,421 log 15268 12376 Unauthorized: /api/schema/redoc/
+WARNING 2026-02-15 07:50:57,421 basehttp 15268 12376 "GET /api/schema/redoc/ HTTP/1.1" 401 120
+WARNING 2026-02-15 07:51:00,959 log 15268 10152 Unauthorized: /api/schema/redoc/
+WARNING 2026-02-15 07:51:00,960 basehttp 15268 10152 "GET /api/schema/redoc/ HTTP/1.1" 401 120
+WARNING 2026-02-15 07:51:01,054 log 15268 17312 Unauthorized: /favicon.ico
+WARNING 2026-02-15 07:51:01,054 basehttp 15268 17312 "GET /favicon.ico HTTP/1.1" 401 120
+WARNING 2026-02-15 07:51:03,516 log 15268 5964 Unauthorized: /api/schema/redoc/
+WARNING 2026-02-15 07:51:03,529 basehttp 15268 5964 "GET /api/schema/redoc/ HTTP/1.1" 401 120
+WARNING 2026-02-15 07:51:09,908 log 15268 12980 Unauthorized: /api/schema/redoc/
+WARNING 2026-02-15 07:51:09,916 basehttp 15268 12980 "GET /api/schema/redoc/ HTTP/1.1" 401 120
+WARNING 2026-02-15 07:51:09,965 log 15268 13052 Unauthorized: /favicon.ico
+WARNING 2026-02-15 07:51:09,965 basehttp 15268 13052 "GET /favicon.ico HTTP/1.1" 401 120
+WARNING 2026-02-15 07:51:52,838 log 15268 16916 Unauthorized: /favicon.ico
+WARNING 2026-02-15 07:51:52,839 basehttp 15268 16916 "GET /favicon.ico HTTP/1.1" 401 120
+WARNING 2026-02-15 07:51:54,756 log 15268 11452 Unauthorized: /api/schema/swagger-ui/
+WARNING 2026-02-15 07:51:54,757 basehttp 15268 11452 "GET /api/schema/swagger-ui/ HTTP/1.1" 401 120
+WARNING 2026-02-15 07:52:11,625 log 15268 6816 Unauthorized: /favicon.ico
+WARNING 2026-02-15 07:52:11,628 basehttp 15268 6816 "GET /favicon.ico HTTP/1.1" 401 120
+WARNING 2026-02-15 07:52:16,738 log 15268 14304 Unauthorized: /api/schema/redoc/
+WARNING 2026-02-15 07:52:16,739 basehttp 15268 14304 "GET /api/schema/redoc/ HTTP/1.1" 401 120
+WARNING 2026-02-15 07:53:26,537 log 15268 11372 Unauthorized: /favicon.ico
+WARNING 2026-02-15 07:53:26,539 basehttp 15268 11372 "GET /favicon.ico HTTP/1.1" 401 120
+WARNING 2026-02-15 07:53:32,084 log 15268 11544 Unauthorized: /
+WARNING 2026-02-15 07:53:32,085 basehttp 15268 11544 "GET / HTTP/1.1" 401 120
+WARNING 2026-02-15 07:53:35,210 log 15268 14468 Unauthorized: /
+WARNING 2026-02-15 07:53:35,214 basehttp 15268 14468 "GET / HTTP/1.1" 401 120
+WARNING 2026-02-15 07:53:35,268 log 15268 7472 Unauthorized: /favicon.ico
+WARNING 2026-02-15 07:53:35,269 basehttp 15268 7472 "GET /favicon.ico HTTP/1.1" 401 120
+WARNING 2026-02-15 08:04:19,951 log 16360 17144 Unauthorized: /api/schema/swagger-ui/
+WARNING 2026-02-15 08:04:19,952 basehttp 16360 17144 "GET /api/schema/swagger-ui/ HTTP/1.1" 401 12
+WARNING 2026-02-15 08:04:26,544 log 16360 4716 Unauthorized: /api/schema/redoc/
+WARNING 2026-02-15 08:04:26,544 basehttp 16360 4716 "GET /api/schema/redoc/ HTTP/1.1" 401 12
+WARNING 2026-02-15 08:04:30,903 log 16360 9048 Unauthorized: /api/schema/redoc/
+WARNING 2026-02-15 08:04:30,904 basehttp 16360 9048 "GET /api/schema/redoc/ HTTP/1.1" 401 12
+WARNING 2026-02-15 08:04:36,406 log 16360 17340 Unauthorized: /api/schema/redoc/
+WARNING 2026-02-15 08:04:36,406 basehttp 16360 17340 "GET /api/schema/redoc/ HTTP/1.1" 401 12
+WARNING 2026-02-15 08:04:39,573 log 16360 11784 Unauthorized: /api/schema/redoc/
+WARNING 2026-02-15 08:04:39,578 basehttp 16360 11784 "GET /api/schema/redoc/ HTTP/1.1" 401 12
+WARNING 2026-02-15 08:04:43,241 log 16360 1192 Unauthorized: /api/schema/swagger-ui/
+WARNING 2026-02-15 08:04:43,242 basehttp 16360 1192 "GET /api/schema/swagger-ui/ HTTP/1.1" 401 12
+WARNING 2026-02-15 08:04:45,630 log 16360 8728 Unauthorized: /api/schema/swagger-ui/
+WARNING 2026-02-15 08:04:45,631 basehttp 16360 8728 "GET /api/schema/swagger-ui/ HTTP/1.1" 401 12
+WARNING 2026-02-15 08:04:54,033 log 16360 10020 Unauthorized: /api/schema/swagger-ui/
+WARNING 2026-02-15 08:04:54,034 basehttp 16360 10020 "GET /api/schema/swagger-ui/ HTTP/1.1" 401 12
+WARNING 2026-02-15 08:05:37,231 log 16360 12472 Unauthorized: /api/schema/swagger-ui/
+WARNING 2026-02-15 08:05:37,244 basehttp 16360 12472 "GET /api/schema/swagger-ui/ HTTP/1.1" 401 12
