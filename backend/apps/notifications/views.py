@@ -1,7 +1,7 @@
 # backend/apps/notifications/views.py
 import logging
 
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest  # added HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.views.decorators.http import require_GET
@@ -118,7 +118,7 @@ class NotificationListView(generics.ListAPIView):
 
 
 class NotificationDetailView(generics.RetrieveAPIView):
-    """Retrieve a single notification (and mark it as read? optionally)."""
+    """Retrieve a single notification (and mark it as read automatically)."""
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -127,3 +127,16 @@ class NotificationDetailView(generics.RetrieveAPIView):
         if getattr(self, "swagger_fake_view", False):
             return Notification.objects.none()
         return Notification.objects.filter(user=self.request.user)
+
+    def retrieve(self, request, *args, **kwargs):
+        """Override to mark notification as opened when retrieved."""
+        instance = self.get_object()
+        # Mark as opened if not already
+        if not instance.opened_at:
+            instance.opened_at = timezone.now()
+            # Optionally update status if your model uses a 'read' status
+            # if instance.status != 'read':
+            #     instance.status = 'read'
+            instance.save(update_fields=['opened_at'])  # add 'status' if needed
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)

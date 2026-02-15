@@ -372,6 +372,23 @@ ADMIN_FRONTEND_URL = env('ADMIN_FRONTEND_URL', default='http://localhost:3000/ad
 SITE_URL = env('SITE_URL', default='http://localhost:8000')
 
 # ============================================================================
+# PAYSTACK CONFIGURATION (added for payment gateway)
+# ============================================================================
+PAYSTACK_SECRET_KEY = env("PAYSTACK_SECRET_KEY", default=None)   # Must be set in production
+PAYSTACK_PUBLIC_KEY = env("PAYSTACK_PUBLIC_KEY", default=None)   # Optional for frontend
+PAYSTACK_SUPPORTED_CURRENCIES = env.list(
+    "PAYSTACK_SUPPORTED_CURRENCIES",
+    default=["NGN", "USD", "GHS", "ZAR", "KES"]
+)
+PAYSTACK_WEBHOOK_MAX_SIZE = env.int("PAYSTACK_WEBHOOK_MAX_SIZE", default=102400)  # 100KB
+PAYSTACK_WEBHOOK_THROTTLE_RATE = env("PAYSTACK_WEBHOOK_THROTTLE_RATE", default="100/hour")
+# Optional IP allowlist – only enable behind trusted proxy
+PAYSTACK_WEBHOOK_ALLOWED_IPS = env.list("PAYSTACK_WEBHOOK_ALLOWED_IPS", default=None)
+
+# Explicit domain for Paystack callback (fallback uses request host)
+DOMAIN_URL = env("DOMAIN_URL", default=SITE_URL)
+
+# ============================================================================
 # BASIC AUTHENTICATION FOR API DOCS
 # ============================================================================
 BASIC_AUTH_USERNAME = env('DOCS_USERNAME', default='docs')

@@ -3,6 +3,9 @@ import uuid
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
+from urllib.parse import urlparse
 
 
 class Mirror(models.Model):
@@ -56,18 +59,29 @@ class Mirror(models.Model):
         ordering = ['priority']
         indexes = [
             models.Index(fields=['is_active', 'is_online']),
+            # Added index to fully support selection + ordering
+            models.Index(fields=['is_active', 'is_online', 'priority']),
         ]
 
     def __str__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
-        # Normalize base_url: strip trailing slash
-        if self.base_url and self.base_url.endswith('/'):
+    def clean(self):
+        """Validate mirror configuration."""
+        # Enforce HTTPS in production (validation, not silent mutation)
+        if not settings.DEBUG:
+            parsed = urlparse(self.base_url)
+            if parsed.scheme != 'https':
+                raise ValidationError({
+                    'base_url': _("Mirror base_url must use HTTPS in production.")
+                })
+        # Ensure no trailing slash (optional, but good practice)
+        if self.base_url.endswith('/'):
             self.base_url = self.base_url.rstrip('/')
-        # Enforce HTTPS in production (can be overridden by setting)
-        if not settings.DEBUG and self.base_url.startswith('http://'):
-            self.base_url = self.base_url.replace('http://', 'https://')
+
+    def save(self, *args, **kwargs):
+        # Run validation; will raise ValidationError if invalid.
+        self.full_clean()
         super().save(*args, **kwargs)
 
 
@@ -101,13 +115,18 @@ class CDNFile(models.Model):
     filename = models.CharField(max_length=255)
     file_hash = models.CharField(
         max_length=64,
-        blank=False,                         # Changed: now required (no blank)
+        validators=[
+            RegexValidator(
+                regex=r'^[a-fA-F0-9]{64}$',
+                message=_("Must be a valid SHA-256 hash (64 hex characters).")
+            )
+        ],
         help_text=_("SHA-256 of file (mandatory for integrity)")
     )
-    file_size = models.PositiveIntegerField(
-        null=True,                            # Changed from default=0 to allow null (unknown)
+    file_size = models.PositiveBigIntegerField(
+        null=True,
         blank=True,
-        help_text=_("File size in bytes")
+        help_text=_("File size in bytes (supports files >4GB)")
     )
     mirrors = models.ManyToManyField(
         Mirror,
@@ -134,6 +153,12 @@ class CDNFile(models.Model):
     def __str__(self):
         return f"{self.filename} ({self.get_artifact_type_display()})"
 
+    def save(self, *args, **kwargs):
+        # Normalize hash to lowercase to avoid duplicates due to casing
+        if self.file_hash:
+            self.file_hash = self.file_hash.lower()
+        super().save(*args, **kwargs)
+
 
 class MirrorFileStatus(models.Model):
     """
@@ -146,9 +171,17 @@ class MirrorFileStatus(models.Model):
     error_message = models.TextField(blank=True)
 
     class Meta:
-        unique_together = ('mirror', 'cdn_file')
+        # Modern Django uses UniqueConstraint instead of unique_together
+        constraints = [
+            models.UniqueConstraint(
+                fields=['mirror', 'cdn_file'],
+                name='unique_mirror_cdnfile'
+            )
+        ]
         indexes = [
             models.Index(fields=['cdn_file', 'is_synced']),  # ← Critical for performance
+            # Optional index for queries filtering by mirror and sync status
+            models.Index(fields=['mirror', 'is_synced']),
         ]
         verbose_name = _("mirror file status")
         verbose_name_plural = _("mirror file statuses")

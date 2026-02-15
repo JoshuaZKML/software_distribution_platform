@@ -1,3 +1,4 @@
+# backend/apps/notifications/consumers.py
 import json
 import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -66,8 +67,12 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         The payload is sent to the client exactly as provided (no extra wrapper)
         to maintain compatibility with the existing frontend code.
         """
-        # Send the raw notification data (ensuring it's JSON serializable)
-        await self.send_json(event["data"])
+        try:
+            # Send the raw notification data (ensuring it's JSON serializable)
+            await self.send_json(event["data"])
+            logger.debug(f"Notification delivered to user {self.user.id}")
+        except Exception as e:
+            logger.error(f"Failed to send notification to user {self.user.id}: {e}")
 
     # Optional: Helper to send JSON responses consistently
     async def send_json(self, content):

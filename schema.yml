@@ -267,7 +267,40 @@ paths:
   /api/v1/payments/coupons/:
     get:
       operationId: v1_payments_coupons_list
-      description: Placeholder for Coupon CRUD operations.
+      description: CRUD for coupons. Admin only.
+      parameters:
+      - in: query
+        name: discount_type
+        schema:
+          type: string
+          enum:
+          - FIXED
+          - PERCENTAGE
+        description: |-
+          * `PERCENTAGE` - Percentage
+          * `FIXED` - Fixed Amount
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       tags:
       - v1
       security:
@@ -278,10 +311,147 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/GenericResponse'
+                $ref: '#/components/schemas/PaginatedCouponList'
           description: ''
+    post:
+      operationId: v1_payments_coupons_create
+      description: CRUD for coupons. Admin only.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CouponRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CouponRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CouponRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+          description: ''
+  /api/v1/payments/coupons/{id}/:
+    get:
+      operationId: v1_payments_coupons_retrieve
+      description: CRUD for coupons. Admin only.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this coupon.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+          description: ''
+    put:
+      operationId: v1_payments_coupons_update
+      description: CRUD for coupons. Admin only.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this coupon.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CouponRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CouponRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CouponRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+          description: ''
+    patch:
+      operationId: v1_payments_coupons_partial_update
+      description: CRUD for coupons. Admin only.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this coupon.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCouponRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCouponRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCouponRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+          description: ''
+    delete:
+      operationId: v1_payments_coupons_destroy
+      description: CRUD for coupons. Admin only.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this coupon.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
   /api/v1/payments/create-payment/:
     post:
       operationId: v1_payments_create_payment_create
@@ -401,8 +571,29 @@ paths:
           description: ''
   /api/v1/payments/my-transactions/:
     get:
-      operationId: v1_payments_my_transactions_retrieve
-      description: Placeholder for retrieving authenticated user's payment history.
+      operationId: v1_payments_my_transactions_list
+      description: |-
+        List all payments and invoices for the authenticated user.
+        Pagination is handled automatically via DRF settings.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
       tags:
       - v1
       security:
@@ -413,7 +604,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GenericResponse'
+                $ref: '#/components/schemas/PaginatedTransactionList'
           description: ''
   /api/v1/payments/payments/:
     get:
@@ -495,36 +686,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Plan'
-          description: ''
-  /api/v1/payments/process-offline/:
-    post:
-      operationId: v1_payments_process_offline_create
-      description: |-
-        Placeholder for initiating an offline payment (bank transfer).
-        Creates an OfflinePayment record linked to a Payment.
-      tags:
-      - v1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GenericResponseRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/GenericResponseRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/GenericResponseRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenericResponse'
           description: ''
   /api/v1/payments/subscriptions/:
     get:
@@ -710,6 +871,45 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/payments/subscriptions/{id}/cancel/:
+    post:
+      operationId: v1_payments_subscriptions_cancel_create
+      description: |-
+        Cancel a subscription.
+        - If `immediate=true` is passed, cancel immediately (ends now).
+        - Otherwise, sets `cancel_at_period_end=true` (cancels at end of current period).
+        Only the subscription owner or an admin can cancel.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this subscription.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
   /api/v1/payments/subscriptions/webhook/:
     post:
       operationId: v1_payments_subscriptions_webhook_create
@@ -738,101 +938,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Subscription'
-          description: ''
-  /api/v1/payments/verify-offline/{payment_id}/:
-    post:
-      operationId: v1_payments_verify_offline_create
-      description: Placeholder for manual verification of offline payment receipts.
-      parameters:
-      - in: path
-        name: payment_id
-        schema:
-          type: string
-          format: uuid
-        required: true
-      tags:
-      - v1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GenericResponseRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/GenericResponseRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/GenericResponseRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      - cookieAuth: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenericResponse'
-          description: ''
-  /api/v1/payments/webhook/paypal/:
-    post:
-      operationId: v1_payments_webhook_paypal_create
-      description: Placeholder for PayPal webhook endpoint.
-      tags:
-      - v1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GenericResponseRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/GenericResponseRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/GenericResponseRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      - cookieAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenericResponse'
-          description: ''
-  /api/v1/payments/webhook/stripe/:
-    post:
-      operationId: v1_payments_webhook_stripe_create
-      description: |-
-        Placeholder for Stripe webhook endpoint.
-        Should be replaced with actual webhook verification and payment completion.
-      tags:
-      - v1
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/GenericResponseRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/GenericResponseRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/GenericResponseRequest'
-        required: true
-      security:
-      - jwtAuth: []
-      - cookieAuth: []
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GenericResponse'
           description: ''
   /notifications/api/notifications/:
     get:
@@ -872,7 +977,7 @@ paths:
   /notifications/api/notifications/{id}/:
     get:
       operationId: notifications_api_notifications_retrieve
-      description: Retrieve a single notification (and mark it as read? optionally).
+      description: Retrieve a single notification (and mark it as read automatically).
       parameters:
       - in: path
         name: id
@@ -947,6 +1052,140 @@ components:
       - retained_count
       - retention_rate
       - user_count
+    Coupon:
+      type: object
+      description: Admin CRUD for coupons.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        code:
+          type: string
+          maxLength: 50
+        description:
+          type: string
+        discount_type:
+          $ref: '#/components/schemas/DiscountTypeEnum'
+        discount_value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        max_discount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+          description: Maximum discount amount (for percentage discounts)
+        valid_from:
+          type: string
+          format: date-time
+        valid_until:
+          type: string
+          format: date-time
+        max_uses:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+          description: Maximum number of times this coupon can be used
+        max_uses_per_user:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          description: Maximum number of times a single user can use this coupon
+        minimum_purchase:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: Minimum purchase amount required
+        is_active:
+          type: boolean
+          title: Active
+        times_used:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        applicable_software:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Leave empty to apply to all software
+      required:
+      - code
+      - created_at
+      - discount_value
+      - id
+      - times_used
+      - updated_at
+      - valid_from
+      - valid_until
+    CouponRequest:
+      type: object
+      description: Admin CRUD for coupons.
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 50
+        description:
+          type: string
+        discount_type:
+          $ref: '#/components/schemas/DiscountTypeEnum'
+        discount_value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        max_discount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+          description: Maximum discount amount (for percentage discounts)
+        valid_from:
+          type: string
+          format: date-time
+        valid_until:
+          type: string
+          format: date-time
+        max_uses:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+          description: Maximum number of times this coupon can be used
+        max_uses_per_user:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          description: Maximum number of times a single user can use this coupon
+        minimum_purchase:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: Minimum purchase amount required
+        is_active:
+          type: boolean
+          title: Active
+        applicable_software:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Leave empty to apply to all software
+      required:
+      - code
+      - discount_value
+      - valid_from
+      - valid_until
     DailyAggregate:
       type: object
       properties:
@@ -1009,6 +1248,14 @@ components:
       - total_usage_events
       - total_users
       - updated_at
+    DiscountTypeEnum:
+      enum:
+      - PERCENTAGE
+      - FIXED
+      type: string
+      description: |-
+        * `PERCENTAGE` - Percentage
+        * `FIXED` - Fixed Amount
     ExportJob:
       type: object
       description: |-
@@ -1304,6 +1551,29 @@ components:
         * `pending` - Pending
         * `sent` - Sent
         * `failed` - Failed
+    PaginatedCouponList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Coupon'
     PaginatedExportJobList:
       type: object
       required:
@@ -1419,6 +1689,82 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Subscription'
+    PaginatedTransactionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+    PatchedCouponRequest:
+      type: object
+      description: Admin CRUD for coupons.
+      properties:
+        code:
+          type: string
+          minLength: 1
+          maxLength: 50
+        description:
+          type: string
+        discount_type:
+          $ref: '#/components/schemas/DiscountTypeEnum'
+        discount_value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        max_discount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          nullable: true
+          description: Maximum discount amount (for percentage discounts)
+        valid_from:
+          type: string
+          format: date-time
+        valid_until:
+          type: string
+          format: date-time
+        max_uses:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          nullable: true
+          description: Maximum number of times this coupon can be used
+        max_uses_per_user:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          description: Maximum number of times a single user can use this coupon
+        minimum_purchase:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          description: Minimum purchase amount required
+        is_active:
+          type: boolean
+          title: Active
+        applicable_software:
+          type: array
+          items:
+            type: string
+            format: uuid
+          description: Leave empty to apply to all software
     PatchedSubscriptionRequest:
       type: object
       properties:
@@ -1646,6 +1992,61 @@ components:
         * `EXPIRED` - Expired
         * `SUSPENDED` - Suspended
         * `PENDING` - Pending
+    Transaction:
+      type: object
+      description: Serializer for user transaction history, including invoice details.
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        currency:
+          type: string
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/TransactionStatusEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        invoice_number:
+          type: string
+          readOnly: true
+        invoice_id:
+          type: string
+          format: uuid
+          readOnly: true
+      required:
+      - amount
+      - created_at
+      - currency
+      - id
+      - invoice_id
+      - invoice_number
+      - status
+    TransactionStatusEnum:
+      enum:
+      - PENDING
+      - PROCESSING
+      - COMPLETED
+      - FAILED
+      - REFUNDED
+      - CANCELLED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `PROCESSING` - Processing
+        * `COMPLETED` - Completed
+        * `FAILED` - Failed
+        * `REFUNDED` - Refunded
+        * `CANCELLED` - Cancelled
   securitySchemes:
     cookieAuth:
       type: apiKey

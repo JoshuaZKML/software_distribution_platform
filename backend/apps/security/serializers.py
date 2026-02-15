@@ -12,6 +12,9 @@ from .models import (
     CodeBlacklist
 )
 
+# Import SecurityLog from accounts app (needed for new views)
+from apps.accounts.models import SecurityLog
+
 
 class IPBlacklistSerializer(serializers.ModelSerializer):
     """
@@ -88,3 +91,29 @@ class CodeBlacklistSerializer(serializers.ModelSerializer):
             'expires_at', 'active'
         ]
         read_only_fields = ['id', 'blacklisted_at']
+
+
+# ============================================================================
+# NEW SERIALIZER – added without modifying existing code
+# ============================================================================
+
+class SecurityLogSerializer(serializers.ModelSerializer):
+    """
+    Serializer for SecurityLog (from accounts app).
+    Used by SuspiciousActivityReportView and AuditLogView.
+    """
+    actor_email = serializers.EmailField(source='actor.email', read_only=True, default=None)
+
+    class Meta:
+        model = SecurityLog
+        fields = [
+            'id',
+            'actor',
+            'actor_email',
+            'action',
+            'target',
+            'ip_address',
+            'user_agent',
+            'created_at',
+        ]
+        read_only_fields = fields

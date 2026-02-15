@@ -2,12 +2,20 @@
 from rest_framework import viewsets, permissions, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.views import APIView          # <-- added for new views
+from rest_framework.response import Response      # <-- added
+from django.conf import settings                  # <-- added
 
 from .models import IPBlacklist, AbuseAttempt, AbuseAlert, SecurityNotificationLog
 from .serializers import (
     IPBlacklistSerializer, AbuseAttemptSerializer,
-    AbuseAlertSerializer, SecurityNotificationLogSerializer
+    AbuseAlertSerializer, SecurityNotificationLogSerializer,
+    SecurityLogSerializer,                         # <-- new (will be added in serializers.py)
 )
+
+# Imports for new views
+from apps.accounts.models import SecurityLog        # <-- from accounts app
+from apps.accounts.utils.device_fingerprint import DeviceFingerprintGenerator  # <-- if exists
 
 
 # ============================================================================
@@ -119,3 +127,85 @@ class SecurityNotificationLogViewSet(viewsets.ReadOnlyModelViewSet):
     search_fields = ['recipient', 'subject']
     ordering_fields = ['created_at', 'notification_type']
     ordering = ['-created_at']
+
+
+# ============================================================================
+# NEW VIEWS – added without modifying existing code
+# ============================================================================
+
+class SecuritySettingsView(APIView):
+    """
+    Get current security settings (admin only).
+    Returns a subset of Django settings relevant to security.
+    """
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        data = {
+            'rate_limit_enabled': getattr(settings, 'RATE_LIMIT_ENABLED', True),
+            'max_login_attempts': getattr(settings, 'MAX_LOGIN_ATTEMPTS', 5),
+            'session_timeout_minutes': getattr(settings, 'SESSION_COOKIE_AGE', 1209600) // 60,
+            'mfa_required': getattr(settings, 'MFA_REQUIRED', False),
+        }
+        return Response(data)
+
+
+class DeviceFingerprintCheckView(APIView):
+    """
+    Generate and return a device fingerprint based on the request.
+    Useful for testing and debugging. Accessible only to authenticated users.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        try:
+            fp = DeviceFingerprintGenerator.generate(request)
+        except Exception as e:
+            return Response(
+                {'error': 'Could not generate fingerprint', 'details': str(e)},
+                status=400
+            )
+        return Response({'device_fingerprint': fp})
+
+
+class SuspiciousActivityReportView(APIView):
+    """
+    Return recent suspicious activities (abuse attempts + security logs).
+    Admin only. Accepts optional 'limit' query parameter (default 50).
+    """
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        limit = request.GET.get('limit', 50)
+        try:
+            limit = int(limit)
+            if limit < 1:
+                limit = 50
+        except ValueError:
+            limit = 50
+
+        # Fetch recent abuse attempts
+        attempts = AbuseAttempt.objects.all().order_by('-created_at')[:limit]
+
+        # Fetch security logs that are flagged as suspicious (adjust filter as needed)
+        logs = SecurityLog.objects.filter(action__icontains='suspicious').order_by('-created_at')[:limit]
+
+        data = {
+            'abuse_attempts': AbuseAttemptSerializer(attempts, many=True).data,
+            'security_logs': SecurityLogSerializer(logs, many=True).data,
+        }
+        return Response(data)
+
+
+class AuditLogView(APIView):
+    """
+    Retrieve audit logs (admin actions). Admin only.
+    Returns logs with an actor (non‑system actions), newest first, up to 100 entries.
+    """
+    permission_classes = [permissions.IsAdminUser]
+
+    def get(self, request):
+        logs = SecurityLog.objects.filter(actor__isnull=False).order_by('-created_at')[:100]
+        # Using serializer for consistent output
+        serializer = SecurityLogSerializer(logs, many=True)
+        return Response(serializer.data)

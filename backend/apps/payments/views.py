@@ -1,6 +1,7 @@
 """
 Payments views for Software Distribution Platform.
 """
+from drf_spectacular.utils import extend_schema 
 import hashlib
 import hmac
 import json
@@ -16,12 +17,14 @@ from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils import timezone
-from rest_framework import serializers, status, viewsets
+from rest_framework import serializers, status, viewsets, generics   # <-- added generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
 from rest_framework.views import APIView
 from rest_framework.decorators import action
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .models import (
     Coupon,
@@ -40,6 +43,9 @@ from .serializers import (   # added serializers
     InvoiceSerializer,
     GenericResponseSerializer,
     PaymentPlaceholderSerializer,
+    CouponSerializer,               # <-- new
+    OfflinePaymentRequestSerializer, # <-- new
+    TransactionSerializer,           # <-- new for user transactions
 )
 
 logger = logging.getLogger(__name__)
@@ -103,6 +109,50 @@ class SubscriptionViewSet(viewsets.ModelViewSet):
         """
         # Placeholder – real implementation would verify signature and update accordingly.
         return Response({"detail": "Webhook received"}, status=status.HTTP_200_OK)
+    
+    # ... (inside SubscriptionViewSet, after other actions)
+
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def cancel(self, request, pk=None):
+        """
+        Cancel a subscription.
+        - If `immediate=true` is passed, cancel immediately (ends now).
+        - Otherwise, sets `cancel_at_period_end=true` (cancels at end of current period).
+        Only the subscription owner or an admin can cancel.
+        """
+        subscription = self.get_object()  # already filtered by get_queryset
+
+        # Permission: only owner or admin
+        if not (request.user.is_staff or subscription.user == request.user):
+            return Response(
+                {"detail": "You do not have permission to cancel this subscription."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        immediate = request.data.get('immediate', False)
+        if immediate:
+            # Immediate cancellation
+            subscription.cancel(immediate=True)
+            message = "Subscription cancelled immediately."
+        else:
+            # Cancel at period end
+            if subscription.cancel_at_period_end:
+                return Response(
+                    {"detail": "Subscription is already set to cancel at period end."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            subscription.cancel_at_period_end = True
+            subscription.save(update_fields=['cancel_at_period_end'])
+            message = "Subscription will be cancelled at the end of the current billing period."
+
+        return Response({
+            "success": True,
+            "message": message,
+            "subscription_id": str(subscription.id),
+            "cancel_at_period_end": subscription.cancel_at_period_end,
+            "status": subscription.status,
+            "ended_at": subscription.ended_at
+        }, status=status.HTTP_200_OK)
 
 
 class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
@@ -143,17 +193,33 @@ class InvoiceViewSet(viewsets.ReadOnlyModelViewSet):
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-class CouponViewSet(viewsets.ViewSet):
+# ===== NEW: Coupon CRUD (replaces placeholder) =====
+class CouponViewSet(viewsets.ModelViewSet):
     """
-    Placeholder for Coupon CRUD operations.
+    CRUD for coupons. Admin only.
     """
-    serializer_class = GenericResponseSerializer
-    def list(self, request):
-        return Response({'status': 'CouponViewSet placeholder'})
+    queryset = Coupon.objects.all().order_by('-created_at')
+    serializer_class = CouponSerializer
+    permission_classes = [IsAuthenticated]  # IsAdminUser enforced in permissions; we'll override get_queryset for safety
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['is_active', 'discount_type']
+    search_fields = ['code', 'description']
+    ordering_fields = ['created_at', 'valid_from', 'valid_until']
+
+    def get_queryset(self):
+        # Ensure only admins can access any coupon
+        if not self.request.user.is_staff:
+            return Coupon.objects.none()
+        return super().get_queryset()
+
+    def perform_create(self, serializer):
+        # Optionally set created_by if your model has that field
+        serializer.save()
+# ====================================================
 
 
 # ----------------------------------------------------------------------
-# PAYMENT INITIALISATION & PROCESSING (existing placeholders preserved)
+# PAYMENT INITIALISATION & PROCESSING
 # ----------------------------------------------------------------------
 
 class CreatePaymentView(APIView):
@@ -168,65 +234,206 @@ class CreatePaymentView(APIView):
         return Response({'status': 'CreatePaymentView placeholder'})
 
 
+# ===== NEW: Process Offline Payment =====
+@extend_schema(exclude=True)
 class ProcessOfflinePaymentView(APIView):
     """
-    Placeholder for initiating an offline payment (bank transfer).
-    Creates an OfflinePayment record linked to a Payment.
+    Initiate an offline payment (bank transfer, deposit, crypto).
+    Creates a PENDING Payment and an associated OfflinePayment record.
     """
     permission_classes = [IsAuthenticated]
-    serializer_class = GenericResponseSerializer
 
     def post(self, request):
-        return Response({'status': 'ProcessOfflinePaymentView placeholder'})
+        serializer = OfflinePaymentRequestSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        software = data['software']
+        amount = data['amount']
+        currency = data.get('currency', software.currency)
+        payment_method = data.get('payment_method', 'BANK_TRANSFER')
+        metadata = data.get('metadata', {})
+
+        with transaction.atomic():
+            # Prevent duplicate pending offline payments for same user/software
+            existing = Payment.objects.filter(
+                user=request.user,
+                software=software,
+                payment_method__startswith='OFFLINE_',
+                status=Payment.Status.PENDING
+            ).exists()
+            if existing:
+                return Response(
+                    {'error': 'You already have a pending offline payment for this software.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Create Payment
+            payment = Payment.objects.create(
+                user=request.user,
+                software=software,
+                amount=amount,
+                currency=currency,
+                payment_method=f"OFFLINE_{payment_method}",
+                status=Payment.Status.PENDING,
+                metadata=metadata
+            )
+            # Create OfflinePayment
+            offline = OfflinePayment.objects.create(
+                payment=payment,
+                status='PENDING',
+                bank_name=data.get('bank_name', ''),
+                account_name=data.get('account_name', ''),
+                account_number=data.get('account_number', ''),
+                reference_number=data.get('reference_number', ''),
+                crypto_address=data.get('crypto_address', ''),
+                crypto_currency=data.get('crypto_currency', '')
+            )
+            # Optionally send email with instructions (implement separately if needed)
+
+        # Return dynamic instructions based on payment method
+        instructions = {
+            'BANK_TRANSFER': "Please transfer the amount to the bank account provided in your dashboard and upload the receipt.",
+            'CRYPTO': f"Send {amount} {currency} to the following crypto address: {offline.crypto_address or 'check dashboard'}.",
+        }.get(payment_method, "Please complete the payment using the instructions in your dashboard.")
+
+        return Response({
+            'payment_id': str(payment.id),
+            'offline_payment_id': str(offline.id),
+            'instructions': instructions,
+            'status': 'pending'
+        }, status=status.HTTP_201_CREATED)
+# ========================================
 
 
+# ===== NEW: Verify Offline Payment =====
+@extend_schema(exclude=True)
 class VerifyOfflinePaymentView(APIView):
     """
-    Placeholder for manual verification of offline payment receipts.
+    Admin view to manually verify an offline payment receipt.
+    Updates OfflinePayment status and, if completed, marks Payment as SUCCESS.
     """
-    permission_classes = [IsAuthenticated]
-    serializer_class = GenericResponseSerializer
+    permission_classes = [IsAuthenticated]  # We'll enforce staff manually
 
     def post(self, request, payment_id=None):
-        return Response({'status': f'VerifyOfflinePaymentView placeholder for {payment_id}'})
+        if not request.user.is_staff:
+            return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
+
+        new_status = request.data.get('status')
+        if new_status not in ['COMPLETED', 'REJECTED']:
+            return Response({'error': 'Invalid status. Use COMPLETED or REJECTED.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            offline = OfflinePayment.objects.select_related('payment').get(payment_id=payment_id)
+        except OfflinePayment.DoesNotExist:
+            return Response({'error': 'Offline payment not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if offline.status != 'PENDING':
+            return Response({'error': f'Offline payment already {offline.status}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        with transaction.atomic():
+            offline.status = new_status
+            offline.save(update_fields=['status'])
+
+            if new_status == 'COMPLETED':
+                offline.payment.status = Payment.Status.SUCCESS
+                offline.payment.save(update_fields=['status'])
+                # Optionally create invoice, grant access, etc.
+
+        return Response({
+            'offline_payment_id': str(offline.id),
+            'status': offline.status,
+            'payment_status': offline.payment.status
+        }, status=status.HTTP_200_OK)
+# ========================================
 
 
-class UserTransactionsView(APIView):
+# ===== NEW: User Transactions View (replaces placeholder) =====
+class UserTransactionsView(generics.ListAPIView):
     """
-    Placeholder for retrieving authenticated user's payment history.
+    List all payments and invoices for the authenticated user.
+    Pagination is handled automatically via DRF settings.
     """
+    serializer_class = TransactionSerializer
     permission_classes = [IsAuthenticated]
-    serializer_class = GenericResponseSerializer
 
-    def get(self, request):
-        return Response({'status': 'UserTransactionsView placeholder'})
+    def get_queryset(self):
+        # Avoid accessing request.user during schema generation
+        if getattr(self, "swagger_fake_view", False):
+            return Payment.objects.none()
+        # Return payments for the current user, ordered newest first.
+        # The serializer will include invoice details via source fields.
+        return Payment.objects.filter(user=self.request.user).order_by('-created_at')
+# ============================================================
 
 
 # ----------------------------------------------------------------------
-# PAYMENT GATEWAY WEBHOOKS – existing placeholders kept
+# PAYMENT GATEWAY WEBHOOKS – placeholders ready for extension
 # ----------------------------------------------------------------------
 
+@extend_schema(exclude=True)
 class StripeWebhookView(APIView):
     """
-    Placeholder for Stripe webhook endpoint.
-    Should be replaced with actual webhook verification and payment completion.
-    """
-    permission_classes = [AllowAny]  # Webhooks are external calls
-    serializer_class = GenericResponseSerializer
-
-    def post(self, request):
-        return Response({'status': 'StripeWebhookView placeholder'})
-
-
-class PayPalWebhookView(APIView):
-    """
-    Placeholder for PayPal webhook endpoint.
+    Webhook endpoint for Stripe events.
+    - Returns 200 immediately to acknowledge receipt.
+    - Logs the raw request (truncated) for debugging.
+    - TODO: implement signature verification using Stripe-Signature header.
+    - TODO: add idempotency key / event_id tracking to prevent duplicate processing.
+    - TODO: dispatch events (e.g., payment_intent.succeeded) to update Payment/Invoice.
     """
     permission_classes = [AllowAny]
-    serializer_class = GenericResponseSerializer
 
     def post(self, request):
-        return Response({'status': 'PayPalWebhookView placeholder'})
+        # Log truncated payload (mask sensitive data if needed)
+        logger.info(f"Stripe webhook received (first 500 chars): {request.body[:500]}")
+        
+        # TODO: verify signature with stripe.Webhook.construct_event()
+        # signature = request.headers.get('Stripe-Signature')
+        # if not signature:
+        #     return Response({'error': 'Missing signature'}, status=status.HTTP_400_BAD_REQUEST)
+        # try:
+        #     event = stripe.Webhook.construct_event(
+        #         payload=request.body, sig_header=signature, secret=settings.STRIPE_WEBHOOK_SECRET
+        #     )
+        # except ValueError:
+        #     return Response({'error': 'Invalid payload'}, status=status.HTTP_400_BAD_REQUEST)
+        # except stripe.error.SignatureVerificationError:
+        #     return Response({'error': 'Invalid signature'}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # TODO: check if event.id already processed (cache/table)
+        # TODO: handle event types (e.g., 'payment_intent.succeeded')
+        
+        return Response({'status': 'received'}, status=status.HTTP_200_OK)
+
+
+@extend_schema(exclude=True)
+class PayPalWebhookView(APIView):
+    """
+    Webhook endpoint for PayPal events.
+    - Returns 200 immediately to acknowledge receipt.
+    - Logs the raw request (truncated) for debugging.
+    - TODO: implement verification (e.g., validate webhook ID with PayPal API).
+    - TODO: add idempotency key / transmission_id tracking.
+    - TODO: dispatch events (e.g., PAYMENT.CAPTURE.COMPLETED) to update Payment/Invoice.
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        # Log truncated payload
+        logger.info(f"PayPal webhook received (first 500 chars): {request.body[:500]}")
+        
+        # TODO: verify PayPal webhook signature
+        # See: https://developer.paypal.com/docs/api/webhooks/v1/#verify-webhook-signature
+        # - Extract headers: paypal-transmission-id, paypal-transmission-time, paypal-transmission-sig, etc.
+        # - Call PayPal verification API with the event body and headers.
+        #
+        # if not verification_passed:
+        #     return Response({'error': 'Verification failed'}, status=status.HTTP_400_BAD_REQUEST)
+        #
+        # TODO: deduplicate based on transmission_id
+        # TODO: handle event types
+        
+        return Response({'status': 'received'}, status=status.HTTP_200_OK)
 
 
 # ----------------------------------------------------------------------

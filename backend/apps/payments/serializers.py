@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Payment, Plan, Subscription, Invoice
+from .models import Payment, Plan, Subscription, Invoice, Coupon, OfflinePayment  # <-- Coupon added
+from decimal import Decimal  # added for Decimal min_value fix
 
 # 👇 ADD THESE TWO IMPORTS (drf-spectacular type hints)
 from drf_spectacular.utils import extend_schema_field
@@ -110,3 +111,90 @@ class InvoiceSerializer(serializers.ModelSerializer):
     def get_metadata(self, obj):
         # Preserve an external 'metadata' key while mapping to model's notes
         return {'notes': obj.notes} if obj and getattr(obj, 'notes', None) else {}
+
+
+# =============================================================================
+# NEW SERIALIZERS – added without modifying existing code
+# =============================================================================
+
+class CouponSerializer(serializers.ModelSerializer):
+    """Admin CRUD for coupons."""
+    class Meta:
+        model = Coupon  # Now defined because Coupon is imported
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'updated_at', 'times_used']
+
+
+class OfflinePaymentRequestSerializer(serializers.Serializer):
+    """
+    Validate and prepare an offline payment request.
+    Expected fields vary by payment method.
+    """
+    software_id = serializers.UUIDField()
+    amount = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=Decimal('0.01'))  # fixed min_value to Decimal
+    currency = serializers.CharField(max_length=3, required=False)
+    payment_method = serializers.ChoiceField(
+        choices=[
+            ('BANK_TRANSFER', 'Bank Transfer'),
+            ('BANK_DEPOSIT', 'Bank Deposit'),
+            ('CRYPTO', 'Crypto')
+        ],
+        default='BANK_TRANSFER'
+    )
+    # Optional fields for bank methods
+    bank_name = serializers.CharField(required=False, allow_blank=True)
+    account_name = serializers.CharField(required=False, allow_blank=True)
+    account_number = serializers.CharField(required=False, allow_blank=True)
+    reference_number = serializers.CharField(required=False, allow_blank=True)
+    # Optional fields for crypto
+    crypto_address = serializers.CharField(required=False, allow_blank=True)
+    crypto_currency = serializers.CharField(required=False, allow_blank=True)
+    # Additional metadata (e.g., receipt image, user notes)
+    metadata = serializers.JSONField(default=dict, required=False)
+
+    def validate_software_id(self, value):
+        """
+        Ensure the software exists and is active.
+        Store the instance in context for later use.
+        """
+        from apps.products.models import Software  # lazy import to avoid circular deps
+        try:
+            software = Software.objects.get(id=value, is_active=True)
+        except Software.DoesNotExist:
+            raise serializers.ValidationError("Software not found or inactive.")
+        self.context['software'] = software
+        return value
+
+    def validate(self, attrs):
+        method = attrs.get('payment_method')
+        if method in ('BANK_TRANSFER', 'BANK_DEPOSIT'):
+            if not attrs.get('account_number'):
+                raise serializers.ValidationError("Account number is required for bank transfers/deposits.")
+            # bank_name is optional – many users may not know it, but we require at least one identifier
+        elif method == 'CRYPTO':
+            if not attrs.get('crypto_address'):
+                raise serializers.ValidationError("Crypto address is required.")
+        return attrs
+
+
+class VerifyOfflinePaymentSerializer(serializers.Serializer):
+    """Admin decision on an offline payment."""
+    approved = serializers.BooleanField()
+    notes = serializers.CharField(required=False, allow_blank=True, default='')
+
+
+# ===== NEW: Transaction Serializer for User Transactions View =====
+class TransactionSerializer(serializers.ModelSerializer):
+    """Serializer for user transaction history, including invoice details."""
+    invoice_number = serializers.CharField(source='invoice.invoice_number', read_only=True, default=None)
+    invoice_id = serializers.UUIDField(source='invoice.id', read_only=True, default=None)
+
+    class Meta:
+        model = Payment
+        fields = [
+            'id', 'amount', 'currency', 'status', 'created_at',
+            'invoice_number', 'invoice_id'
+        ]
+        # All fields are read‑only for this view
+        read_only_fields = fields
+# =================================================================

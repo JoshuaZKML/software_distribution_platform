@@ -1,5 +1,9 @@
 """
 Payments app URLs for Software Distribution Platform.
+
+Stable webhook URL (used in Paystack dashboard):
+https://yourdomain.com/api/v1/payments/webhook/paystack/
+Do not change this path without coordinating with the Paystack configuration.
 """
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
@@ -7,7 +11,7 @@ from . import views
 
 router = DefaultRouter()
 router.register(r'payments', views.PaymentViewSet, basename='payment')
-router.register(r'plans', views.PlanViewSet, basename='plan')          # <-- new
+router.register(r'plans', views.PlanViewSet, basename='plan')
 router.register(r'subscriptions', views.SubscriptionViewSet, basename='subscription')
 router.register(r'invoices', views.InvoiceViewSet, basename='invoice')
 router.register(r'coupons', views.CouponViewSet, basename='coupon')
