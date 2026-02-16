@@ -33,8 +33,13 @@ from .serializers import (
     PasswordResetConfirmSerializer,
     PasswordResetRequestSerializer,
     UserRegistrationSerializer,
-    NotificationPreferencesSerializer,  # Added for notification preferences
+    NotificationPreferencesSerializer,
+    # ===== NEW: Emergency 2FA serializers =====
+    EmergencyTwoFactorSetupSerializer,
+    EmergencyTwoFactorVerifySerializer,
+    RegenerateBackupCodesSerializer,
 )
+from .utils.verification import EmailVerificationToken
 
 logger = logging.getLogger(__name__)
 
@@ -350,7 +355,7 @@ class ChangePasswordView(generics.GenericAPIView):
 
 
 # ============================================================================
-# EMERGENCY 2FA VIEWS – HARDENED
+# EMERGENCY 2FA VIEWS – HARDENED (UPDATED WITH SERIALIZERS)
 # ============================================================================
 
 class EmergencyTwoFactorVerifyView(APIView):
@@ -360,15 +365,14 @@ class EmergencyTwoFactorVerifyView(APIView):
     - No sensitive data returned.
     """
     permission_classes = [permissions.AllowAny]
+    serializer_class = EmergencyTwoFactorVerifySerializer   # <-- ADDED
 
     def post(self, request):
-        verification_token = request.data.get('verification_token')
-        mfa_code = request.data.get('mfa_code')
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        if not verification_token or not mfa_code:
-            return Response({
-                'error': 'Verification token and MFA code are required.'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        verification_token = serializer.validated_data['verification_token']
+        mfa_code = serializer.validated_data['mfa_code']
 
         try:
             payload = jwt.decode(verification_token, settings.SECRET_KEY, algorithms=['HS256'])
@@ -434,6 +438,7 @@ class EmergencyTwoFactorSetupView(APIView):
     - Backward‑compatible: POST with {'code': '123456'} after initial POST.
     """
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = EmergencyTwoFactorSetupSerializer   # <-- ADDED
 
     def get(self, request):
         user = request.user
@@ -451,41 +456,44 @@ class EmergencyTwoFactorSetupView(APIView):
         if user.mfa_enabled:
             return Response({'error': 'MFA already enabled.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Check if we are in the verification step
-        if 'code' in request.data:
-            # Second step: verify code and activate MFA
-            if not user.mfa_secret:
-                return Response({'error': 'MFA not initialized. Please start setup first.'}, status=status.HTTP_400_BAD_REQUEST)
+        # For the verification step, we don't use the serializer because we need to check the code against user.
+        # But we can still run the serializer for the initial POST (no code) to perform the suspicious activity check.
+        if 'code' not in request.data:
+            # First step: validate that the user has suspicious activity
+            serializer = self.serializer_class(data={}, context={'request': request})
+            serializer.is_valid(raise_exception=True)
 
-            if not user.verify_mfa_code(request.data['code']):
-                return Response({'error': 'Invalid verification code.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            # Activate MFA (already enabled, but ensure flag is set)
-            user.mfa_enabled = True
-            user.mfa_emergency_only = True
-            user.save()
+            # Generate secret and backup codes (but do NOT enable yet)
+            secret = user.enable_emergency_mfa()  # This also sets mfa_enabled=False? We'll modify model method later.
+            # For now, we'll manually set mfa_enabled=False after generation.
+            user.mfa_enabled = False
+            user.save(update_fields=['mfa_enabled'])
 
             return Response({
                 'success': True,
-                'mfa_enabled': True,
-                'backup_codes': user.mfa_backup_codes,
-                'message': 'MFA enabled successfully. Save your backup codes.'
+                'requires_verification': True,
+                'qr_code_uri': user.get_mfa_provisioning_uri(),
+                'secret': user.mfa_secret,  # for manual entry
+                'message': 'Scan the QR code with your authenticator app, then verify with a code to enable MFA.'
             })
 
-        # First step: generate secret and backup codes (do NOT enable yet)
-        secret = user.enable_emergency_mfa()  # This also sets mfa_enabled=False? We'll modify model method later.
-        # But we need to ensure that enable_emergency_mfa generates secret and codes but does NOT set mfa_enabled=True.
-        # For now, we'll manually override: after calling, set mfa_enabled=False.
-        # However, we don't want to change the model method in this PR. So we'll manually set mfa_enabled=False after generation.
-        user.mfa_enabled = False
-        user.save(update_fields=['mfa_enabled'])
+        # Second step: verify code and activate MFA
+        if not user.mfa_secret:
+            return Response({'error': 'MFA not initialized. Please start setup first.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.verify_mfa_code(request.data['code']):
+            return Response({'error': 'Invalid verification code.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Activate MFA (already enabled, but ensure flag is set)
+        user.mfa_enabled = True
+        user.mfa_emergency_only = True
+        user.save()
 
         return Response({
             'success': True,
-            'requires_verification': True,
-            'qr_code_uri': user.get_mfa_provisioning_uri(),
-            'secret': user.mfa_secret,  # for manual entry
-            'message': 'Scan the QR code with your authenticator app, then verify with a code to enable MFA.'
+            'mfa_enabled': True,
+            'backup_codes': user.mfa_backup_codes,
+            'message': 'MFA enabled successfully. Save your backup codes.'
         })
 
     def delete(self, request):
@@ -503,8 +511,13 @@ class RegenerateBackupCodesView(APIView):
     Regenerate emergency backup codes.
     """
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = RegenerateBackupCodesSerializer   # <-- ADDED
 
     def post(self, request):
+        # The serializer does not expect any input, but we still use it to validate (trivial)
+        serializer = self.serializer_class(data={})
+        serializer.is_valid(raise_exception=True)
+
         user = request.user
         if not user.mfa_enabled:
             return Response({'error': 'MFA is not enabled.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -762,3 +775,36 @@ def unsubscribe(request):
     user.save(update_fields=['unsubscribed'])
 
     return Response({'status': 'unsubscribed'}, status=status.HTTP_200_OK)
+
+
+# ============================================================================
+# VERIFY EMAIL VIEW (moved from utils/verification.py)
+# ============================================================================
+
+class VerifyEmailView(APIView):
+    """
+    Verify email using token from verification email.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request, token):
+        user = EmailVerificationToken.validate_token(token)
+
+        if user:
+            user.is_verified = True
+            user.save()
+
+            return Response({
+                'success': True,
+                'message': 'Email verified successfully. You can now log in.',
+                'user': {
+                    'id': str(user.id),
+                    'email': user.email,
+                    'role': user.role
+                }
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'success': False,
+                'error': 'Invalid or expired verification token.'
+            }, status=status.HTTP_400_BAD_REQUEST)

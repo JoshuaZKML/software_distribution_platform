@@ -6,16 +6,17 @@ from rest_framework.views import APIView          # <-- added for new views
 from rest_framework.response import Response      # <-- added
 from django.conf import settings                  # <-- added
 
-from .models import IPBlacklist, AbuseAttempt, AbuseAlert, SecurityNotificationLog
+from .models import IPBlacklist, AbuseAttempt, AbuseAlert, SecurityNotificationLog, CodeBlacklist
 from .serializers import (
     IPBlacklistSerializer, AbuseAttemptSerializer,
     AbuseAlertSerializer, SecurityNotificationLogSerializer,
+    CodeBlacklistSerializer,                        # <-- new (will be added in serializers.py)
     SecurityLogSerializer,                         # <-- new (will be added in serializers.py)
 )
 
-# Imports for new views
-from apps.accounts.models import SecurityLog        # <-- from accounts app
-from apps.accounts.utils.device_fingerprint import DeviceFingerprintGenerator  # <-- if exists
+# Imports for new views – corrected to use backend.apps
+from backend.apps.accounts.models import SecurityLog
+from backend.apps.accounts.utils.device_fingerprint import DeviceFingerprintGenerator
 
 
 # ============================================================================
@@ -62,6 +63,32 @@ class IPBlacklistViewSet(viewsets.ModelViewSet):
         - Write actions (create, update, partial_update, destroy): require superuser.
         - Read actions (list, retrieve): require staff (IsAdminUser).
         """
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [IsSuperUser]
+        else:
+            permission_classes = [permissions.IsAdminUser]
+        return [p() for p in permission_classes]
+
+
+# ============================================================================
+# Code Blacklist (CRUD with strict permissions)
+# ============================================================================
+class CodeBlacklistViewSet(viewsets.ModelViewSet):
+    """
+    CRUD for activation code blacklist entries.
+    - Superusers can create, update, delete.
+    - Staff members can only view.
+    """
+    queryset = CodeBlacklist.objects.all().order_by('-created_at')
+    serializer_class = CodeBlacklistSerializer
+    pagination_class = SecurityPagination
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['is_active', 'source']
+    search_fields = ['activation_code__human_code', 'reason']
+    ordering_fields = ['created_at', 'expires_at']
+    ordering = ['-created_at']
+
+    def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             permission_classes = [IsSuperUser]
         else:

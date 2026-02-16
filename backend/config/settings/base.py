@@ -521,6 +521,7 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
-    "SCHEMA_PATH_PREFIX": "/api/",
+    # Include all API paths (adjust regex to match your URL patterns)
+    "SCHEMA_PATH_PREFIX": r'/api/|/analytics/|/notifications/|/security/|/dashboard/',
     "DEFAULT_GENERATOR_CLASS": "drf_spectacular.generators.SchemaGenerator",
 }

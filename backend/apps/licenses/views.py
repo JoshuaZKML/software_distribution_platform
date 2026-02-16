@@ -33,7 +33,9 @@ from .serializers import (
 )
 from backend.apps.accounts.permissions import IsAdmin, IsSuperAdmin
 from backend.apps.accounts.utils.device_fingerprint import DeviceFingerprintGenerator
-from backend.apps.accounts.tasks import send_license_revocation_email  # ✅ Moved to top
+# The following import has been moved inside the RevokeLicenseView.post method
+# to avoid circular imports and startup failure.
+# from backend.apps.accounts.tasks import send_license_revocation_email
 from backend.apps.products.models import Software
 
 logger = logging.getLogger(__name__)
@@ -531,6 +533,8 @@ class RevokeLicenseView(generics.GenericAPIView):
                 )
 
         if notify_user and code.user:
+            # Local import to avoid circular dependency at startup
+            from backend.apps.accounts.tasks import send_license_revocation_email
             send_license_revocation_email.delay(
                 user_id=code.user.id,
                 activation_code=code.human_code,

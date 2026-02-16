@@ -12,8 +12,8 @@ from .models import (
     CodeBlacklist
 )
 
-# Import SecurityLog from accounts app (needed for new views)
-from apps.accounts.models import SecurityLog
+# Import SecurityLog from accounts app – corrected path
+from backend.apps.accounts.models import SecurityLog
 
 
 class IPBlacklistSerializer(serializers.ModelSerializer):

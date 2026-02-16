@@ -1,4 +1,4 @@
-# FILE: /backend/apps/accounts/serializers.py (FULLY UPDATED – with non‑disruptive refactoring)
+# FILE: /backend/apps/accounts/serializers.py (FULLY UPDATED – with ChangePasswordSerializer added)
 from typing import Optional
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -223,6 +223,40 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             return "Location service not available"
         except Exception:
             return "Unknown"
+
+
+# ============================================================================
+# ADDED: ChangePasswordSerializer (missing previously)
+# ============================================================================
+
+class ChangePasswordSerializer(serializers.Serializer):
+    """
+    Serializer for password change.
+    Validates current password and ensures new passwords match.
+    """
+    current_password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'}
+    )
+    new_password = serializers.CharField(
+        write_only=True,
+        required=True,
+        validators=[validate_password],
+        style={'input_type': 'password'}
+    )
+    confirm_password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'}
+    )
+
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({
+                "confirm_password": "Passwords do not match."
+            })
+        return attrs
 
 
 # ----------------------------
@@ -476,3 +510,14 @@ class NotificationPreferencesSerializer(serializers.Serializer):
             )
 
         return data
+
+# ============================================================================
+# ADDED: Serializer for RegenerateBackupCodesView
+# ============================================================================
+
+class RegenerateBackupCodesSerializer(serializers.Serializer):
+    """
+    Serializer for RegenerateBackupCodesView.
+    No input fields required; only output is handled by the view.
+    """
+    pass

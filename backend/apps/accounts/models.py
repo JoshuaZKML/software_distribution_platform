@@ -576,3 +576,76 @@ class AdminActionLog(models.Model):
             self.action_type in undoable_actions and
             (timezone.now() - self.created_at).total_seconds() < 86400  # 24 hours
         )
+
+
+# ============================================================================
+# NEW SecurityLog model (added to resolve import errors)
+# ============================================================================
+
+class SecurityLog(models.Model):
+    """
+    Log security events (login failures, suspicious logins, password changes, etc.)
+    for audit and threat detection.
+    """
+    ACTION_CHOICES = [
+        ('LOGIN_FAILED', 'Login Failed'),
+        ('SUSPICIOUS_LOGIN_DETECTED', 'Suspicious Login Detected'),
+        ('PASSWORD_CHANGED', 'Password Changed'),
+        ('PASSWORD_RESET', 'Password Reset'),
+        ('2FA_FAILED', '2FA Failed'),
+        ('2FA_VERIFIED', '2FA Verified'),
+        ('DEVICE_VERIFIED', 'Device Verified'),
+        ('UNSUBSCRIBED', 'Unsubscribed'),
+        ('NOTIFICATION_PREFERENCES_UPDATED', 'Notification Preferences Updated'),
+    ]
+
+    actor = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='security_logs_as_actor',
+        help_text=_("User who performed the action (may be None for anonymous events).")
+    )
+    action = models.CharField(
+        max_length=50,
+        choices=ACTION_CHOICES,
+        db_index=True,
+        help_text=_("Type of security event.")
+    )
+    target = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text=_("String representation of the target (e.g., 'user:123', 'device:abc').")
+    )
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        help_text=_("IP address from which the event originated.")
+    )
+    user_agent = models.TextField(
+        blank=True,
+        help_text=_("User agent string of the client.")
+    )
+    metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=_("Additional structured data about the event (passwords redacted).")
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+        help_text=_("Timestamp when the event occurred.")
+    )
+
+    class Meta:
+        verbose_name = _("security log")
+        verbose_name_plural = _("security logs")
+        indexes = [
+            models.Index(fields=['created_at']),
+            models.Index(fields=['action', 'created_at']),
+        ]
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.get_action_display()} at {self.created_at}"

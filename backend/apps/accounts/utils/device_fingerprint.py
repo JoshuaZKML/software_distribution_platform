@@ -90,8 +90,8 @@ class DeviceFingerprintGenerator:
         
         # Check IP reputation (simplified)
         ip_address = request.META.get('REMOTE_ADDR')
-        # In production, integrate with your AbuseAttempt/IPBlacklist models
-        from ...security.models import IPBlacklist
+        # Use absolute import for cross‑app model
+        from backend.apps.security.models import IPBlacklist
         if IPBlacklist.objects.filter(ip_address=ip_address, is_active=True).exists():
             return True, "IP address is blacklisted"
         

@@ -1,0 +1,183 @@
+/* =============================================
+   DESIGN TOKENS (CSS Custom Properties)
+   Light mode (default) + Dark mode overrides
+   ============================================= */
+
+:root {
+  /* ===== COLOR PALETTE (HSL for easy opacity) ===== */
+  --color-primary-h: 210;
+  --color-primary-s: 100%;
+  --color-primary-l: 40%;
+  --color-primary: hsl(var(--color-primary-h), var(--color-primary-s), var(--color-primary-l));
+  --color-primary-hover: hsl(var(--color-primary-h), var(--color-primary-s), calc(var(--color-primary-l) - 8%));
+  --color-primary-active: hsl(var(--color-primary-h), var(--color-primary-s), calc(var(--color-primary-l) - 12%));
+
+  --color-secondary-h: 210;
+  --color-secondary-s: 10%;
+  --color-secondary-l: 46%;
+  --color-secondary: hsl(var(--color-secondary-h), var(--color-secondary-s), var(--color-secondary-l));
+  --color-secondary-hover: hsl(var(--color-secondary-h), var(--color-secondary-s), calc(var(--color-secondary-l) - 8%));
+
+  --color-success-h: 134;
+  --color-success-s: 61%;
+  --color-success-l: 41%;
+  --color-success: hsl(var(--color-success-h), var(--color-success-s), var(--color-success-l));
+
+  --color-danger-h: 354;
+  --color-danger-s: 70%;
+  --color-danger-l: 54%;
+  --color-danger: hsl(var(--color-danger-h), var(--color-danger-s), var(--color-danger-l));
+
+  --color-warning-h: 45;
+  --color-warning-s: 100%;
+  --color-warning-l: 51%;
+  --color-warning: hsl(var(--color-warning-h), var(--color-warning-s), var(--color-warning-l));
+
+  --color-info-h: 188;
+  --color-info-s: 78%;
+  --color-info-l: 41%;
+  --color-info: hsl(var(--color-info-h), var(--color-info-s), var(--color-info-l));
+
+  /* Neutral / gray scale */
+  --gray-100: #f8f9fa;
+  --gray-200: #e9ecef;
+  --gray-300: #dee2e6;
+  --gray-400: #ced4da;
+  --gray-500: #adb5bd;
+  --gray-600: #6c757d;
+  --gray-700: #495057;
+  --gray-800: #343a40;
+  --gray-900: #212529;
+
+  /* Background & surface */
+  --color-background: white;
+  --color-surface: var(--gray-100);
+  --color-surface-hover: var(--gray-200);
+  --color-surface-active: var(--gray-300);
+
+  /* Text */
+  --color-text-primary: var(--gray-900);
+  --color-text-secondary: var(--gray-600);
+  --color-text-disabled: var(--gray-500);
+  --color-text-inverse: white;
+
+  /* Borders */
+  --color-border: var(--gray-300);
+  --color-border-light: var(--gray-200);
+  --color-border-dark: var(--gray-400);
+
+  /* Focus ring */
+  --color-focus-ring: hsla(var(--color-primary-h), var(--color-primary-s), var(--color-primary-l), 0.25);
+  --focus-ring-width: 3px;
+  --focus-ring-style: solid;
+
+  /* ===== TYPOGRAPHY ===== */
+  --font-family-base: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+
+  --font-size-xs: 0.75rem;   /* 12px */
+  --font-size-sm: 0.875rem;  /* 14px */
+  --font-size-base: 1rem;    /* 16px */
+  --font-size-lg: 1.125rem;  /* 18px */
+  --font-size-xl: 1.25rem;   /* 20px */
+  --font-size-2xl: 1.5rem;   /* 24px */
+  --font-size-3xl: 1.875rem; /* 30px */
+
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-base: 1.5;
+  --line-height-loose: 1.75;
+
+  /* ===== SPACING (4px base) ===== */
+  --spacing-1: 0.25rem;  /* 4px */
+  --spacing-2: 0.5rem;   /* 8px */
+  --spacing-3: 0.75rem;  /* 12px */
+  --spacing-4: 1rem;     /* 16px */
+  --spacing-5: 1.25rem;  /* 20px */
+  --spacing-6: 1.5rem;   /* 24px */
+  --spacing-8: 2rem;     /* 32px */
+  --spacing-10: 2.5rem;  /* 40px */
+  --spacing-12: 3rem;    /* 48px */
+  --spacing-16: 4rem;    /* 64px */
+
+  /* ===== BORDER RADIUS ===== */
+  --radius-sm: 0.125rem; /* 2px */
+  --radius-base: 0.25rem; /* 4px */
+  --radius-md: 0.375rem;  /* 6px */
+  --radius-lg: 0.5rem;    /* 8px */
+  --radius-xl: 0.75rem;   /* 12px */
+  --radius-full: 9999px;
+
+  /* ===== SHADOWS ===== */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  /* ===== TRANSITIONS ===== */
+  --transition-duration: 200ms;
+  --transition-timing: ease;
+  --transition-property: all;
+  --transition: var(--transition-property) var(--transition-duration) var(--transition-timing);
+
+  /* ===== Z-INDEX SCALE ===== */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+}
+
+/* Dark mode overrides */
+.dark {
+  --color-primary-l: 55%;
+  --color-primary-hover: hsl(var(--color-primary-h), var(--color-primary-s), 60%);
+  --color-primary-active: hsl(var(--color-primary-h), var(--color-primary-s), 50%);
+
+  --color-secondary-l: 60%;
+  --color-secondary-hover: hsl(var(--color-secondary-h), var(--color-secondary-s), 52%);
+
+  --color-success-l: 50%;
+  --color-danger-l: 60%;
+  --color-warning-l: 60%;
+  --color-info-l: 55%;
+
+  --gray-100: #1a1a1a;
+  --gray-200: #2d2d2d;
+  --gray-300: #404040;
+  --gray-400: #4d4d4d;
+  --gray-500: #666666;
+  --gray-600: #808080;
+  --gray-700: #999999;
+  --gray-800: #b3b3b3;
+  --gray-900: #e6e6e6;
+
+  --color-background: var(--gray-100);
+  --color-surface: var(--gray-200);
+  --color-surface-hover: var(--gray-300);
+  --color-surface-active: var(--gray-400);
+
+  --color-text-primary: var(--gray-900);
+  --color-text-secondary: var(--gray-600);
+  --color-text-disabled: var(--gray-500);
+
+  --color-border: var(--gray-300);
+  --color-border-light: var(--gray-200);
+  --color-border-dark: var(--gray-400);
+
+  --color-focus-ring: hsla(var(--color-primary-h), var(--color-primary-s), 55%, 0.5);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+}

@@ -1,0 +1,5929 @@
+openapi: 3.0.3
+info:
+  title: Software Distribution Platform API
+  version: 1.0.0
+  description: Comprehensive API for software distribution – including accounts, products, licenses, distribution, security, dashboard, payments, and notifications.
+
+paths:
+  # ==================== Analytics (already present) ====================
+  /analytics/cohorts/:
+    get:
+      operationId: analytics_cohorts_list
+      description: List cohort aggregates, most recent first. Supports filtering by cohort_date, period, and period_number.
+      parameters:
+      - in: query
+        name: cohort_date
+        schema:
+          type: string
+          format: date
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: period
+        schema:
+          type: string
+          enum:
+          - month
+          - week
+        description: |
+          * `week` - Week
+          * `month` - Month
+      - in: query
+        name: period_number
+        schema:
+          type: integer
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CohortAggregate'
+          description: ''
+  /analytics/daily/:
+    get:
+      operationId: analytics_daily_list
+      description: List daily aggregates, most recent first. Supports filtering by date range and ordering.
+      parameters:
+      - in: query
+        name: date
+        schema:
+          type: string
+          format: date
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DailyAggregate'
+          description: ''
+  /analytics/daily/{id}/:
+    get:
+      operationId: analytics_daily_retrieve
+      description: Retrieve a specific day's aggregate. Accepts primary key or date (via lookup_field customization).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyAggregate'
+          description: ''
+  /analytics/exports/:
+    get:
+      operationId: analytics_exports_list
+      description: List all export jobs for the current user (admin sees all). Also allows creating a new export job (POST).
+      parameters:
+      - in: query
+        name: export_type
+        schema:
+          type: string
+          enum:
+          - daily_aggregates
+          - licenses
+          - payments
+          - users
+        description: |
+          * `daily_aggregates` - Daily Aggregates
+          * `users` - Users
+          * `payments` - Payments
+          * `licenses` - Licenses
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - completed
+          - failed
+          - pending
+          - processing
+        description: |
+          * `pending` - Pending
+          * `processing` - Processing
+          * `completed` - Completed
+          * `failed` - Failed
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedExportJobList'
+          description: ''
+    post:
+      operationId: analytics_exports_create
+      description: Create a new export job.
+      tags:
+      - analytics
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportJobRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportJob'
+          description: ''
+  /analytics/exports/{id}/:
+    get:
+      operationId: analytics_exports_retrieve
+      description: Retrieve details of a specific export job.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportJob'
+          description: ''
+  /analytics/exports/{id}/download/:
+    get:
+      operationId: analytics_exports_download_retrieve
+      description: Securely download the exported file. Returns either the file (binary) or a JSON with a download URL when using S3.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - analytics
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: object
+                properties:
+                  download_url:
+                    type: string
+                    format: uri
+          description: ''
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+        '500':
+          description: Internal server error
+
+  # ==================== Accounts Module ====================
+  /api/v1/auth/register/:
+    post:
+      operationId: auth_register_create
+      description: User registration. Returns user data and indicates if email verification is required.
+      tags:
+      - accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Registration successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Validation error.
+  /api/v1/auth/verify-email/{token}/:
+    get:
+      operationId: auth_verify_email_retrieve
+      description: Verify email using the token sent via email.
+      parameters:
+      - in: path
+        name: token
+        required: true
+        schema:
+          type: string
+      tags:
+      - accounts
+      responses:
+        '200':
+          description: Email verified successfully.
+        '400':
+          description: Invalid or expired token.
+  /api/v1/auth/login/:
+    post:
+      operationId: auth_login_create
+      description: Log in with email and password. Optionally include device fingerprint. May return 2FA requirement.
+      tags:
+      - accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Successful login (with tokens). May include `requires_2fa` and `verification_token`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials or unverified email.
+  /api/v1/auth/logout/:
+    post:
+      operationId: auth_logout_create
+      description: Log out the current user by blacklisting the refresh token.
+      tags:
+      - accounts
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Successfully logged out.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+  /api/v1/auth/token/refresh/:
+    post:
+      operationId: auth_token_refresh_create
+      description: Refresh access token using a refresh token.
+      tags:
+      - accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh:
+                  type: string
+              required:
+              - refresh
+      responses:
+        '200':
+          description: New tokens.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access:
+                    type: string
+                  refresh:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+  /api/v1/auth/token/verify/:
+    post:
+      operationId: auth_token_verify_create
+      description: Verify if an access token is valid.
+      tags:
+      - accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+              required:
+              - token
+      responses:
+        '200':
+          description: Token is valid.
+        '401':
+          description: Token invalid or expired.
+  /api/v1/auth/reset-password/:
+    post:
+      operationId: auth_reset_password_create
+      description: Request a password reset email.
+      tags:
+      - accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+              required:
+              - email
+      responses:
+        '200':
+          description: Reset email sent if account exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+  /api/v1/auth/reset-password/confirm/:
+    post:
+      operationId: auth_reset_password_confirm_create
+      description: Complete password reset with token and new password.
+      tags:
+      - accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                password:
+                  type: string
+                confirm_password:
+                  type: string
+              required:
+              - token
+              - password
+              - confirm_password
+      responses:
+        '200':
+          description: Password changed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+        '400':
+          description: Invalid token or password mismatch.
+  /api/v1/auth/change-password/:
+    post:
+      operationId: auth_change_password_create
+      description: Change password for authenticated user.
+      tags:
+      - accounts
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                old_password:
+                  type: string
+                new_password:
+                  type: string
+                confirm_password:
+                  type: string
+              required:
+              - old_password
+              - new_password
+              - confirm_password
+      responses:
+        '200':
+          description: Password changed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+        '400':
+          description: Validation error.
+  /api/v1/auth/unsubscribe/:
+    post:
+      operationId: auth_unsubscribe_create
+      description: Unsubscribe from marketing emails.
+      tags:
+      - accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                token:
+                  type: string
+              required:
+              - email
+              - token
+      responses:
+        '200':
+          description: Unsubscribed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+  /api/v1/auth/2fa/emergency/setup/:
+    get:
+      operationId: auth_2fa_emergency_setup_retrieve
+      description: Get 2FA setup status and data (if not already enabled).
+      tags:
+      - accounts
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: 2FA setup data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TwoFactorSetup'
+    post:
+      operationId: auth_2fa_emergency_setup_create
+      description: Start 2FA setup (first step). Returns QR code and secret.
+      tags:
+      - accounts
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: 2FA setup initiated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TwoFactorSetup'
+  /api/v1/auth/2fa/emergency/verify/:
+    post:
+      operationId: auth_2fa_emergency_verify_create
+      description: Verify 2FA code for suspicious login (emergency case).
+      tags:
+      - accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                verification_token:
+                  type: string
+                code:
+                  type: string
+              required:
+              - verification_token
+              - code
+      responses:
+        '200':
+          description: Verification successful, returns JWT tokens.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+  /api/v1/auth/2fa/emergency/regenerate-backup-codes/:
+    post:
+      operationId: auth_2fa_emergency_regenerate_backup_codes_create
+      description: Regenerate backup codes for 2FA.
+      tags:
+      - accounts
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: New backup codes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  backup_codes:
+                    type: array
+                    items:
+                      type: string
+  /api/v1/auth/device/verify/confirm/:
+    post:
+      operationId: auth_device_verify_confirm_create
+      description: Confirm a new device using the code sent via email.
+      tags:
+      - accounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                code:
+                  type: string
+              required:
+              - email
+              - code
+      responses:
+        '200':
+          description: Device verified.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+  /api/v1/auth/devices/:
+    get:
+      operationId: auth_devices_list
+      description: List active sessions (devices) for the authenticated user.
+      tags:
+      - accounts
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: List of sessions.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  active_sessions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeviceSession'
+                  device_history:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DeviceSession'
+    delete:
+      operationId: auth_devices_destroy
+      description: Revoke all other sessions (or a specific one if session_id provided in query).
+      tags:
+      - accounts
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      parameters:
+      - in: query
+        name: session_id
+        schema:
+          type: string
+          format: uuid
+        description: Optional session ID to revoke a specific session. If omitted, revokes all other sessions.
+      responses:
+        '204':
+          description: Sessions revoked.
+  /api/v1/auth/preferences/notifications/:
+    get:
+      operationId: auth_preferences_notifications_retrieve
+      description: Get notification preferences for the authenticated user.
+      tags:
+      - accounts
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Notification preferences.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferences'
+    post:
+      operationId: auth_preferences_notifications_update
+      description: Update notification preferences.
+      tags:
+      - accounts
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferences'
+      responses:
+        '200':
+          description: Updated preferences.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferences'
+
+  # ==================== Products Module ====================
+  /api/v1/products/categories/:
+    get:
+      operationId: products_categories_list
+      description: List all product categories.
+      tags:
+      - products
+      parameters:
+      - name: parent
+        in: query
+        schema:
+          type: string
+          format: uuid
+        description: Filter by parent category ID.
+      - name: is_active
+        in: query
+        schema:
+          type: boolean
+      responses:
+        '200':
+          description: List of categories.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+    post:
+      operationId: products_categories_create
+      description: Create a new category (admin only).
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+      responses:
+        '201':
+          description: Category created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+  /api/v1/products/categories/{id}/:
+    get:
+      operationId: products_categories_retrieve
+      description: Retrieve a category by ID.
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - products
+      responses:
+        '200':
+          description: Category details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+    put:
+      operationId: products_categories_update
+      description: Fully update a category (admin only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryRequest'
+      responses:
+        '200':
+          description: Category updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+    patch:
+      operationId: products_categories_partial_update
+      description: Partially update a category (admin only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCategoryRequest'
+      responses:
+        '200':
+          description: Category updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+    delete:
+      operationId: products_categories_destroy
+      description: Delete a category (admin only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: Category deleted.
+  /api/v1/products/software/:
+    get:
+      operationId: products_software_list
+      description: List software products (public). Supports filtering and pagination.
+      tags:
+      - products
+      parameters:
+      - name: search
+        in: query
+        schema:
+          type: string
+        description: Search by name or description.
+      - name: category
+        in: query
+        schema:
+          type: string
+          format: uuid
+        description: Filter by category ID.
+      - name: license_type
+        in: query
+        schema:
+          type: string
+        description: Filter by license type.
+      - name: supported_os
+        in: query
+        schema:
+          type: string
+        description: Filter by operating system (e.g., windows, mac, linux).
+      - name: is_featured
+        in: query
+        schema:
+          type: boolean
+      - name: is_new
+        in: query
+        schema:
+          type: boolean
+      - name: ordering
+        in: query
+        schema:
+          type: string
+        description: Order by field (prefix with - for descending).
+      - name: page
+        in: query
+        schema:
+          type: integer
+        description: Page number.
+      responses:
+        '200':
+          description: Paginated list of software.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSoftwareList'
+    post:
+      operationId: products_software_create
+      description: Create a new software product (admin only).
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SoftwareRequest'
+      responses:
+        '201':
+          description: Software created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Software'
+  /api/v1/products/software/{slug}/:
+    get:
+      operationId: products_software_retrieve
+      description: Retrieve a software product by slug.
+      parameters:
+      - in: path
+        name: slug
+        required: true
+        schema:
+          type: string
+      tags:
+      - products
+      responses:
+        '200':
+          description: Software details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Software'
+    put:
+      operationId: products_software_update
+      description: Fully update a software product (admin only).
+      parameters:
+      - in: path
+        name: slug
+        required: true
+        schema:
+          type: string
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SoftwareRequest'
+      responses:
+        '200':
+          description: Software updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Software'
+    patch:
+      operationId: products_software_partial_update
+      description: Partially update a software product (admin only).
+      parameters:
+      - in: path
+        name: slug
+        required: true
+        schema:
+          type: string
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSoftwareRequest'
+      responses:
+        '200':
+          description: Software updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Software'
+    delete:
+      operationId: products_software_destroy
+      description: Delete a software product (admin only).
+      parameters:
+      - in: path
+        name: slug
+        required: true
+        schema:
+          type: string
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: Software deleted.
+  /api/v1/products/software/{slug}/toggle_featured/:
+    post:
+      operationId: products_software_toggle_featured_create
+      description: Toggle featured status of a software product (admin only).
+      parameters:
+      - in: path
+        name: slug
+        required: true
+        schema:
+          type: string
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Toggled.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  is_featured:
+                    type: boolean
+  /api/v1/products/software/{slug}/toggle_active/:
+    post:
+      operationId: products_software_toggle_active_create
+      description: Toggle active status of a software product (admin only).
+      parameters:
+      - in: path
+        name: slug
+        required: true
+        schema:
+          type: string
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Toggled.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  is_active:
+                    type: boolean
+  /api/v1/products/software/{slug}/versions/:
+    get:
+      operationId: products_software_versions_list
+      description: List versions of a specific software product.
+      parameters:
+      - in: path
+        name: slug
+        required: true
+        schema:
+          type: string
+      tags:
+      - products
+      responses:
+        '200':
+          description: List of versions.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SoftwareVersion'
+  /api/v1/products/software/{slug}/images/:
+    get:
+      operationId: products_software_images_list
+      description: List images of a specific software product.
+      parameters:
+      - in: path
+        name: slug
+        required: true
+        schema:
+          type: string
+      tags:
+      - products
+      responses:
+        '200':
+          description: List of images.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SoftwareImage'
+  /api/v1/products/software/{slug}/documents/:
+    get:
+      operationId: products_software_documents_list
+      description: List documents of a specific software product.
+      parameters:
+      - in: path
+        name: slug
+        required: true
+        schema:
+          type: string
+      tags:
+      - products
+      responses:
+        '200':
+          description: List of documents.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SoftwareDocument'
+  /api/v1/products/versions/:
+    get:
+      operationId: products_versions_list
+      description: List all software versions (admin can see all, public sees active ones).
+      tags:
+      - products
+      parameters:
+      - name: software
+        in: query
+        schema:
+          type: string
+          format: uuid
+        description: Filter by software ID.
+      - name: software_slug
+        in: query
+        schema:
+          type: string
+        description: Filter by software slug.
+      - name: is_active
+        in: query
+        schema:
+          type: boolean
+      - name: is_beta
+        in: query
+        schema:
+          type: boolean
+      - name: ordering
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Paginated list of versions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSoftwareVersionList'
+    post:
+      operationId: products_versions_create
+      description: Create a new software version (admin only).
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SoftwareVersionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SoftwareVersionRequest'
+      responses:
+        '201':
+          description: Version created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SoftwareVersion'
+  /api/v1/products/versions/{id}/:
+    get:
+      operationId: products_versions_retrieve
+      description: Retrieve a specific version.
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - products
+      responses:
+        '200':
+          description: Version details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SoftwareVersion'
+    put:
+      operationId: products_versions_update
+      description: Fully update a version (admin only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SoftwareVersionRequest'
+      responses:
+        '200':
+          description: Version updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SoftwareVersion'
+    patch:
+      operationId: products_versions_partial_update
+      description: Partially update a version (admin only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSoftwareVersionRequest'
+      responses:
+        '200':
+          description: Version updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SoftwareVersion'
+    delete:
+      operationId: products_versions_destroy
+      description: Delete a version (admin only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: Version deleted.
+  /api/v1/products/versions/{id}/toggle_active/:
+    post:
+      operationId: products_versions_toggle_active_create
+      description: Toggle active status of a version (admin only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Toggled.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  is_active:
+                    type: boolean
+  /api/v1/products/versions/{id}/toggle_beta/:
+    post:
+      operationId: products_versions_toggle_beta_create
+      description: Toggle beta status of a version (admin only). Also updates is_stable accordingly.
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Toggled.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  is_beta:
+                    type: boolean
+                  is_stable:
+                    type: boolean
+  /api/v1/products/images/:
+    get:
+      operationId: products_images_list
+      description: List software images (public). Can filter by software slug.
+      tags:
+      - products
+      parameters:
+      - name: software
+        in: query
+        schema:
+          type: string
+          format: uuid
+        description: Filter by software ID.
+      - name: software_slug
+        in: query
+        schema:
+          type: string
+        description: Filter by software slug.
+      responses:
+        '200':
+          description: List of images.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SoftwareImage'
+    post:
+      operationId: products_images_create
+      description: Upload a new software image (admin only).
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SoftwareImageRequest'
+      responses:
+        '201':
+          description: Image uploaded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SoftwareImage'
+  /api/v1/products/documents/:
+    get:
+      operationId: products_documents_list
+      description: List software documents (public). Can filter by software slug.
+      tags:
+      - products
+      parameters:
+      - name: software
+        in: query
+        schema:
+          type: string
+          format: uuid
+        description: Filter by software ID.
+      - name: software_slug
+        in: query
+        schema:
+          type: string
+        description: Filter by software slug.
+      responses:
+        '200':
+          description: List of documents.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SoftwareDocument'
+    post:
+      operationId: products_documents_create
+      description: Upload a new software document (admin only).
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SoftwareDocumentRequest'
+      responses:
+        '201':
+          description: Document uploaded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SoftwareDocument'
+  /api/v1/products/documents/{id}/download/:
+    get:
+      operationId: products_documents_download_retrieve
+      description: Download a software document (public).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - products
+      responses:
+        '200':
+          description: File download.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+  /api/v1/products/featured/:
+    get:
+      operationId: products_featured_list
+      description: List featured software products (public).
+      tags:
+      - products
+      responses:
+        '200':
+          description: List of featured software.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Software'
+  /api/v1/products/new-releases/:
+    get:
+      operationId: products_new_releases_list
+      description: List new releases (public).
+      tags:
+      - products
+      responses:
+        '200':
+          description: List of new software.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Software'
+  /api/v1/products/{slug}/download/:
+    get:
+      operationId: products_download_latest_retrieve
+      description: Download the latest stable version of a software product (requires authentication and active license).
+      parameters:
+      - in: path
+        name: slug
+        required: true
+        schema:
+          type: string
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '302':
+          description: Redirect to file download.
+        '403':
+          description: No active license or authentication required.
+  /api/v1/products/{slug}/download/{version_id}/:
+    get:
+      operationId: products_download_version_retrieve
+      description: Download a specific version of a software product (requires authentication and active license).
+      parameters:
+      - in: path
+        name: slug
+        required: true
+        schema:
+          type: string
+      - in: path
+        name: version_id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '302':
+          description: Redirect to file download.
+        '403':
+          description: No active license or authentication required.
+  /api/v1/products/{slug}/versions/:
+    get:
+      operationId: products_public_versions_list
+      description: Public version list with software metadata.
+      parameters:
+      - in: path
+        name: slug
+        required: true
+        schema:
+          type: string
+      tags:
+      - products
+      responses:
+        '200':
+          description: Software metadata and version list.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  software:
+                    $ref: '#/components/schemas/Software'
+                  versions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SoftwareVersion'
+  /api/v1/products/usage/:
+    post:
+      operationId: products_usage_create
+      description: Record a software usage event (authenticated).
+      tags:
+      - products
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SoftwareUsageEvent'
+      responses:
+        '201':
+          description: Usage recorded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+
+  # ==================== Licenses Module ====================
+  /api/v1/licenses/activation-codes/:
+    get:
+      operationId: licenses_activation_codes_list
+      description: List activation codes. Users see own codes; admins see all.
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      parameters:
+      - name: software
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum: [ACTIVATED, INACTIVE, EXPIRED, REVOKED]
+      - name: ordering
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Paginated list of activation codes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedActivationCodeList'
+    post:
+      operationId: licenses_activation_codes_create
+      description: Create a new activation code (admin only).
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivationCodeRequest'
+      responses:
+        '201':
+          description: Activation code created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivationCode'
+  /api/v1/licenses/activation-codes/{id}/:
+    get:
+      operationId: licenses_activation_codes_retrieve
+      description: Retrieve a specific activation code.
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Activation code details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivationCode'
+    put:
+      operationId: licenses_activation_codes_update
+      description: Fully update an activation code (admin only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActivationCodeRequest'
+      responses:
+        '200':
+          description: Activation code updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivationCode'
+    patch:
+      operationId: licenses_activation_codes_partial_update
+      description: Partially update an activation code (admin only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedActivationCodeRequest'
+      responses:
+        '200':
+          description: Activation code updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivationCode'
+    delete:
+      operationId: licenses_activation_codes_destroy
+      description: Delete an activation code (admin only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: Activation code deleted.
+  /api/v1/licenses/activation-codes/{id}/activate_device/:
+    post:
+      operationId: licenses_activation_codes_activate_device_create
+      description: Activate current device for this code (authenticated user must own the code).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device_fingerprint:
+                  type: string
+                device_name:
+                  type: string
+                device_info:
+                  type: object
+      responses:
+        '200':
+          description: Device activated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  activation_id:
+                    type: string
+                    format: uuid
+                  license_file:
+                    type: string
+                  download_url:
+                    type: string
+                    format: uri
+                  remaining_activations:
+                    type: integer
+  /api/v1/licenses/activation-codes/{id}/deactivate_device/:
+    post:
+      operationId: licenses_activation_codes_deactivate_device_create
+      description: Deactivate current device for this code (authenticated user).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Device deactivated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+  /api/v1/licenses/activation-codes/{id}/license_file/:
+    get:
+      operationId: licenses_activation_codes_license_file_retrieve
+      description: Get encrypted license file for this code (authenticated user).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Base64‑encoded license file.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  license_file:
+                    type: string
+  /api/v1/licenses/activation-codes/my_licenses/:
+    get:
+      operationId: licenses_activation_codes_my_licenses_list
+      description: Get current user's licenses (alternative to filtered list).
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: List of user's activation codes with extra download URL.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                  - $ref: '#/components/schemas/ActivationCode'
+                  - type: object
+                    properties:
+                      download_url:
+                        type: string
+                        format: uri
+  /api/v1/licenses/generate/:
+    post:
+      operationId: licenses_generate_create
+      description: Generate new activation codes in bulk (admin only).
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateCodesRequest'
+      responses:
+        '201':
+          description: Generated codes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  codes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ActivationCode'
+                  metadata:
+                    type: object
+                    properties:
+                      batch_id:
+                        type: string
+                        format: uuid
+                      count:
+                        type: integer
+  /api/v1/licenses/validate/:
+    post:
+      operationId: licenses_validate_create
+      description: Validate a code without activating (public).
+      tags:
+      - licenses
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                activation_code:
+                  type: string
+                software_slug:
+                  type: string
+              required:
+              - activation_code
+              - software_slug
+      responses:
+        '200':
+          description: Validation result.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  can_activate:
+                    type: boolean
+                  status:
+                    type: string
+                  remaining_activations:
+                    type: integer
+                  errors:
+                    type: array
+                    items:
+                      type: string
+  /api/v1/licenses/activate/:
+    post:
+      operationId: licenses_activate_create
+      description: Activate a license for the authenticated user.
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                activation_code:
+                  type: string
+                software_slug:
+                  type: string
+                device_fingerprint:
+                  type: string
+                device_name:
+                  type: string
+                device_info:
+                  type: object
+                force_activation:
+                  type: boolean
+              required:
+              - activation_code
+              - software_slug
+      responses:
+        '200':
+          description: Activation successful.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  activation_id:
+                    type: string
+                    format: uuid
+                  license_file:
+                    type: string
+                  download_url:
+                    type: string
+                    format: uri
+  /api/v1/licenses/deactivate/:
+    post:
+      operationId: licenses_deactivate_create
+      description: Deactivate a license for the authenticated user.
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                activation_id:
+                  type: string
+                  format: uuid
+                keep_license:
+                  type: boolean
+              required:
+              - activation_id
+      responses:
+        '200':
+          description: Deactivation successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+  /api/v1/licenses/revoke/{code_id}/:
+    post:
+      operationId: licenses_revoke_create
+      description: Revoke a license by code ID (admin only).
+      parameters:
+      - in: path
+        name: code_id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: License revoked.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  activation_id:
+                    type: string
+                    format: uuid
+                  revoked_by:
+                    type: string
+                  revoked_at:
+                    type: string
+                    format: date-time
+  /api/v1/licenses/revoke/:
+    post:
+      operationId: licenses_revoke_alternative_create
+      description: Revoke a license via request body (admin only).
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code_id:
+                  type: string
+                  format: uuid
+                reason:
+                  type: string
+              required:
+              - code_id
+      responses:
+        '200':
+          description: License revoked.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  activation_id:
+                    type: string
+                    format: uuid
+                  revoked_by:
+                    type: string
+                  revoked_at:
+                    type: string
+                    format: date-time
+  /api/v1/licenses/my-licenses/:
+    get:
+      operationId: licenses_my_licenses_list
+      description: Aggregated view of user's licenses.
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Summary and licenses grouped by software.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  summary:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      active:
+                        type: integer
+                      expiring_soon:
+                        type: integer
+                  licenses_by_software:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        software:
+                          $ref: '#/components/schemas/Software'
+                        licenses:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/ActivationCode'
+  /api/v1/licenses/check-updates/{software_slug}/:
+    get:
+      operationId: licenses_check_updates_retrieve
+      description: Check for software updates for the authenticated user.
+      parameters:
+      - in: path
+        name: software_slug
+        required: true
+        schema:
+          type: string
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Update information.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  software:
+                    $ref: '#/components/schemas/Software'
+                  current_version:
+                    $ref: '#/components/schemas/SoftwareVersion'
+                  updates_available:
+                    type: boolean
+                  updates:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SoftwareVersion'
+  /api/v1/licenses/features/:
+    get:
+      operationId: licenses_features_list
+      description: List license features (public read). Can filter by software.
+      tags:
+      - licenses
+      parameters:
+      - name: software
+        in: query
+        schema:
+          type: string
+          format: uuid
+        description: Filter by software ID.
+      responses:
+        '200':
+          description: List of features.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LicenseFeature'
+    post:
+      operationId: licenses_features_create
+      description: Create a license feature (admin only).
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LicenseFeatureRequest'
+      responses:
+        '201':
+          description: Feature created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LicenseFeature'
+  /api/v1/licenses/batches/:
+    get:
+      operationId: licenses_batches_list
+      description: List code batches (admin only).
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      parameters:
+      - name: software
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: is_used
+        in: query
+        schema:
+          type: boolean
+      - name: page
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Paginated list of batches.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCodeBatchList'
+    post:
+      operationId: licenses_batches_create
+      description: Create a new code batch (admin only).
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodeBatchRequest'
+      responses:
+        '201':
+          description: Batch created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeBatch'
+  /api/v1/licenses/logs/:
+    get:
+      operationId: licenses_logs_list
+      description: List activation logs. Users see own; admins see all.
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      parameters:
+      - name: software
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: action
+        in: query
+        schema:
+          type: string
+          enum: [activate, deactivate, revoke]
+      - name: page
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Paginated list of logs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedActivationLogList'
+  /api/v1/licenses/usage/:
+    get:
+      operationId: licenses_usage_list
+      description: List license usage records. Users see own; admins see all.
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      parameters:
+      - name: activation_code
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: feature
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Paginated list of usage records.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedLicenseUsageList'
+    post:
+      operationId: licenses_usage_create
+      description: Record a feature usage event (authenticated).
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LicenseUsageRequest'
+      responses:
+        '201':
+          description: Usage recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LicenseUsage'
+  /api/v1/licenses/usage/log_usage/:
+    post:
+      operationId: licenses_usage_log_usage_create
+      description: Alias for logging usage (same as POST /usage/).
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LicenseUsageRequest'
+      responses:
+        '201':
+          description: Usage recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LicenseUsage'
+  /api/v1/licenses/validate-offline/:
+    post:
+      operationId: licenses_validate_offline_create
+      description: Validate an offline license file (authenticated).
+      tags:
+      - licenses
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                license_file:
+                  type: string
+                  format: binary
+                software_slug:
+                  type: string
+              required:
+              - license_file
+              - software_slug
+      responses:
+        '200':
+          description: Validation result.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  license_data:
+                    type: object
+
+  # ==================== Distribution Module ====================
+  /distribution/mirrors/:
+    get:
+      operationId: distribution_mirrors_list
+      description: List active download mirrors (public).
+      tags:
+      - distribution
+      responses:
+        '200':
+          description: List of mirrors.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Mirror'
+  /distribution/file/{version_id}/:
+    get:
+      operationId: distribution_file_retrieve
+      description: Download a file for a specific version (default artifact type 'installer'). Requires authentication and active license.
+      parameters:
+      - in: path
+        name: version_id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - distribution
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '302':
+          description: Redirect to file URL.
+        '403':
+          description: No license or authentication required.
+  /distribution/file/{version_id}/{artifact_type}/:
+    get:
+      operationId: distribution_file_artifact_retrieve
+      description: Download a specific artifact type for a version. Requires authentication and active license.
+      parameters:
+      - in: path
+        name: version_id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - in: path
+        name: artifact_type
+        required: true
+        schema:
+          type: string
+          enum: [installer, binary, portable, source]
+      tags:
+      - distribution
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '302':
+          description: Redirect to file URL.
+        '403':
+          description: No license or authentication required.
+
+  # ==================== Security Module ====================
+  /api/v1/security/ip-blacklist/:
+    get:
+      operationId: security_ip_blacklist_list
+      description: List IP blacklist entries (staff read). Supports filtering.
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      parameters:
+      - name: active
+        in: query
+        schema:
+          type: boolean
+      - name: ip_network
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Paginated list of blacklist entries.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedIPBlacklistList'
+    post:
+      operationId: security_ip_blacklist_create
+      description: Create an IP blacklist entry (superuser only).
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IPBlacklistRequest'
+      responses:
+        '201':
+          description: Entry created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IPBlacklist'
+  /api/v1/security/ip-blacklist/{id}/:
+    get:
+      operationId: security_ip_blacklist_retrieve
+      description: Retrieve a specific IP blacklist entry (staff read).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Entry details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IPBlacklist'
+    put:
+      operationId: security_ip_blacklist_update
+      description: Fully update an IP blacklist entry (superuser only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IPBlacklistRequest'
+      responses:
+        '200':
+          description: Entry updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IPBlacklist'
+    patch:
+      operationId: security_ip_blacklist_partial_update
+      description: Partially update an IP blacklist entry (superuser only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedIPBlacklistRequest'
+      responses:
+        '200':
+          description: Entry updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IPBlacklist'
+    delete:
+      operationId: security_ip_blacklist_destroy
+      description: Delete an IP blacklist entry (superuser only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: Entry deleted.
+  /api/v1/security/abuse-attempts/:
+    get:
+      operationId: security_abuse_attempts_list
+      description: List abuse attempts (staff only). Supports filtering.
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      parameters:
+      - name: ip_address
+        in: query
+        schema:
+          type: string
+      - name: path
+        in: query
+        schema:
+          type: string
+      - name: method
+        in: query
+        schema:
+          type: string
+      - name: status_code
+        in: query
+        schema:
+          type: integer
+      - name: page
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Paginated list of abuse attempts.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAbuseAttemptList'
+  /api/v1/security/abuse-attempts/{id}/:
+    get:
+      operationId: security_abuse_attempts_retrieve
+      description: Retrieve a specific abuse attempt (staff only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Abuse attempt details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AbuseAttempt'
+  /api/v1/security/alerts/:
+    get:
+      operationId: security_alerts_list
+      description: List abuse alerts (staff only). Supports filtering.
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      parameters:
+      - name: resolved
+        in: query
+        schema:
+          type: boolean
+      - name: severity
+        in: query
+        schema:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+      - name: page
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Paginated list of alerts.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAbuseAlertList'
+  /api/v1/security/alerts/{id}/:
+    get:
+      operationId: security_alerts_retrieve
+      description: Retrieve a specific alert (staff only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Alert details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AbuseAlert'
+    patch:
+      operationId: security_alerts_partial_update
+      description: Partially update an alert (e.g., mark resolved) (staff only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAbuseAlertRequest'
+      responses:
+        '200':
+          description: Alert updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AbuseAlert'
+  /api/v1/security/security-logs/:
+    get:
+      operationId: security_security_logs_list
+      description: List security notification logs (staff only). Supports filtering.
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      parameters:
+      - name: notification_type
+        in: query
+        schema:
+          type: string
+      - name: recipient
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Paginated list of security logs.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSecurityLogList'
+  /api/v1/security/security-logs/{id}/:
+    get:
+      operationId: security_security_logs_retrieve
+      description: Retrieve a specific security log (staff only).
+      parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Log details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityLog'
+  /api/v1/security/code-blacklist/:
+    get:
+      operationId: security_code_blacklist_list
+      description: List blacklisted license codes (staff only). (May be placeholder)
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: List of blacklisted codes.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CodeBlacklist'
+    post:
+      operationId: security_code_blacklist_create
+      description: Add a code to blacklist (admin only).
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodeBlacklistRequest'
+      responses:
+        '201':
+          description: Code blacklisted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeBlacklist'
+  # New security endpoints from enhancements
+  /api/v1/security/security-settings/:
+    get:
+      operationId: security_security_settings_retrieve
+      description: Get current security settings (admin only).
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Security settings.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rate_limit_enabled:
+                    type: boolean
+                  max_login_attempts:
+                    type: integer
+                  session_timeout_minutes:
+                    type: integer
+                  mfa_required:
+                    type: boolean
+  /api/v1/security/device-fingerprint-check/:
+    get:
+      operationId: security_device_fingerprint_check_retrieve
+      description: Generate a device fingerprint for debugging (authenticated).
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Device fingerprint.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  device_fingerprint:
+                    type: string
+  /api/v1/security/suspicious-activity-report/:
+    get:
+      operationId: security_suspicious_activity_report_list
+      description: Combined report of abuse attempts and security logs (admin only).
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+        description: Number of records to return per category.
+      responses:
+        '200':
+          description: Suspicious activity report.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  abuse_attempts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AbuseAttempt'
+                  security_logs:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SecurityLog'
+  /api/v1/security/audit-log/:
+    get:
+      operationId: security_audit_log_list
+      description: Retrieve audit log of admin actions (admin only).
+      tags:
+      - security
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      parameters:
+      - name: actor
+        in: query
+        schema:
+          type: string
+          format: uuid
+      - name: action
+        in: query
+        schema:
+          type: string
+      - name: target
+        in: query
+        schema:
+          type: string
+      - name: page
+        in: query
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Paginated audit log.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSecurityLogList'
+
+  # ==================== Dashboard Module ====================
+  /dashboard/stats/:
+    get:
+      operationId: dashboard_stats_retrieve
+      description: Get comprehensive dashboard statistics (admin only). Cached for 5 minutes.
+      tags:
+      - dashboard
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Dashboard stats.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardStats'
+
+  # ==================== Payments Module (existing and new) ====================
+  # (Existing endpoints are kept as in the original schema, only new ones added)
+  /api/v1/payments/plans/:
+    get:
+      operationId: v1_payments_plans_list
+      description: List and retrieve available subscription plans. (New view, added without disruption)
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPlanList'
+          description: ''
+  /api/v1/payments/plans/{code}/:
+    get:
+      operationId: v1_payments_plans_retrieve
+      description: Retrieve a specific plan by its code.
+      parameters:
+      - in: path
+        name: code
+        schema:
+          type: string
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+          description: ''
+  /api/v1/payments/subscriptions/:
+    get:
+      operationId: v1_payments_subscriptions_list
+      description: List subscriptions. Admins see all; users see own.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSubscriptionList'
+          description: ''
+    post:
+      operationId: v1_payments_subscriptions_create
+      description: Create a subscription (disabled, use webhooks).
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+  /api/v1/payments/subscriptions/{id}/:
+    get:
+      operationId: v1_payments_subscriptions_retrieve
+      description: Retrieve a subscription.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this subscription.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+    put:
+      operationId: v1_payments_subscriptions_update
+      description: Fully update a subscription (admin only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this subscription.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+    patch:
+      operationId: v1_payments_subscriptions_partial_update
+      description: Partially update a subscription (admin only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this subscription.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSubscriptionRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+    delete:
+      operationId: v1_payments_subscriptions_destroy
+      description: Delete a subscription (admin only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this subscription.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/payments/subscriptions/{id}/cancel/:
+    post:
+      operationId: v1_payments_subscriptions_cancel_create
+      description: Cancel a subscription. If `immediate=true`, cancel now; otherwise set cancel_at_period_end.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this subscription.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                immediate:
+                  type: boolean
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+          description: ''
+  /api/v1/payments/invoices/:
+    get:
+      operationId: v1_payments_invoices_list
+      description: Read‑only invoices. Users can view their own; admins view all.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInvoiceList'
+          description: ''
+  /api/v1/payments/invoices/{id}/:
+    get:
+      operationId: v1_payments_invoices_retrieve
+      description: Retrieve a specific invoice.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this invoice.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+          description: ''
+  /api/v1/payments/invoices/{id}/download/:
+    get:
+      operationId: v1_payments_invoices_download_retrieve
+      description: Serve the invoice PDF securely.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this invoice.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+          description: ''
+  /api/v1/payments/coupons/:
+    get:
+      operationId: v1_payments_coupons_list
+      description: CRUD for coupons. Admin only.
+      parameters:
+      - in: query
+        name: discount_type
+        schema:
+          type: string
+          enum:
+          - FIXED
+          - PERCENTAGE
+        description: |
+          * `PERCENTAGE` - Percentage
+          * `FIXED` - Fixed Amount
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCouponList'
+          description: ''
+    post:
+      operationId: v1_payments_coupons_create
+      description: Create a new coupon (admin only).
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CouponRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+          description: ''
+  /api/v1/payments/coupons/{id}/:
+    get:
+      operationId: v1_payments_coupons_retrieve
+      description: Retrieve a coupon.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this coupon.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+          description: ''
+    put:
+      operationId: v1_payments_coupons_update
+      description: Fully update a coupon (admin only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this coupon.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CouponRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+          description: ''
+    patch:
+      operationId: v1_payments_coupons_partial_update
+      description: Partially update a coupon (admin only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this coupon.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCouponRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+          description: ''
+    delete:
+      operationId: v1_payments_coupons_destroy
+      description: Delete a coupon (admin only).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this coupon.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/payments/my-transactions/:
+    get:
+      operationId: v1_payments_my_transactions_list
+      description: List all payments and invoices for the authenticated user.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTransactionList'
+          description: ''
+  # New payments endpoints from enhancements
+  /api/v1/payments/process-offline-payment/:
+    post:
+      operationId: v1_payments_process_offline_payment_create
+      description: Initiate an offline payment (bank transfer, deposit, crypto). Authenticated.
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                software_id:
+                  type: string
+                  format: uuid
+                amount:
+                  type: string
+                currency:
+                  type: string
+                payment_method:
+                  type: string
+                  enum: [BANK_TRANSFER, CRYPTO, CASH_DEPOSIT]
+                bank_name:
+                  type: string
+                account_number:
+                  type: string
+                metadata:
+                  type: object
+              required:
+              - software_id
+              - amount
+              - currency
+              - payment_method
+      responses:
+        '201':
+          description: Offline payment initiated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  payment_id:
+                    type: string
+                    format: uuid
+                  offline_payment_id:
+                    type: string
+                    format: uuid
+                  instructions:
+                    type: string
+  /api/v1/payments/verify-offline-payment/{payment_id}/:
+    post:
+      operationId: v1_payments_verify_offline_payment_create
+      description: Admin verification of offline payment (approve/reject).
+      parameters:
+      - in: path
+        name: payment_id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                approved:
+                  type: boolean
+                notes:
+                  type: string
+              required:
+              - approved
+      responses:
+        '200':
+          description: Payment status updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+  # Placeholder endpoints (as in original)
+  /api/v1/payments/create-payment/:
+    post:
+      operationId: v1_payments_create_payment_create
+      description: Placeholder for generic payment creation. Will be replaced with actual gateway integration.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenericResponseRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+          description: ''
+  /api/v1/payments/payments/:
+    get:
+      operationId: v1_payments_payments_list
+      description: Placeholder for Payment CRUD operations. Replace with actual implementation when ready.
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentPlaceholder'
+          description: ''
+  /api/v1/payments/webhook/stripe/:
+    post:
+      operationId: v1_payments_webhook_stripe_create
+      description: Stripe webhook endpoint (placeholder, logs requests). No auth required.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook received.
+  /api/v1/payments/webhook/paypal/:
+    post:
+      operationId: v1_payments_webhook_paypal_create
+      description: PayPal webhook endpoint (placeholder, logs requests). No auth required.
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook received.
+
+  # ==================== Notifications Module ====================
+  /notifications/api/notifications/:
+    get:
+      operationId: notifications_api_notifications_list
+      description: List notifications for the authenticated user (paginated).
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+  /notifications/api/notifications/{id}/:
+    get:
+      operationId: notifications_api_notifications_retrieve
+      description: Retrieve a single notification (and mark it as read automatically).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - notifications
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+
+components:
+  schemas:
+    # ========== Accounts Module ==========
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [USER, ADMIN, SUPER_ADMIN]
+        first_name:
+          type: string
+        last_name:
+          type: string
+        company:
+          type: string
+        phone:
+          type: string
+        is_verified:
+          type: boolean
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    RegisterRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        confirm_password:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        company:
+          type: string
+        phone:
+          type: string
+      required:
+      - email
+      - password
+      - confirm_password
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        device_fingerprint:
+          type: string
+      required:
+      - email
+      - password
+    LoginResponse:
+      type: object
+      properties:
+        refresh:
+          type: string
+        access:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        requires_2fa:
+          type: boolean
+        verification_token:
+          type: string
+    TwoFactorSetup:
+      type: object
+      properties:
+        qr_code_uri:
+          type: string
+        secret:
+          type: string
+        backup_codes:
+          type: array
+          items:
+            type: string
+    DeviceSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        device_name:
+          type: string
+        device_fingerprint:
+          type: string
+        ip_address:
+          type: string
+        location:
+          type: string
+        last_active:
+          type: string
+          format: date-time
+        current:
+          type: boolean
+    NotificationPreferences:
+      type: object
+      properties:
+        email:
+          type: object
+          properties:
+            marketing:
+              type: boolean
+            expiry:
+              type: boolean
+            broadcast:
+              type: boolean
+        in_app:
+          type: object
+          properties:
+            marketing:
+              type: boolean
+            expiry:
+              type: boolean
+            broadcast:
+              type: boolean
+    GenericResponse:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+      required:
+      - status
+
+    # ========== Products Module ==========
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+        slug:
+          type: string
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        parent_name:
+          type: string
+          readOnly: true
+        description:
+          type: string
+        icon:
+          type: string
+        display_order:
+          type: integer
+        is_active:
+          type: boolean
+        software_count:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    CategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        description:
+          type: string
+        icon:
+          type: string
+        display_order:
+          type: integer
+        is_active:
+          type: boolean
+      required:
+      - name
+    PatchedCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        parent:
+          type: string
+          format: uuid
+          nullable: true
+        description:
+          type: string
+        icon:
+          type: string
+        display_order:
+          type: integer
+        is_active:
+          type: boolean
+    Software:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+        slug:
+          type: string
+          readOnly: true
+        app_code:
+          type: string
+        category:
+          type: string
+          format: uuid
+          nullable: true
+        category_name:
+          type: string
+          readOnly: true
+        short_description:
+          type: string
+        full_description:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+        requirements:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+        base_price:
+          type: string
+        currency:
+          type: string
+        license_type:
+          type: string
+        pricing_tiers:
+          type: object
+        has_trial:
+          type: boolean
+        trial_days:
+          type: integer
+        trial_features:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+        is_featured:
+          type: boolean
+        is_new:
+          type: boolean
+        display_order:
+          type: integer
+        download_count:
+          type: integer
+          readOnly: true
+        average_rating:
+          type: number
+          format: float
+          readOnly: true
+        review_count:
+          type: integer
+          readOnly: true
+        supported_os:
+          type: array
+          items:
+            type: string
+        current_version:
+          $ref: '#/components/schemas/SoftwareVersion'
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/SoftwareVersion'
+        images:
+          type: array
+          items:
+            $ref: '#/components/schemas/SoftwareImage'
+        documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/SoftwareDocument'
+        released_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    SoftwareRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        app_code:
+          type: string
+        category:
+          type: string
+          format: uuid
+          nullable: true
+        short_description:
+          type: string
+        full_description:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+        requirements:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+        base_price:
+          type: string
+        currency:
+          type: string
+        license_type:
+          type: string
+        pricing_tiers:
+          type: object
+        has_trial:
+          type: boolean
+        trial_days:
+          type: integer
+        trial_features:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+        is_featured:
+          type: boolean
+        is_new:
+          type: boolean
+        display_order:
+          type: integer
+        supported_os:
+          type: array
+          items:
+            type: string
+        released_at:
+          type: string
+          format: date-time
+      required:
+      - name
+      - app_code
+    PatchedSoftwareRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        app_code:
+          type: string
+        category:
+          type: string
+          format: uuid
+          nullable: true
+        short_description:
+          type: string
+        full_description:
+          type: string
+        features:
+          type: array
+          items:
+            type: string
+        requirements:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+        base_price:
+          type: string
+        currency:
+          type: string
+        license_type:
+          type: string
+        pricing_tiers:
+          type: object
+        has_trial:
+          type: boolean
+        trial_days:
+          type: integer
+        trial_features:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+        is_featured:
+          type: boolean
+        is_new:
+          type: boolean
+        display_order:
+          type: integer
+        supported_os:
+          type: array
+          items:
+            type: string
+        released_at:
+          type: string
+          format: date-time
+    PaginatedSoftwareList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Software'
+    SoftwareVersion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        software:
+          type: string
+          format: uuid
+        software_name:
+          type: string
+          readOnly: true
+        software_slug:
+          type: string
+          readOnly: true
+        version_number:
+          type: string
+        version_code:
+          type: string
+        release_name:
+          type: string
+        release_notes:
+          type: string
+        changelog:
+          type: string
+        binary_file:
+          type: string
+          format: uri
+        binary_size:
+          type: integer
+          readOnly: true
+        file_size_human:
+          type: string
+          readOnly: true
+        binary_checksum:
+          type: string
+        installer_file:
+          type: string
+          format: uri
+        download_url:
+          type: string
+          format: uri
+          readOnly: true
+        download_count:
+          type: integer
+          readOnly: true
+        supported_os:
+          type: array
+          items:
+            type: string
+        min_requirements:
+          type: object
+        recommended_requirements:
+          type: object
+        is_active:
+          type: boolean
+        is_beta:
+          type: boolean
+        is_stable:
+          type: boolean
+        is_signed:
+          type: boolean
+        signature_file:
+          type: string
+          format: uri
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        released_at:
+          type: string
+          format: date-time
+    SoftwareVersionRequest:
+      type: object
+      properties:
+        software:
+          type: string
+          format: uuid
+        version_number:
+          type: string
+        version_code:
+          type: string
+        release_name:
+          type: string
+        release_notes:
+          type: string
+        changelog:
+          type: string
+        binary_file:
+          type: string
+          format: binary
+        installer_file:
+          type: string
+          format: binary
+        supported_os:
+          type: array
+          items:
+            type: string
+        min_requirements:
+          type: object
+        recommended_requirements:
+          type: object
+        is_active:
+          type: boolean
+        is_beta:
+          type: boolean
+        is_signed:
+          type: boolean
+        signature_file:
+          type: string
+          format: binary
+        released_at:
+          type: string
+          format: date-time
+      required:
+      - software
+      - version_number
+    PatchedSoftwareVersionRequest:
+      type: object
+      properties:
+        software:
+          type: string
+          format: uuid
+        version_number:
+          type: string
+        version_code:
+          type: string
+        release_name:
+          type: string
+        release_notes:
+          type: string
+        changelog:
+          type: string
+        binary_file:
+          type: string
+          format: binary
+        installer_file:
+          type: string
+          format: binary
+        supported_os:
+          type: array
+          items:
+            type: string
+        min_requirements:
+          type: object
+        recommended_requirements:
+          type: object
+        is_active:
+          type: boolean
+        is_beta:
+          type: boolean
+        is_signed:
+          type: boolean
+        signature_file:
+          type: string
+          format: binary
+        released_at:
+          type: string
+          format: date-time
+    PaginatedSoftwareVersionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SoftwareVersion'
+    SoftwareImage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        software:
+          type: string
+          format: uuid
+        image_type:
+          type: string
+          enum: [screenshot, logo, banner]
+        image_url:
+          type: string
+          format: uri
+        thumbnail_url:
+          type: string
+          format: uri
+        alt_text:
+          type: string
+        caption:
+          type: string
+        display_order:
+          type: integer
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    SoftwareImageRequest:
+      type: object
+      properties:
+        software:
+          type: string
+          format: uuid
+        image_type:
+          type: string
+          enum: [screenshot, logo, banner]
+        image:
+          type: string
+          format: binary
+        alt_text:
+          type: string
+        caption:
+          type: string
+        display_order:
+          type: integer
+        is_active:
+          type: boolean
+      required:
+      - software
+      - image_type
+      - image
+    SoftwareDocument:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        software:
+          type: string
+          format: uuid
+        document_type:
+          type: string
+          enum: [manual, datasheet, whitepaper, eula, other]
+        title:
+          type: string
+        file_url:
+          type: string
+          format: uri
+        file_size:
+          type: integer
+          readOnly: true
+        file_type:
+          type: string
+        description:
+          type: string
+        language:
+          type: string
+        version:
+          type: string
+        download_count:
+          type: integer
+          readOnly: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    SoftwareDocumentRequest:
+      type: object
+      properties:
+        software:
+          type: string
+          format: uuid
+        document_type:
+          type: string
+          enum: [manual, datasheet, whitepaper, eula, other]
+        title:
+          type: string
+        file:
+          type: string
+          format: binary
+        description:
+          type: string
+        language:
+          type: string
+        version:
+          type: string
+        is_active:
+          type: boolean
+      required:
+      - software
+      - document_type
+      - title
+      - file
+    SoftwareUsageEvent:
+      type: object
+      properties:
+        software_id:
+          type: string
+          format: uuid
+        event_type:
+          type: string
+        metadata:
+          type: object
+        activation_code:
+          type: string
+      required:
+      - software_id
+      - event_type
+
+    # ========== Licenses Module ==========
+    ActivationCode:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        software:
+          type: string
+          format: uuid
+        software_name:
+          type: string
+          readOnly: true
+        software_slug:
+          type: string
+          readOnly: true
+        human_code:
+          type: string
+        license_type:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVATED, INACTIVE, EXPIRED, REVOKED]
+        user:
+          type: string
+          format: uuid
+          nullable: true
+        user_email:
+          type: string
+          readOnly: true
+        max_activations:
+          type: integer
+        activation_count:
+          type: integer
+        concurrent_limit:
+          type: integer
+        device_fingerprint:
+          type: string
+        device_name:
+          type: string
+        device_info:
+          type: object
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_valid:
+          type: boolean
+        remaining_activations:
+          type: integer
+        days_until_expiry:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    ActivationCodeRequest:
+      type: object
+      properties:
+        software:
+          type: string
+          format: uuid
+        license_type:
+          type: string
+        max_activations:
+          type: integer
+        concurrent_limit:
+          type: integer
+        expires_at:
+          type: string
+          format: date-time
+        user:
+          type: string
+          format: uuid
+      required:
+      - software
+    PatchedActivationCodeRequest:
+      type: object
+      properties:
+        software:
+          type: string
+          format: uuid
+        license_type:
+          type: string
+        max_activations:
+          type: integer
+        concurrent_limit:
+          type: integer
+        expires_at:
+          type: string
+          format: date-time
+        user:
+          type: string
+          format: uuid
+    PaginatedActivationCodeList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivationCode'
+    GenerateCodesRequest:
+      type: object
+      properties:
+        software:
+          type: string
+          format: uuid
+        batch_name:
+          type: string
+        license_type:
+          type: string
+        count:
+          type: integer
+        expires_in_days:
+          type: integer
+        max_activations:
+          type: integer
+      required:
+      - software
+      - license_type
+      - count
+    LicenseFeature:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        software:
+          type: string
+          format: uuid
+        name:
+          type: string
+        code:
+          type: string
+        description:
+          type: string
+        available_in_trial:
+          type: boolean
+        available_in_standard:
+          type: boolean
+        available_in_premium:
+          type: boolean
+        available_in_enterprise:
+          type: boolean
+        requires_activation:
+          type: boolean
+        max_usage:
+          type: integer
+        is_active:
+          type: boolean
+        display_order:
+          type: integer
+    LicenseFeatureRequest:
+      type: object
+      properties:
+        software:
+          type: string
+          format: uuid
+        name:
+          type: string
+        code:
+          type: string
+        description:
+          type: string
+        available_in_trial:
+          type: boolean
+        available_in_standard:
+          type: boolean
+        available_in_premium:
+          type: boolean
+        available_in_enterprise:
+          type: boolean
+        requires_activation:
+          type: boolean
+        max_usage:
+          type: integer
+        is_active:
+          type: boolean
+        display_order:
+          type: integer
+      required:
+      - software
+      - name
+      - code
+    CodeBatch:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        software:
+          type: string
+          format: uuid
+        name:
+          type: string
+        license_type:
+          type: string
+        count:
+          type: integer
+        max_activations:
+          type: integer
+        expires_in_days:
+          type: integer
+        prefix:
+          type: string
+        is_used:
+          type: boolean
+        used_count:
+          type: integer
+        unused_count:
+          type: integer
+    CodeBatchRequest:
+      type: object
+      properties:
+        software:
+          type: string
+          format: uuid
+        name:
+          type: string
+        license_type:
+          type: string
+        count:
+          type: integer
+        max_activations:
+          type: integer
+        expires_in_days:
+          type: integer
+        prefix:
+          type: string
+      required:
+      - software
+      - license_type
+      - count
+    PaginatedCodeBatchList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeBatch'
+    ActivationLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        activation_code_human:
+          type: string
+        software_name:
+          type: string
+        device_fingerprint:
+          type: string
+        device_name:
+          type: string
+        ip_address:
+          type: string
+        action:
+          type: string
+        success:
+          type: boolean
+        error_message:
+          type: string
+        is_suspicious:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PaginatedActivationLogList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivationLog'
+    LicenseUsage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        activation_code_human:
+          type: string
+        feature_name:
+          type: string
+        feature_code:
+          type: string
+        usage_count:
+          type: integer
+        usage_data:
+          type: object
+        device_fingerprint:
+          type: string
+        ip_address:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    LicenseUsageRequest:
+      type: object
+      properties:
+        activation_code:
+          type: string
+        feature_code:
+          type: string
+        usage_count:
+          type: integer
+        usage_data:
+          type: object
+        device_fingerprint:
+          type: string
+      required:
+      - activation_code
+      - feature_code
+    PaginatedLicenseUsageList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/LicenseUsage'
+
+    # ========== Distribution Module ==========
+    Mirror:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+        base_url:
+          type: string
+          format: uri
+        region:
+          type: string
+        priority:
+          type: integer
+        is_online:
+          type: boolean
+
+    # ========== Security Module ==========
+    IPBlacklist:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        ip_network:
+          type: string
+        reason:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    IPBlacklistRequest:
+      type: object
+      properties:
+        ip_network:
+          type: string
+        reason:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        active:
+          type: boolean
+      required:
+      - ip_network
+    PatchedIPBlacklistRequest:
+      type: object
+      properties:
+        ip_network:
+          type: string
+        reason:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        active:
+          type: boolean
+    PaginatedIPBlacklistList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/IPBlacklist'
+    AbuseAttempt:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        ip_address:
+          type: string
+        path:
+          type: string
+        method:
+          type: string
+        status_code:
+          type: integer
+        user_agent:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PaginatedAbuseAttemptList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AbuseAttempt'
+    AbuseAlert:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        ip_address:
+          type: string
+          nullable: true
+        severity:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+        message:
+          type: string
+        resolved:
+          type: boolean
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedAbuseAlertRequest:
+      type: object
+      properties:
+        resolved:
+          type: boolean
+    PaginatedAbuseAlertList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AbuseAlert'
+    SecurityLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        notification_type:
+          type: string
+        recipient:
+          type: string
+        subject:
+          type: string
+        body_preview:
+          type: string
+        sent_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PaginatedSecurityLogList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecurityLog'
+    CodeBlacklist:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        code:
+          type: string
+        reason:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    CodeBlacklistRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        reason:
+          type: string
+      required:
+      - code
+
+    # ========== Dashboard Module ==========
+    DashboardStats:
+      type: object
+      properties:
+        latest_daily:
+          $ref: '#/components/schemas/DailyAggregate'
+        totals:
+          type: object
+          properties:
+            users:
+              type: integer
+            paid_users:
+              type: integer
+            revenue:
+              type: string
+            licenses_activated:
+              type: integer
+            abuse_attempts:
+              type: integer
+        last_30_days:
+          type: object
+          properties:
+            active_users:
+              type: integer
+            new_users:
+              type: integer
+            revenue:
+              type: string
+        cohorts:
+          type: array
+          items:
+            $ref: '#/components/schemas/CohortAggregate'
+        snapshot_time:
+          type: string
+          format: date-time
+
+    # ========== Payments Module (existing schemas kept, plus new) ==========
+    # (Coupon, Plan, Subscription, Invoice, Transaction, etc. already in original)
+    # We'll include only new ones not already present.
+    PaginatedPlanList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Plan'
+    Plan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+        code:
+          type: string
+        description:
+          type: string
+        price:
+          type: string
+        currency:
+          type: string
+        interval:
+          type: string
+          enum: [month, year, lifetime]
+        trial_days:
+          type: integer
+        features:
+          type: object
+        is_active:
+          type: boolean
+        sort_order:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - name
+      - code
+      - price
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        plan:
+          type: string
+          format: uuid
+          nullable: true
+        plan_detail:
+          $ref: '#/components/schemas/Plan'
+        status:
+          type: string
+          enum: [ACTIVE, CANCELLED, EXPIRED, SUSPENDED, PENDING]
+        started_at:
+          type: string
+          format: date-time
+          readOnly: true
+        current_period_start:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        current_period_end:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        canceled_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancel_at_period_end:
+          type: boolean
+        gateway:
+          type: string
+          nullable: true
+          readOnly: true
+        gateway_subscription_id:
+          type: string
+          nullable: true
+          readOnly: true
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - user
+      - status
+      - started_at
+    SubscriptionRequest:
+      type: object
+      properties:
+        plan:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          type: string
+          enum: [ACTIVE, CANCELLED, EXPIRED, SUSPENDED, PENDING]
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancel_at_period_end:
+          type: boolean
+        metadata:
+          type: object
+    PatchedSubscriptionRequest:
+      type: object
+      properties:
+        plan:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          type: string
+          enum: [ACTIVE, CANCELLED, EXPIRED, SUSPENDED, PENDING]
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        cancel_at_period_end:
+          type: boolean
+        metadata:
+          type: object
+    PaginatedSubscriptionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Subscription'
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        payment:
+          type: string
+          format: uuid
+        number:
+          type: string
+          readOnly: true
+        status:
+          type: string
+          enum: [draft, issued, paid, void]
+          readOnly: true
+        currency:
+          type: string
+        amount:
+          type: string
+          readOnly: true
+        tax:
+          type: string
+          readOnly: true
+        total:
+          type: string
+        issued_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        paid_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        due_at:
+          type: string
+          format: date-time
+          readOnly: true
+        pdf_file:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+        metadata:
+          type: object
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - user
+      - number
+      - status
+      - total
+    PaginatedInvoiceList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Invoice'
+    Coupon:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        code:
+          type: string
+        description:
+          type: string
+        discount_type:
+          type: string
+          enum: [PERCENTAGE, FIXED]
+        discount_value:
+          type: string
+        max_discount:
+          type: string
+          nullable: true
+        valid_from:
+          type: string
+          format: date-time
+        valid_until:
+          type: string
+          format: date-time
+        max_uses:
+          type: integer
+          nullable: true
+        max_uses_per_user:
+          type: integer
+        minimum_purchase:
+          type: string
+        is_active:
+          type: boolean
+        times_used:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        applicable_software:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - id
+      - code
+      - discount_value
+      - valid_from
+      - valid_until
+    CouponRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+        discount_type:
+          type: string
+          enum: [PERCENTAGE, FIXED]
+        discount_value:
+          type: string
+        max_discount:
+          type: string
+          nullable: true
+        valid_from:
+          type: string
+          format: date-time
+        valid_until:
+          type: string
+          format: date-time
+        max_uses:
+          type: integer
+          nullable: true
+        max_uses_per_user:
+          type: integer
+        minimum_purchase:
+          type: string
+        is_active:
+          type: boolean
+        applicable_software:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+      - code
+      - discount_value
+      - valid_from
+      - valid_until
+    PatchedCouponRequest:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+        discount_type:
+          type: string
+          enum: [PERCENTAGE, FIXED]
+        discount_value:
+          type: string
+        max_discount:
+          type: string
+          nullable: true
+        valid_from:
+          type: string
+          format: date-time
+        valid_until:
+          type: string
+          format: date-time
+        max_uses:
+          type: integer
+          nullable: true
+        max_uses_per_user:
+          type: integer
+        minimum_purchase:
+          type: string
+        is_active:
+          type: boolean
+        applicable_software:
+          type: array
+          items:
+            type: string
+            format: uuid
+    PaginatedCouponList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Coupon'
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        amount:
+          type: string
+        currency:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, PROCESSING, COMPLETED, FAILED, REFUNDED, CANCELLED]
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        invoice_number:
+          type: string
+        invoice_id:
+          type: string
+          format: uuid
+      required:
+      - id
+      - amount
+      - currency
+      - status
+      - invoice_number
+      - invoice_id
+    PaginatedTransactionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+    PaymentPlaceholder:
+      type: object
+      properties:
+        status:
+          type: string
+    GenericResponseRequest:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+      - status
+
+    # ========== Notifications Module ==========
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        channel:
+          type: string
+          enum: [email, in_app, push]
+          readOnly: true
+        subject:
+          type: string
+          readOnly: true
+        body:
+          type: string
+          readOnly: true
+        html_body:
+          type: string
+          readOnly: true
+        context:
+          type: object
+          readOnly: true
+        status:
+          type: string
+          enum: [pending, sent, failed]
+          readOnly: true
+        sent_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        opened_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        clicked_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - user
+      - subject
+      - body
+    PaginatedNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+
+    # ========== Analytics (existing) ==========
+    CohortAggregate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        cohort_date:
+          type: string
+          format: date
+          readOnly: true
+        period:
+          type: string
+          enum: [week, month]
+          readOnly: true
+        period_number:
+          type: integer
+          readOnly: true
+        user_count:
+          type: integer
+          readOnly: true
+        retained_count:
+          type: integer
+          readOnly: true
+        retention_rate:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - cohort_date
+      - period
+      - period_number
+      - user_count
+      - retained_count
+      - retention_rate
+    DailyAggregate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        date:
+          type: string
+          format: date
+          readOnly: true
+        total_users:
+          type: integer
+          readOnly: true
+        active_users:
+          type: integer
+          readOnly: true
+        new_users:
+          type: integer
+          readOnly: true
+        total_sales:
+          type: string
+          readOnly: true
+        total_orders:
+          type: integer
+          readOnly: true
+        licenses_activated:
+          type: integer
+          readOnly: true
+        licenses_expired:
+          type: integer
+          readOnly: true
+        total_usage_events:
+          type: integer
+          readOnly: true
+        abuse_attempts:
+          type: integer
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - date
+      - total_users
+      - active_users
+      - new_users
+      - total_sales
+      - total_orders
+      - licenses_activated
+      - licenses_expired
+      - total_usage_events
+      - abuse_attempts
+    ExportJob:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        export_type:
+          type: string
+          enum: [daily_aggregates, users, payments, licenses]
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+          readOnly: true
+        parameters:
+          type: object
+        file:
+          type: string
+          format: uri
+          nullable: true
+          readOnly: true
+        file_url:
+          type: string
+          format: uri
+          readOnly: true
+        error_message:
+          type: string
+          readOnly: true
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+          readOnly: true
+      required:
+      - id
+      - export_type
+      - status
+    ExportJobRequest:
+      type: object
+      properties:
+        export_type:
+          type: string
+          enum: [daily_aggregates, users, payments, licenses]
+        parameters:
+          type: object
+      required:
+      - export_type
+    PaginatedExportJobList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+        next:
+          type: string
+          nullable: true
+          format: uri
+        previous:
+          type: string
+          nullable: true
+          format: uri
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportJob'
+
+securitySchemes:
+  cookieAuth:
+    type: apiKey
+    in: cookie
+    name: sessionid
+  jwtAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT

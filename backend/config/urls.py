@@ -1,22 +1,29 @@
 """
 URL configuration for software distribution platform.
 """
+import logging
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.views.generic import TemplateView
 from django.http import HttpResponse
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 import importlib
 
+logger = logging.getLogger(__name__)
+
 
 def _safe_include(module_path, url_prefix):
-    """Safely include app URL modules; return None if import fails."""
+    """
+    Safely include app URL modules.
+    Returns None if import fails, but logs the exception for debugging.
+    This allows management commands to run even if some app URL modules are incomplete.
+    """
     try:
         importlib.import_module(module_path)
         return path(url_prefix, include(module_path))
-    except Exception:
+    except Exception as e:
+        logger.error(f"Failed to include {module_path}: {e}")
         return None
 
 
@@ -45,21 +52,18 @@ urlpatterns = [
     path("api/schema/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 ]
 
-# Try to include app URL modules if they import cleanly; skip faulty apps so management
-# commands (migrate/runserver) can start in development when some app URL modules
-# still need implementation.
+# List of app URL modules and their URL prefixes.
 app_includes = [
     ("backend.apps.accounts.urls", "api/v1/auth/"),
     ("backend.apps.products.urls", "api/v1/products/"),
     ("backend.apps.licenses.urls", "api/v1/licenses/"),
     ("backend.apps.payments.urls", "api/v1/payments/"),
+    ("backend.apps.distribution.urls", "distribution/"),          # <-- ADDED missing distribution app
     ("backend.apps.dashboard.urls", "api/v1/dashboard/"),
     ("backend.apps.security.urls", "api/v1/security/"),
     ("backend.apps.api.urls", "api/v1/"),
     ("backend.apps.health_check.urls", "health/"),
-    # ----- NEW: Notifications app -----
     ("backend.apps.notifications.urls", "notifications/"),
-    # ----- NEW: Analytics app -----
     ("backend.apps.analytics.urls", "analytics/"),
 ]
 

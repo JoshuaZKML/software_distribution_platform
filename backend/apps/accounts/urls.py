@@ -1,13 +1,16 @@
-# FILE: /backend/apps/accounts/urls.py (UPDATED - Added Notification Preferences URL)
+# FILE: /backend/apps/accounts/urls.py (UPDATED - import viewsets correctly)
 from django.urls import path, include
 from rest_framework import routers
 from rest_framework_simplejwt.views import TokenVerifyView
 
-from .views import (
+# Corrected imports: viewsets now come from .viewsets
+from .viewsets import (
     UserViewSet,
     AdminProfileViewSet,
     UserSessionViewSet,
     AdminActionLogViewSet,
+)
+from .views import (
     UserRegistrationView,
     VerifyEmailView,
     UserLoginView,
