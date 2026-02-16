@@ -99,8 +99,6 @@ class ActivationCodeSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             "human_code": {"required": False},  # Generated automatically
-            "encrypted_code": {"write_only": True},
-            "code_hash": {"write_only": True},
         }
 
     def get_license_file(self, obj):

@@ -23,20 +23,21 @@ class IPBlacklistSerializer(serializers.ModelSerializer):
     class Meta:
         model = IPBlacklist
         fields = [
-            'id', 'ip_network', 'reason', 'expires_at',
-            'active', 'created_at', 'updated_at'
+            'id', 'ip_address', 'subnet_mask', 'cidr',
+            'reason', 'source', 'is_permanent', 'expires_at',
+            'is_active', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'cidr', 'created_at', 'updated_at']
 
-    def validate_ip_network(self, value):
+    def validate_ip_address(self, value):
         """
-        Validate that the value is a valid CIDR notation or IP address.
+        Validate that the value is a valid IP address.
         Uses Python's ipaddress module for robust validation.
         """
         try:
-            ipaddress.ip_network(value, strict=False)
+            ipaddress.ip_address(value)
         except ValueError as e:
-            raise serializers.ValidationError(f"Invalid IP or CIDR format: {e}")
+            raise serializers.ValidationError(f"Invalid IP address: {e}")
         return value
 
 
@@ -48,8 +49,8 @@ class AbuseAttemptSerializer(serializers.ModelSerializer):
     class Meta:
         model = AbuseAttempt
         fields = [
-            'id', 'ip_address', 'path', 'method',
-            'status_code', 'user_agent', 'created_at'
+            'id', 'ip_address', 'user_agent', 'attempt_type',
+            'severity', 'action_taken', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
 
@@ -61,8 +62,8 @@ class AbuseAlertSerializer(serializers.ModelSerializer):
     class Meta:
         model = AbuseAlert
         fields = [
-            'id', 'ip_address', 'severity', 'message',
-            'resolved', 'resolved_at', 'created_at'
+            'id', 'alert_type', 'title', 'message',
+            'acknowledged', 'acknowledged_at', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
 
@@ -74,8 +75,8 @@ class SecurityNotificationLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = SecurityNotificationLog
         fields = [
-            'id', 'notification_type', 'recipient',
-            'subject', 'body_preview', 'sent_at', 'created_at'
+            'id', 'event_hash', 'user', 'risk_level',
+            'ip_address', 'recipient_count', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
 
@@ -87,10 +88,10 @@ class CodeBlacklistSerializer(serializers.ModelSerializer):
     class Meta:
         model = CodeBlacklist
         fields = [
-            'id', 'code_hash', 'reason', 'blacklisted_at',
-            'expires_at', 'active'
+            'id', 'activation_code', 'reason', 'source',
+            'is_permanent', 'expires_at', 'is_active', 'created_at'
         ]
-        read_only_fields = ['id', 'blacklisted_at']
+        read_only_fields = ['id', 'created_at']
 
 
 # ============================================================================

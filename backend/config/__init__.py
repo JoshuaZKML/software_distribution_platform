@@ -12,4 +12,4 @@ __all__ = ('celery_app',)
 # Optional: Print startup message in development
 import os
 if os.environ.get('DJANGO_SETTINGS_MODULE', '').endswith('.development'):
-    print("✅ Celery configured and ready")
+    print("[OK] Celery configured and ready")

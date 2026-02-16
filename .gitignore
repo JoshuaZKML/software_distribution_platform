@@ -15,7 +15,7 @@ media/
 
 # === Node / React (Vite) ===
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.js
 
@@ -57,3 +57,8 @@ Thumbs.db
 
 # logs (your existing line)
 *.log
+
+# === Next.js ===
+.next/
+out/
+.next/cache/

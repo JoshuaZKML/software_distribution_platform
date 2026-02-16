@@ -1,20 +1,18 @@
-# FILE: backend/apps/security/views.py
 from rest_framework import viewsets, permissions, filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.views import APIView          # <-- added for new views
-from rest_framework.response import Response      # <-- added
-from django.conf import settings                  # <-- added
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.conf import settings
 
 from .models import IPBlacklist, AbuseAttempt, AbuseAlert, SecurityNotificationLog, CodeBlacklist
 from .serializers import (
     IPBlacklistSerializer, AbuseAttemptSerializer,
     AbuseAlertSerializer, SecurityNotificationLogSerializer,
-    CodeBlacklistSerializer,                        # <-- new (will be added in serializers.py)
-    SecurityLogSerializer,                         # <-- new (will be added in serializers.py)
+    CodeBlacklistSerializer,
+    SecurityLogSerializer,
 )
 
-# Imports for new views – corrected to use backend.apps
 from backend.apps.accounts.models import SecurityLog
 from backend.apps.accounts.utils.device_fingerprint import DeviceFingerprintGenerator
 
@@ -47,14 +45,14 @@ class IPBlacklistViewSet(viewsets.ModelViewSet):
     CRUD for IP blacklist entries.
     - Superusers can create, update, delete.
     - Staff members can only view.
-    - Supports filtering by IP network, active status, and searching by network.
+    - Supports filtering by IP address, active status, and searching by reason.
     """
     queryset = IPBlacklist.objects.all().order_by('-created_at')
     serializer_class = IPBlacklistSerializer
     pagination_class = SecurityPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['ip_network', 'active']
-    search_fields = ['ip_network', 'reason']
+    filterset_fields = ['ip_address', 'is_active']
+    search_fields = ['cidr', 'reason']
     ordering_fields = ['created_at', 'ip_network']
     ordering = ['-created_at']
 
@@ -103,14 +101,15 @@ class AbuseAttemptViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Read‑only view of abuse attempts.
     - Access restricted to staff.
-    - Supports filtering by IP, path, and date range.
+    - Supports filtering by IP and date range.
     """
     queryset = AbuseAttempt.objects.all().order_by('-created_at')
     serializer_class = AbuseAttemptSerializer
     permission_classes = [permissions.IsAdminUser]
     pagination_class = SecurityPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['ip_address', 'path', 'method']
+    # Removed invalid fields 'path' and 'method' – only filter by IP address
+    filterset_fields = ['ip_address']
     search_fields = ['ip_address', 'path', 'user_agent']
     ordering_fields = ['created_at', 'ip_address']
     ordering = ['-created_at']
@@ -123,16 +122,16 @@ class AbuseAlertViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Read‑only view of abuse alerts.
     - Access restricted to staff.
-    - Supports filtering by severity, status, and date.
+    - Supports filtering by alert type and acknowledgment status.
     """
     queryset = AbuseAlert.objects.all().order_by('-created_at')
     serializer_class = AbuseAlertSerializer
     permission_classes = [permissions.IsAdminUser]
     pagination_class = SecurityPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['severity', 'resolved']
-    search_fields = ['message', 'ip_address']
-    ordering_fields = ['created_at', 'severity']
+    filterset_fields = ['alert_type', 'acknowledged']
+    search_fields = ['message', 'title']
+    ordering_fields = ['created_at', 'alert_type']
     ordering = ['-created_at']
 
 
@@ -143,16 +142,16 @@ class SecurityNotificationLogViewSet(viewsets.ReadOnlyModelViewSet):
     """
     Read‑only view of security notification logs.
     - Access restricted to staff.
-    - Supports filtering by recipient, type, and date.
+    - Supports filtering by risk level and user.
     """
     queryset = SecurityNotificationLog.objects.all().order_by('-created_at')
     serializer_class = SecurityNotificationLogSerializer
     permission_classes = [permissions.IsAdminUser]
     pagination_class = SecurityPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['notification_type', 'recipient']
-    search_fields = ['recipient', 'subject']
-    ordering_fields = ['created_at', 'notification_type']
+    filterset_fields = ['risk_level', 'user']
+    search_fields = ['event_hash', 'ip_address']
+    ordering_fields = ['created_at', 'risk_level']
     ordering = ['-created_at']
 
 
