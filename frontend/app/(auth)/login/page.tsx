@@ -41,7 +41,6 @@ export default function LoginPage() {
       router.push('/');
     } catch (err: any) {
       console.error('Login error:', err);
-      // Extract detailed error from backend
       const errorMessage = 
         err.response?.data?.detail || 
         err.response?.data?.message || 
@@ -53,10 +52,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
             Sign in to your account
           </h2>
         </div>
@@ -80,7 +79,7 @@ export default function LoginPage() {
             />
           </div>
 
-          {error && <div className="text-red-500 text-sm">{error}</div>}
+          {error && <div className="text-error text-sm">{error}</div>}
 
           <div>
             <Button type="submit" disabled={isSubmitting} className="w-full">
@@ -92,7 +91,7 @@ export default function LoginPage() {
             <div className="text-sm">
               <Link
                 href="/forgot-password"
-                className="font-medium text-primary-600 hover:text-primary-500"
+                className="font-medium text-primary hover:text-primary/80"
               >
                 Forgot your password?
               </Link>
@@ -100,7 +99,7 @@ export default function LoginPage() {
             <div className="text-sm">
               <Link
                 href="/register"
-                className="font-medium text-primary-600 hover:text-primary-500"
+                className="font-medium text-primary hover:text-primary/80"
               >
                 Sign up
               </Link>

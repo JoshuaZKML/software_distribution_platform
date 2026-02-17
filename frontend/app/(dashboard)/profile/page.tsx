@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useState } from 'react';
-import apiClient from '@/lib/api/client';
+import { axiosInstance } from '@/lib/api/client';
 
 const profileSchema = z.object({
   first_name: z.string().min(1),
@@ -39,7 +39,8 @@ export default function ProfilePage() {
   const onSubmit = async (data: ProfileForm) => {
     try {
       setError(null);
-      await apiClient.patch(/auth/users//, data);
+      // Fix: use template literal with user ID
+      await axiosInstance.patch(`/auth/users/${user?.id}/`, data);
       await refreshUser();
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);

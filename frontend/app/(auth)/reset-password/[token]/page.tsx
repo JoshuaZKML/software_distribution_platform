@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import apiClient from '@/lib/api/client';
+import { axiosInstance } from '@/lib/api/client';
 
 const resetSchema = z.object({
   new_password: z.string().min(8),
@@ -36,7 +36,7 @@ export default function ResetPasswordPage() {
   const onSubmit = async (data: ResetForm) => {
     try {
       setError(null);
-      await apiClient.post('/auth/reset-password/confirm/', {
+      await axiosInstance.post('/auth/reset-password/confirm/', {
         token,
         new_password: data.new_password,
         confirm_password: data.confirm_password,
@@ -49,12 +49,12 @@ export default function ResetPasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8 text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white">
+          <h2 className="text-3xl font-extrabold text-foreground">
             Password reset successful
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-muted-foreground">
             Your password has been reset. You can now log in with your new password.
           </p>
           <Button onClick={() => router.push('/login')}>Go to Login</Button>
@@ -64,10 +64,10 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
             Set new password
           </h2>
         </div>
@@ -89,7 +89,7 @@ export default function ResetPasswordPage() {
             />
           </div>
 
-          {error && <div className="text-red-500 text-sm">{error}</div>}
+          {error && <div className="text-error text-sm">{error}</div>}
 
           <div>
             <Button type="submit" disabled={isSubmitting} className="w-full">

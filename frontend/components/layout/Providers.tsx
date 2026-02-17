@@ -26,15 +26,31 @@ function MSWInitializer({ children }: { children: React.ReactNode }) {
   const [mswReady, setMswReady] = useState(false);
 
   useEffect(() => {
+    console.log('🔵 MSWInitializer mounted');
+    console.log('🔧 USE_REAL_API =', process.env.NEXT_PUBLIC_USE_REAL_API);
+
     const initMsw = async () => {
+      console.log('🟡 initMsw called, NODE_ENV =', process.env.NODE_ENV);
       if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_REAL_API !== 'true') {
-        const { worker } = await import('@/mocks/browser');
-        await worker.start({
-          onUnhandledRequest: 'bypass',
-        });
+        try {
+          console.log('🟠 Importing MSW worker...');
+          const { worker } = await import('@/mocks/browser');
+          console.log('🟢 Worker imported:', worker);
+          await worker.start({
+            onUnhandledRequest: 'warn',
+          }).catch(err => {
+            console.error('❌ worker.start() error:', err);
+          });
+          console.log('✅ MSW started successfully (but check above for errors)');
+        } catch (err) {
+          console.error('❌ MSW failed to start:', err);
+        }
+      } else {
+        console.log('⏭️ MSW not started (conditions not met)');
       }
       setMswReady(true);
     };
+
     initMsw();
   }, []);
 

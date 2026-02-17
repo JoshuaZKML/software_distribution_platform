@@ -1225,6 +1225,28 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/auth/users/me/:
+    get:
+      operationId: v1_auth_users_me_retrieve
+      description: |-
+        Return the current authenticated user's data.
+
+        This prevents requests to `/users/me/` being interpreted as a lookup
+        for a user with primary key "me" (which causes errors because the PK
+        is a UUID). Non-disruptive: simply returns the same representation
+        as retrieving the user's own object.
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
   /api/v1/auth/verify-email/{token}/:
     get:
       operationId: v1_auth_verify_email_retrieve

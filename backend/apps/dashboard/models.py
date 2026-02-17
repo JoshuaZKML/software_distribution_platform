@@ -65,11 +65,11 @@ class DashboardSnapshot(models.Model):
         # ----- NEW: Database constraints to ensure data integrity -----
         constraints = [
             models.CheckConstraint(
-                check=models.Q(total_paid_users__lte=models.F('total_users')),
+                condition=models.Q(total_paid_users__lte=models.F('total_users')),
                 name='paid_users_lte_total_users'
             ),
             models.CheckConstraint(
-                check=models.Q(active_users_last_30__lte=models.F('total_users')),
+                condition=models.Q(active_users_last_30__lte=models.F('total_users')),
                 name='active_users_lte_total_users'
             ),
             # Add more constraints as needed

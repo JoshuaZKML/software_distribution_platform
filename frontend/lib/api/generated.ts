@@ -6747,6 +6747,100 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
     }
     
 /**
+ * Return the current authenticated user's data.
+
+This prevents requests to `/users/me/` being interpreted as a lookup
+for a user with primary key "me" (which causes errors because the PK
+is a UUID). Non-disruptive: simply returns the same representation
+as retrieving the user's own object.
+ */
+export const v1AuthUsersMeRetrieve = (
+    
+ options?: SecondParameter<typeof apiClient>,signal?: AbortSignal
+) => {
+      
+      
+      return apiClient<User>(
+      {url: `http://localhost:8000/api/v1/api/v1/auth/users/me/`, method: 'GET', signal
+    },
+      options);
+    }
+  
+
+
+
+export const getV1AuthUsersMeRetrieveQueryKey = () => {
+    return [
+    `http://localhost:8000/api/v1/api/v1/auth/users/me/`
+    ] as const;
+    }
+
+    
+export const getV1AuthUsersMeRetrieveQueryOptions = <TData = Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>, TError = unknown>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>, TError, TData>>, request?: SecondParameter<typeof apiClient>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getV1AuthUsersMeRetrieveQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>> = ({ signal }) => v1AuthUsersMeRetrieve(requestOptions, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type V1AuthUsersMeRetrieveQueryResult = NonNullable<Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>>
+export type V1AuthUsersMeRetrieveQueryError = unknown
+
+
+export function useV1AuthUsersMeRetrieve<TData = Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>, TError = unknown>(
+  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiClient>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useV1AuthUsersMeRetrieve<TData = Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useV1AuthUsersMeRetrieve<TData = Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>, TError, TData>>, request?: SecondParameter<typeof apiClient>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useV1AuthUsersMeRetrieve<TData = Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>, TError = unknown>(
+  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>, TError, TData>>, request?: SecondParameter<typeof apiClient>}
+ , queryClient?: QueryClient 
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getV1AuthUsersMeRetrieveQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
+
+/**
  * Verify email using token from verification email.
  */
 export const v1AuthVerifyEmailRetrieve = (
@@ -18187,6 +18281,8 @@ export const getV1AuthUsersUpdateResponseMock = (overrideResponse: Partial< User
 
 export const getV1AuthUsersPartialUpdateResponseMock = (overrideResponse: Partial< User > = {}): User => ({id: faker.string.uuid(), email: faker.internet.email(), first_name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 150}}), undefined]), last_name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 150}}), undefined]), role: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(RoleEnum)), undefined]), company: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 255}}), undefined]), phone: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), is_active: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`, updated_at: `${faker.date.past().toISOString().split('.')[0]}Z`, last_login: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), ...overrideResponse})
 
+export const getV1AuthUsersMeRetrieveResponseMock = (overrideResponse: Partial< User > = {}): User => ({id: faker.string.uuid(), email: faker.internet.email(), first_name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 150}}), undefined]), last_name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 150}}), undefined]), role: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(RoleEnum)), undefined]), company: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 255}}), undefined]), phone: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), is_active: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), date_joined: `${faker.date.past().toISOString().split('.')[0]}Z`, updated_at: `${faker.date.past().toISOString().split('.')[0]}Z`, last_login: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), ...overrideResponse})
+
 export const getV1LicensesActivateCreateResponseMock = (overrideResponse: Partial< ActivationRequest > = {}): ActivationRequest => ({activation_code: faker.string.alpha({length: {min: 10, max: 50}}), software_slug: faker.helpers.fromRegExp('^[-a-zA-Z0-9_]+$'), device_fingerprint: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), device_name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 255}}), undefined]), device_info: faker.helpers.arrayElement([{}, undefined]), force_activation: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), ...overrideResponse})
 
 export const getV1LicensesActivationCodesListResponseMock = (overrideResponse: Partial< PaginatedActivationCodeList > = {}): PaginatedActivationCodeList => ({count: faker.number.int({min: undefined, max: undefined}), next: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), previous: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.internet.url(), null]), undefined]), results: Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({id: faker.string.uuid(), software: faker.string.uuid(), software_name: faker.string.alpha({length: {min: 10, max: 20}}), software_slug: faker.string.alpha({length: {min: 10, max: 20}}), software_app_code: faker.string.alpha({length: {min: 10, max: 20}}), software_version: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), batch: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), batch_name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), null]), encrypted_code: faker.string.alpha({length: {min: 10, max: 20}}), code_hash: faker.string.alpha({length: {min: 10, max: 20}}), human_code: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 50}}), undefined]), license_type: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(LicenseType6d0Enum)), undefined]), status: faker.helpers.arrayElement([faker.helpers.arrayElement(Object.values(ActivationCodeStatusEnum)), undefined]), user: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), user_email: faker.helpers.arrayElement([faker.internet.email(), null]), generated_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), generated_by_email: faker.helpers.arrayElement([faker.internet.email(), null]), max_activations: faker.helpers.arrayElement([faker.number.int({min: -2147483648, max: 2147483647}), undefined]), activation_count: faker.helpers.arrayElement([faker.number.int({min: -2147483648, max: 2147483647}), undefined]), concurrent_limit: faker.helpers.arrayElement([faker.number.int({min: -2147483648, max: 2147483647}), undefined]), device_fingerprint: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 64}}), null]), undefined]), device_name: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 255}}), undefined]), device_info: faker.helpers.arrayElement([{}, undefined]), created_at: `${faker.date.past().toISOString().split('.')[0]}Z`, activated_at: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), expires_at: `${faker.date.past().toISOString().split('.')[0]}Z`, last_used_at: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), revoked_at: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, null]), revoked_by: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.uuid(), null]), undefined]), revoked_by_email: faker.helpers.arrayElement([faker.internet.email(), null]), revoked_reason: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), notes: faker.helpers.arrayElement([faker.string.alpha({length: {min: 10, max: 20}}), undefined]), custom_data: faker.helpers.arrayElement([{}, undefined]), is_valid: faker.datatype.boolean(), is_expired: faker.datatype.boolean(), is_revoked: faker.datatype.boolean(), remaining_activations: faker.number.int({min: undefined, max: undefined}), days_until_expiry: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), null]), license_file: faker.string.alpha({length: {min: 10, max: 20}})})), ...overrideResponse})
@@ -18916,6 +19012,18 @@ export const getV1AuthUsersDestroyMockHandler = (overrideResponse?: void | ((inf
     return new HttpResponse(null,
       { status: 204,
         
+      })
+  }, options)
+}
+
+export const getV1AuthUsersMeRetrieveMockHandler = (overrideResponse?: User | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<User> | User), options?: RequestHandlerOptions) => {
+  return http.get('*/api/v1/auth/users/me/', async (info) => {await delay(1000);
+  
+    return new HttpResponse(JSON.stringify(overrideResponse !== undefined
+    ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse)
+    : getV1AuthUsersMeRetrieveResponseMock()),
+      { status: 200,
+        headers: { 'Content-Type': 'application/json' }
       })
   }, options)
 }
@@ -20665,6 +20773,7 @@ export const getSoftwareDistributionPlatformAPIMock = () => [
   getV1AuthUsersUpdateMockHandler(),
   getV1AuthUsersPartialUpdateMockHandler(),
   getV1AuthUsersDestroyMockHandler(),
+  getV1AuthUsersMeRetrieveMockHandler(),
   getV1AuthVerifyEmailRetrieveMockHandler(),
   getV1CatalogRetrieveMockHandler(),
   getV1analyticsRetrieveMockHandler(),

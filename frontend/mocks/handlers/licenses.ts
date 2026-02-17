@@ -5,8 +5,19 @@ const generateLicense = () => ({
   id: faker.string.uuid(),
   software_name: faker.company.name() + ' Software',
   software_slug: faker.helpers.slugify(faker.company.name()).toLowerCase(),
-  human_code: faker.string.alphanumeric(25).toUpperCase().match(/.{5}/g)?.join('-') || '',
-  license_type: faker.helpers.arrayElement(['TRIAL', 'STANDARD', 'PREMIUM', 'ENTERPRISE', 'LIFETIME']),
+  human_code:
+    faker.string
+      .alphanumeric(25)
+      .toUpperCase()
+      .match(/.{5}/g)
+      ?.join('-') || '',
+  license_type: faker.helpers.arrayElement([
+    'TRIAL',
+    'STANDARD',
+    'PREMIUM',
+    'ENTERPRISE',
+    'LIFETIME',
+  ]),
   status: faker.helpers.arrayElement(['ACTIVATED', 'INACTIVE', 'EXPIRED']),
   user_email: faker.internet.email(),
   max_activations: 5,
@@ -15,11 +26,15 @@ const generateLicense = () => ({
   is_valid: true,
   remaining_activations: faker.number.int({ min: 0, max: 5 }),
   device_fingerprint: faker.string.alphanumeric(32),
-  device_name: faker.helpers.arrayElement(['Windows PC', 'MacBook Pro', 'Linux Workstation']),
+  device_name: faker.helpers.arrayElement([
+    'Windows PC',
+    'MacBook Pro',
+    'Linux Workstation',
+  ]),
 });
 
 export const licensesHandlers = [
-  http.get('/api/v1/licenses/my-licenses/', () => {
+  http.get('*/api/v1/licenses/my-licenses/', () => {
     return HttpResponse.json({
       summary: {
         total: 10,
@@ -41,7 +56,7 @@ export const licensesHandlers = [
     });
   }),
 
-  http.get('/api/v1/licenses/activation-codes/:id/', ({ params }) => {
+  http.get('*/api/v1/licenses/activation-codes/:id/', ({ params }) => {
     return HttpResponse.json(generateLicense());
   }),
 ];

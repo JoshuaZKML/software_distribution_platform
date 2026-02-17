@@ -15,8 +15,8 @@ const mockUser = {
 };
 
 export const authHandlers = [
-  http.post('/api/v1/auth/login/', async ({ request }) => {
-    const { email, password } = await request.json() as any;
+  http.post('*/api/v1/auth/login/', async ({ request }) => {
+    const { email, password } = (await request.json()) as any;
     if (email === 'admin@example.com' && password === 'password') {
       return HttpResponse.json({
         refresh: faker.string.uuid(),
@@ -24,20 +24,23 @@ export const authHandlers = [
         user: mockUser,
       });
     }
-    return new HttpResponse(null, { status: 401, statusText: 'Invalid credentials' });
+    return HttpResponse.json(
+      { detail: 'Invalid email or password.' },
+      { status: 401 }
+    );
   }),
 
-  http.post('/api/v1/auth/token/refresh/', () => {
+  http.post('*/api/v1/auth/token/refresh/', () => {
     return HttpResponse.json({
       access: faker.string.uuid(),
     });
   }),
 
-  http.get('/api/v1/auth/users/me/', () => {
+  http.get('*/api/v1/auth/users/me/', () => {
     return HttpResponse.json(mockUser);
   }),
 
-  http.post('/api/v1/auth/register/', async ({ request }) => {
+  http.post('*/api/v1/auth/register/', async ({ request }) => {
     return HttpResponse.json({
       id: faker.string.uuid(),
       email: 'newuser@example.com',
@@ -46,11 +49,11 @@ export const authHandlers = [
     });
   }),
 
-  http.post('/api/v1/auth/reset-password/', () => {
+  http.post('*/api/v1/auth/reset-password/', () => {
     return HttpResponse.json({ detail: 'Password reset email sent.' });
   }),
 
-  http.post('/api/v1/auth/reset-password/confirm/', () => {
+  http.post('*/api/v1/auth/reset-password/confirm/', () => {
     return HttpResponse.json({ detail: 'Password reset successful.' });
   }),
 ];

@@ -1,5 +1,5 @@
-﻿import { useMyLicenses as useGeneratedMyLicenses } from '@/lib/api/generated';
+﻿import { useV1LicensesMyLicensesList } from '@/lib/api/generated';
 
 export const useMyLicenses = () => {
-  return useGeneratedMyLicenses();
+  return useV1LicensesMyLicensesList({});
 };

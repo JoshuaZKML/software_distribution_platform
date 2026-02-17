@@ -26,7 +26,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .models import SecurityLog, User, UserSession
 from .permissions import IsSuperAdmin
-from .security_checks import RiskAssessment
+from .security_checks import RiskAssessment, RISK_THRESHOLD_2FA
 from .serializers import (
     ChangePasswordSerializer,
     CustomTokenObtainPairSerializer,
@@ -123,9 +123,33 @@ class UserLoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data, context={'request': request})
         try:
-            serializer.is_valid(raise_exception=True)
+            serializer = self.get_serializer(data=request.data, context={'request': request})
+            try:
+                serializer.is_valid(raise_exception=True)
+            except serializers.ValidationError as e:
+                # Safely log failed attempt without full request.data
+                if 'email' in request.data:
+                    _log_security_event(
+                        actor=None,
+                        action='LOGIN_FAILED',
+                        target=request.data.get('email', 'unknown'),
+                        request=request,
+                        metadata={'email': request.data.get('email')}
+                    )
+
+                if 'device_change' in e.detail:
+                    return Response({
+                        'success': False,
+                        'requires_device_verification': True,
+                        'message': e.detail['message']
+                    }, status=status.HTTP_200_OK)
+
+                return Response({
+                    'success': False,
+                    'error': 'Authentication failed',
+                    'details': e.detail
+                }, status=status.HTTP_401_UNAUTHORIZED)
 
             user = getattr(serializer, 'user', None)
             if not user and 'email' in request.data:
@@ -135,76 +159,97 @@ class UserLoginView(TokenObtainPairView):
                     user = None
 
             if user and user.is_active:
-                risk_level, reasons = RiskAssessment.check_suspicious_behavior(
-                    user=user,
-                    request=request,
-                    context=serializer.validated_data.get('context', {})
-                )
-
-                if (risk_level >= settings.RISK_THRESHOLD_2FA and
-                    user.mfa_emergency_only and
-                    user.mfa_enabled and
-                    user.mfa_secret):
-
-                    # Generate a single‑use jti and store in cache
-                    jti = secrets.token_urlsafe(16)
-                    cache_key = f"emergency_2fa:{jti}"
-                    payload = {
-                        'user_id': str(user.id),
-                        'purpose': 'emergency_2fa',
-                        'risk_level': risk_level,
-                        'jti': jti,
-                        'exp': datetime.utcnow() + timedelta(minutes=10)
-                    }
-                    verification_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
-                    # Store token ID in cache with same expiry
-                    cache.set(cache_key, user.id, 600)
-
-                    _log_security_event(
-                        actor=user,
-                        action='SUSPICIOUS_LOGIN_DETECTED',
-                        target=f"user:{user.id}",
+                try:
+                    risk_level, reasons = RiskAssessment.check_suspicious_behavior(
+                        user=user,
                         request=request,
-                        metadata={
-                            'risk_level': risk_level,
-                            'requires_2fa': True,
-                            'device_fingerprint': request.data.get('device_fingerprint', '')
-                        }
+                        context=serializer.validated_data.get('context', {})
                     )
 
-                    # Return only generic message – no risk details
-                    return Response({
-                        'success': False,
-                        'requires_2fa': True,
-                        'verification_token': verification_token,
-                        'message': 'Suspicious activity detected. 2FA required.'
-                    }, status=status.HTTP_200_OK)
+                    if (risk_level >= RISK_THRESHOLD_2FA and
+                        user.mfa_emergency_only and
+                        user.mfa_enabled and
+                        user.mfa_secret):
+
+                        # Generate a single‑use jti and store in cache
+                        jti = secrets.token_urlsafe(16)
+                        cache_key = f"emergency_2fa:{jti}"
+                        payload = {
+                            'user_id': str(user.id),
+                            'purpose': 'emergency_2fa',
+                            'risk_level': risk_level,
+                            'jti': jti,
+                            'exp': datetime.utcnow() + timedelta(minutes=10)
+                        }
+                        verification_token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+                        # Store token ID in cache with same expiry
+                        cache.set(cache_key, user.id, 600)
+
+                        _log_security_event(
+                            actor=user,
+                            action='SUSPICIOUS_LOGIN_DETECTED',
+                            target=f"user:{user.id}",
+                            request=request,
+                            metadata={
+                                'risk_level': risk_level,
+                                'requires_2fa': True,
+                                'device_fingerprint': request.data.get('device_fingerprint', '')
+                            }
+                        )
+
+                        # Return only generic message – no risk details
+                        return Response({
+                            'success': False,
+                            'requires_2fa': True,
+                            'verification_token': verification_token,
+                            'message': 'Suspicious activity detected. 2FA required.'
+                        }, status=status.HTTP_200_OK)
+                except Exception as risk_check_error:
+                    # Risk assessment failed - log and allow login to proceed
+                    logger.exception("Risk assessment failed during login")
+                    _log_security_event(
+                        actor=user,
+                        action='LOGIN_RISK_CHECK_ERROR',
+                        target=f"user:{user.id}",
+                        request=request,
+                        metadata={'error': str(risk_check_error)}
+                    )
 
             # Normal login
             return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
-        except serializers.ValidationError as e:
-            # Safely log failed attempt without full request.data
+        except Exception as e:
+            # Catch any unexpected exceptions and return proper error response
+            logger.exception("Unexpected error during login")
+            if 'email' in request.data:
+                _log_security_event(
+                    actor=None,
+                    action='LOGIN_ERROR',
+                    target=request.data.get('email', 'unknown'),
+                    request=request,
+                    metadata={'error_type': type(e).__name__}
+                )
+            return Response({
+                'success': False,
+                'error': 'An unexpected error occurred during login',
+                'detail': 'Please try again later'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except Exception as e:
+            # Catch any unexpected exceptions to prevent 500 errors
+            logger.exception("Unexpected error in login", exc_info=True)
             if 'email' in request.data:
                 _log_security_event(
                     actor=None,
                     action='LOGIN_FAILED',
                     target=request.data.get('email', 'unknown'),
                     request=request,
-                    metadata={'email': request.data.get('email')}
+                    metadata={'email': request.data.get('email'), 'error': type(e).__name__}
                 )
-
-            if 'device_change' in e.detail:
-                return Response({
-                    'success': False,
-                    'requires_device_verification': True,
-                    'message': e.detail['message']
-                }, status=status.HTTP_200_OK)
-
             return Response({
                 'success': False,
                 'error': 'Authentication failed',
-                'details': e.detail
+                'details': 'An unexpected error occurred during login'
             }, status=status.HTTP_401_UNAUTHORIZED)
 
 

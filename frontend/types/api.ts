@@ -597,6 +597,30 @@ export interface paths {
         patch: operations["v1_auth_users_partial_update"];
         trace?: never;
     };
+    "/api/v1/auth/users/me/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Return the current authenticated user's data.
+         *
+         *     This prevents requests to `/users/me/` being interpreted as a lookup
+         *     for a user with primary key "me" (which causes errors because the PK
+         *     is a UUID). Non-disruptive: simply returns the same representation
+         *     as retrieving the user's own object.
+         */
+        get: operations["v1_auth_users_me_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/verify-email/{token}/": {
         parameters: {
             query?: never;
@@ -5708,6 +5732,25 @@ export interface operations {
                 "application/x-www-form-urlencoded": components["schemas"]["PatchedUserRequest"];
             };
         };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+        };
+    };
+    v1_auth_users_me_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {

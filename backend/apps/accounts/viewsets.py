@@ -128,6 +128,18 @@ class UserViewSet(viewsets.ModelViewSet):
         # Non-admins can only view their own profile
         return User.objects.filter(id=user.id)
 
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def me(self, request):
+        """Return the current authenticated user's data.
+
+        This prevents requests to `/users/me/` being interpreted as a lookup
+        for a user with primary key "me" (which causes errors because the PK
+        is a UUID). Non-disruptive: simply returns the same representation
+        as retrieving the user's own object.
+        """
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 @extend_schema_view(
     list=extend_schema(description="List all admin profiles"),

@@ -120,9 +120,15 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         user.save()
 
         from .models import UserSession
+        # Generate session key - use device fingerprint or a unique identifier
+        session_key = request.session.session_key
+        if not session_key:
+            # If session doesn't have a key (API authentication), use device fingerprint
+            session_key = device_fingerprint or f"{user.id}_{timezone.now().timestamp()}"
+        
         UserSession.objects.create(
             user=user,
-            session_key=request.session.session_key if request.session else '',
+            session_key=session_key,
             device_fingerprint=device_fingerprint or user.hardware_fingerprint,
             ip_address=request.META.get('REMOTE_ADDR', ''),
             user_agent=request.META.get('HTTP_USER_AGENT', ''),
