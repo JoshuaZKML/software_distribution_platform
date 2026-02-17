@@ -39,8 +39,16 @@ export default function LoginPage() {
 
       await login({ ...data, device_fingerprint: deviceFingerprint });
       router.push('/');
-    } catch (err) {
-      setError('Invalid email or password');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      // Extract detailed error from backend
+      const errorMessage = 
+        err.response?.data?.detail || 
+        err.response?.data?.message || 
+        err.response?.data?.non_field_errors?.[0] ||
+        err.message ||
+        'Invalid email or password';
+      setError(errorMessage);
     }
   };
 
