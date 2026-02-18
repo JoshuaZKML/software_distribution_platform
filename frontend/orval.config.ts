@@ -2,16 +2,18 @@ import { defineConfig } from 'orval';
 
 export default defineConfig({
   api: {
-    input: './schema.yaml',
+    input: './schema.yaml', // path to your OpenAPI spec
     output: {
-      target: './lib/api/generated.ts',
+      target: './src/lib/api/generated/api.ts',
+      schemas: './src/lib/api/generated/model',
       client: 'react-query',
-      baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
-      mock: true, // generates MSW handlers
+      httpClient: 'axios',   // explicitly set to axios; mutator returns raw data
+      mock: true,
+      prettier: true,
       override: {
         mutator: {
-          path: './lib/api/client.ts',
-          name: 'apiClient',
+          path: './src/lib/api/fetcher.ts',
+          name: 'fetcher',
         },
       },
     },

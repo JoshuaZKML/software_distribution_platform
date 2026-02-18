@@ -1,0 +1,62 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light mode - semantic tokens */
+    --bg-primary: 255 255 255;
+    --bg-secondary: 248 250 252;
+    --bg-surface: 255 255 255;
+    --surface-raised: 241 245 249;
+    --overlay: 0 0 0 / 0.1;
+
+    --text-main: 15 23 42;
+    --text-muted: 71 85 105;
+    --link: 30 58 138;
+
+    --action-primary: 22 163 74;
+    --action-hover: 21 128 61;
+
+    --state-success: 34 197 94;
+    --state-warning: 245 158 11;
+    --state-error: 239 68 68;
+    --state-focus-ring: 59 130 246;
+    --state-disabled: 203 213 225;
+
+    --border-subtle: 226 232 240;
+    --border-strong: 148 163 184;
+  }
+
+  .dark {
+    --bg-primary: 15 23 42;
+    --bg-secondary: 30 41 59;
+    --bg-surface: 30 41 59;
+    --surface-raised: 51 65 85;
+    --overlay: 0 0 0 / 0.5;
+
+    --text-main: 241 245 249;
+    --text-muted: 148 163 184;
+    --link: 96 165 250;
+
+    --action-primary: 34 197 94;
+    --action-hover: 22 163 74;
+
+    --state-success: 34 197 94;
+    --state-warning: 245 158 11;
+    --state-error: 239 68 68;
+    --state-focus-ring: 59 130 246;
+    --state-disabled: 75 85 99;
+
+    --border-subtle: 51 65 85;
+    --border-strong: 71 85 105;
+  }
+
+  * {
+    @apply border-border-subtle;
+  }
+
+  body {
+    @apply bg-background-primary text-text-main font-sans;
+  }
+}

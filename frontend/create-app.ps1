@@ -89,7 +89,7 @@ import { useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { TopBar } from '@/components/layout/TopBar';
-import { SideNav } from '@/components/layout/SideNav';
+import { Sidebar } from '@/components/layout/Sidebar';
 
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -105,7 +105,7 @@ export default function DashboardPage() {
   if (authLoading || statsLoading) {
     return (
       <div className="flex h-screen">
-        <SideNav />
+        <Sidebar />
         <div className="flex-1 flex flex-col">
           <TopBar />
           <main className="p-6">
@@ -124,7 +124,7 @@ export default function DashboardPage() {
   if (error) {
     return (
       <div className="flex h-screen">
-        <SideNav />
+        <Sidebar />
         <div className="flex-1 flex flex-col">
           <TopBar />
           <main className="p-6">
@@ -139,7 +139,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen">
-      <SideNav />
+      <Sidebar />
       <div className="flex-1 flex flex-col">
         <TopBar />
         <main className="p-6 overflow-auto">
@@ -640,7 +640,7 @@ export default function ResetPasswordPage() {
 import { useAuth } from '@/lib/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { SideNav } from '@/components/layout/SideNav';
+import { Sidebar } from '@/components/layout/Sidebar';
 import { TopBar } from '@/components/layout/TopBar';
 
 export default function DashboardLayout({
@@ -661,7 +661,7 @@ export default function DashboardLayout({
 
   return (
     <div className="flex h-screen">
-      <SideNav />
+      <Sidebar />
       <div className="flex-1 flex flex-col">
         <TopBar />
         <main className="flex-1 overflow-auto bg-gray-50 dark:bg-slate-900">
@@ -1132,7 +1132,7 @@ const navigation = [
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon, roles: ['SUPER_ADMIN'] },
 ];
 
-export function SideNav() {
+export function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const role = user?.role || 'USER';
