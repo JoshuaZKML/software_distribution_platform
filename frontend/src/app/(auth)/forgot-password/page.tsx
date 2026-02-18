@@ -29,7 +29,7 @@ export default function ForgotPasswordPage() {
   const onSubmit = async (data: ForgotForm) => {
     try {
       setError(null);
-      await apiClient.post('/auth/reset-password/', data);
+      await apiClient.post('/api/v1/auth/reset-password/', data);
       setSuccess(true);
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Request failed');

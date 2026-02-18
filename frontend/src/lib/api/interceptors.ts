@@ -6,7 +6,7 @@ export async function refreshToken(): Promise<string | null> {
   if (!refresh) return null;
 
   try {
-    const response = await apiClient.post('/auth/token/refresh/', { refresh });
+    const response = await apiClient.post('/api/v1/auth/token/refresh/', { refresh });
     const { access } = response.data;
     localStorage.setItem(ACCESS_TOKEN_KEY, access);
     return access;

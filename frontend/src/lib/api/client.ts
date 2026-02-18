@@ -6,7 +6,7 @@ const apiClient: AxiosInstance = axios.create({
   baseURL:
     process.env.NEXT_PUBLIC_USE_REAL_API === 'true'
       ? process.env.NEXT_PUBLIC_API_URL
-      : '/api', // will be handled by MSW or rewrites
+      : '/api/v1', // ✅ For mock mode, all requests go to /api/v1/...
   headers: { 'Content-Type': 'application/json' },
 });
 

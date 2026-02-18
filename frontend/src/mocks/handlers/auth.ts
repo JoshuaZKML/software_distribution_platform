@@ -15,7 +15,8 @@ const mockUser = {
 };
 
 export const authHandlers = [
-  http.post('*/api/v1/auth/login/', async ({ request }) => {
+  // Login – no trailing slash
+  http.post('*/api/v1/auth/login', async ({ request }) => {
     const { email, password } = (await request.json()) as any;
     if (email === 'admin@example.com' && password === 'password') {
       return HttpResponse.json({
@@ -30,17 +31,20 @@ export const authHandlers = [
     );
   }),
 
-  http.post('*/api/v1/auth/token/refresh/', () => {
+  // Refresh token
+  http.post('*/api/v1/auth/token/refresh', () => {
     return HttpResponse.json({
       access: faker.string.uuid(),
     });
   }),
 
-  http.get('*/api/v1/auth/users/me/', () => {
+  // Get current user
+  http.get('*/api/v1/auth/users/me', () => {
     return HttpResponse.json(mockUser);
   }),
 
-  http.post('*/api/v1/auth/register/', async ({ request }) => {
+  // Register
+  http.post('*/api/v1/auth/register', async ({ request }) => {
     return HttpResponse.json({
       id: faker.string.uuid(),
       email: 'newuser@example.com',
@@ -49,11 +53,13 @@ export const authHandlers = [
     });
   }),
 
-  http.post('*/api/v1/auth/reset-password/', () => {
+  // Password reset
+  http.post('*/api/v1/auth/reset-password', () => {
     return HttpResponse.json({ detail: 'Password reset email sent.' });
   }),
 
-  http.post('*/api/v1/auth/reset-password/confirm/', () => {
+  // Password reset confirm
+  http.post('*/api/v1/auth/reset-password/confirm', () => {
     return HttpResponse.json({ detail: 'Password reset successful.' });
   }),
 ];

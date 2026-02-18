@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import apiClient from '@/lib/api/client';  // ✅ default import
+import apiClient from '@/lib/api/client';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 
@@ -16,8 +16,7 @@ export default function VerifyEmailPage() {
   useEffect(() => {
     const verifyEmail = async () => {
       try {
-        // Adjust endpoint to match your backend (e.g., /auth/verify-email/{token}/)
-        await apiClient.get(`/auth/verify-email/${token}/`);  // ✅ use apiClient
+        await apiClient.get(`/api/v1/auth/verify-email/${token}/`);
         setStatus('success');
         setMessage('Your email has been verified. You can now log in.');
       } catch (err: any) {

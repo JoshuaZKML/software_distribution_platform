@@ -12,7 +12,7 @@ interface AuthState {
   login: (data: LoginRequest) => Promise<void>;
   logout: () => Promise<void>;
   fetchUser: () => Promise<void>;
-  refreshUser: () => Promise<void>; // Alias for fetchUser
+  refreshUser: () => Promise<void>;
 }
 
 export const useAuth = create<AuthState>()(
@@ -25,7 +25,8 @@ export const useAuth = create<AuthState>()(
       login: async (data) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await apiClient.post('/auth/login/', data);
+          // ✅ Now uses relative path without /api/v1
+          const response = await apiClient.post('/auth/login', data);
           const { access, refresh, user } = response.data;
 
           localStorage.setItem(ACCESS_TOKEN_KEY, access);
@@ -45,7 +46,7 @@ export const useAuth = create<AuthState>()(
 
       logout: async () => {
         try {
-          await apiClient.post('/auth/logout/');
+          await apiClient.post('/auth/logout');
         } catch {
           // Ignore errors on logout
         } finally {
@@ -58,7 +59,7 @@ export const useAuth = create<AuthState>()(
       fetchUser: async () => {
         set({ isLoading: true });
         try {
-          const response = await apiClient.get<User>('/auth/users/me/');
+          const response = await apiClient.get<User>('/auth/users/me');
           set({ user: response.data, isLoading: false, error: null });
         } catch {
           set({ user: null, isLoading: false, error: null });

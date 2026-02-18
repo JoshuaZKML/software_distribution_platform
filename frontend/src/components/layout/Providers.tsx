@@ -36,6 +36,7 @@ function MSWInitializer({ children }: { children: React.ReactNode }) {
           await worker.start({
             onUnhandledRequest: 'warn',
           });
+          console.log('✅ MSW started successfully');
         } catch (err) {
           console.error('❌ MSW failed to start:', err);
         }
