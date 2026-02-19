@@ -62,6 +62,8 @@ INSTALLED_APPS = [
     "backend.apps.security",
     # ✅ NEW: Tickets app added here (conflict‑free)
     "backend.apps.tickets",
+    #Just Updated: real-time chat app
+    "backend.apps.chat",
 
     # ----- Django admin replacement (point to NEW admin_config module) -----
     "backend.apps.health_check.admin_config.CustomAdminConfig",

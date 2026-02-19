@@ -12,17 +12,42 @@ import {
   UserIcon,
   Cog6ToothIcon,
   ShieldCheckIcon,
+  ComputerDesktopIcon,
+  TicketIcon,
+  ChartBarIcon,
+  UserGroupIcon,
+  ClipboardDocumentListIcon,
+  ChatBubbleLeftRightIcon,  // 👈 Import chat icon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/lib/hooks/useAuth';
 
 const navigation = [
+  // Dashboard
   { name: 'Dashboard', href: '/', icon: HomeIcon, roles: ['USER', 'ADMIN', 'SUPER_ADMIN'] },
+  // Software (admin only)
+  { name: 'Software', href: '/software', icon: ComputerDesktopIcon, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  // Licenses
   { name: 'Licenses', href: '/licenses', icon: KeyIcon, roles: ['USER', 'ADMIN', 'SUPER_ADMIN'] },
+  // Payments group
   { name: 'Subscriptions', href: '/subscriptions', icon: CreditCardIcon, roles: ['USER', 'ADMIN', 'SUPER_ADMIN'] },
   { name: 'Invoices', href: '/invoices', icon: DocumentTextIcon, roles: ['USER', 'ADMIN', 'SUPER_ADMIN'] },
+  // Tickets (support)
+  { name: 'Tickets', href: '/tickets', icon: TicketIcon, roles: ['USER', 'ADMIN', 'SUPER_ADMIN'] },
+  // Live Chat (admin only)
+  { name: 'Live Chat', href: '/dashboard/chats', icon: ChatBubbleLeftRightIcon, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  // Analytics (admin+)
+  { name: 'Analytics', href: '/analytics', icon: ChartBarIcon, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  // Notifications
   { name: 'Notifications', href: '/notifications', icon: BellIcon, roles: ['USER', 'ADMIN', 'SUPER_ADMIN'] },
+  // Profile
   { name: 'Profile', href: '/profile', icon: UserIcon, roles: ['USER', 'ADMIN', 'SUPER_ADMIN'] },
+  // Security (admin+)
   { name: 'Security', href: '/security', icon: ShieldCheckIcon, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  // Users (admin+)
+  { name: 'Users', href: '/users', icon: UserGroupIcon, roles: ['ADMIN', 'SUPER_ADMIN'] },
+  // Admin Logs (super_admin only)
+  { name: 'Admin Logs', href: '/admin-logs', icon: ClipboardDocumentListIcon, roles: ['SUPER_ADMIN'] },
+  // Settings (super_admin only)
   { name: 'Settings', href: '/settings', icon: Cog6ToothIcon, roles: ['SUPER_ADMIN'] },
 ];
 

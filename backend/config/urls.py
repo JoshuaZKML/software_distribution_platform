@@ -58,15 +58,16 @@ app_includes = [
     ("backend.apps.products.urls", "api/v1/products/"),
     ("backend.apps.licenses.urls", "api/v1/licenses/"),
     ("backend.apps.payments.urls", "api/v1/payments/"),
-    ("backend.apps.distribution.urls", "distribution/"),          # <-- ADDED missing distribution app
+    ("backend.apps.distribution.urls", "distribution/"),
     ("backend.apps.dashboard.urls", "api/v1/dashboard/"),
     ("backend.apps.security.urls", "api/v1/security/"),
     ("backend.apps.api.urls", "api/v1/"),
     ("backend.apps.health_check.urls", "health/"),
     ("backend.apps.notifications.urls", "notifications/"),
     ("backend.apps.analytics.urls", "analytics/"),
-    # ✅ NEW: Tickets app URLs (under /api/v1/tickets/ and /api/v1/ticket-bans/)
     ("backend.apps.tickets.urls", "api/v1/"),
+    # ✅ NEW: Chat app URLs
+    ("backend.apps.chat.urls", "api/v1/chat/"),
 ]
 
 for mod, prefix in app_includes:

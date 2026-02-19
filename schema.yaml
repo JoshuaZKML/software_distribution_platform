@@ -375,9 +375,17 @@ paths:
           - SOFTWARE_ADDED
           - SOFTWARE_DELETED
           - SOFTWARE_UPDATED
+          - TICKET_ASSIGNED
+          - TICKET_CLOSED
+          - TICKET_CREATED
+          - TICKET_MESSAGE_ADDED
+          - TICKET_REOPENED
+          - TICKET_UPDATED
+          - USER_BANNED_FROM_TICKETS
           - USER_BLOCKED
           - USER_CREATED
           - USER_DELETED
+          - USER_UNBANNED_FROM_TICKETS
           - USER_UNBLOCKED
           - USER_UPDATED
         description: |-
@@ -397,6 +405,14 @@ paths:
           * `SETTINGS_UPDATED` - Settings updated
           * `ACTION_UNDONE` - Action undone
           * `MFA_USAGE` - MFA usage
+          * `USER_BANNED_FROM_TICKETS` - User banned from tickets
+          * `USER_UNBANNED_FROM_TICKETS` - User unbanned from tickets
+          * `TICKET_CREATED` - Ticket created
+          * `TICKET_UPDATED` - Ticket updated
+          * `TICKET_ASSIGNED` - Ticket assigned
+          * `TICKET_CLOSED` - Ticket closed
+          * `TICKET_REOPENED` - Ticket reopened
+          * `TICKET_MESSAGE_ADDED` - Ticket message added
       - name: ordering
         required: false
         in: query
@@ -1225,6 +1241,28 @@ paths:
       responses:
         '204':
           description: No response body
+  /api/v1/auth/users/me/:
+    get:
+      operationId: v1_auth_users_me_retrieve
+      description: |-
+        Return the current authenticated user's data.
+
+        This prevents requests to `/users/me/` being interpreted as a lookup
+        for a user with primary key "me" (which causes errors because the PK
+        is a UUID). Non-disruptive: simply returns the same representation
+        as retrieving the user's own object.
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
   /api/v1/auth/verify-email/{token}/:
     get:
       operationId: v1_auth_verify_email_retrieve
@@ -1259,6 +1297,479 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/v1/chat/bans/:
+    get:
+      operationId: v1_chat_bans_list
+      parameters:
+      - in: query
+        name: email
+        schema:
+          type: string
+      - in: query
+        name: ip_address
+        schema:
+          type: string
+      - in: query
+        name: is_permanent
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedChatBanList'
+          description: ''
+    post:
+      operationId: v1_chat_bans_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatBanCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatBanCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatBanCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatBanCreate'
+          description: ''
+  /api/v1/chat/bans/{id}/:
+    get:
+      operationId: v1_chat_bans_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat ban.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatBan'
+          description: ''
+    put:
+      operationId: v1_chat_bans_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat ban.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatBanRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatBanRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatBanRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatBan'
+          description: ''
+    patch:
+      operationId: v1_chat_bans_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat ban.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedChatBanRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedChatBanRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedChatBanRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatBan'
+          description: ''
+    delete:
+      operationId: v1_chat_bans_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat ban.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/chat/sessions/:
+    get:
+      operationId: v1_chat_sessions_list
+      parameters:
+      - in: query
+        name: assigned_to
+        schema:
+          type: string
+          format: uuid
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - active
+          - banned
+          - closed
+          - pending
+        description: |-
+          * `pending` - Pending (visitor waiting)
+          * `active` - Active (assigned to admin)
+          * `closed` - Closed
+          * `banned` - Banned
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedChatSessionList'
+          description: ''
+    post:
+      operationId: v1_chat_sessions_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+          description: ''
+  /api/v1/chat/sessions/{id}/:
+    get:
+      operationId: v1_chat_sessions_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat session.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+          description: ''
+    put:
+      operationId: v1_chat_sessions_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat session.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+          description: ''
+    patch:
+      operationId: v1_chat_sessions_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat session.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedChatSessionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedChatSessionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedChatSessionRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+          description: ''
+    delete:
+      operationId: v1_chat_sessions_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat session.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/chat/sessions/{id}/assign/:
+    post:
+      operationId: v1_chat_sessions_assign_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat session.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+          description: ''
+  /api/v1/chat/sessions/{id}/close/:
+    post:
+      operationId: v1_chat_sessions_close_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat session.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+          description: ''
+  /api/v1/chat/sessions/{id}/messages/:
+    post:
+      operationId: v1_chat_sessions_messages_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat session.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+          description: ''
   /api/v1/dashboard/analytics/:
     get:
       operationId: v1analytics_retrieve
@@ -5458,6 +5969,450 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/v1/ticket-bans/:
+    get:
+      operationId: v1_ticket_bans_list
+      parameters:
+      - in: query
+        name: is_permanent
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: user
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTicketBanList'
+          description: ''
+    post:
+      operationId: v1_ticket_bans_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketBanCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TicketBanCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TicketBanCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketBanCreate'
+          description: ''
+  /api/v1/ticket-bans/{id}/:
+    get:
+      operationId: v1_ticket_bans_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this ticket ban.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketBan'
+          description: ''
+    put:
+      operationId: v1_ticket_bans_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this ticket ban.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketBanRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TicketBanRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TicketBanRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketBan'
+          description: ''
+    patch:
+      operationId: v1_ticket_bans_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this ticket ban.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTicketBanRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTicketBanRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTicketBanRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketBan'
+          description: ''
+    delete:
+      operationId: v1_ticket_bans_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this ticket ban.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/tickets/:
+    get:
+      operationId: v1_tickets_list
+      parameters:
+      - in: query
+        name: assigned_to
+        schema:
+          type: string
+          format: uuid
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - in: query
+        name: priority
+        schema:
+          type: string
+          enum:
+          - high
+          - low
+          - medium
+          - urgent
+        description: |-
+          * `low` - Low
+          * `medium` - Medium
+          * `high` - High
+          * `urgent` - Urgent
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - assigned
+          - closed
+          - in_progress
+          - new
+          - on_hold
+          - pending_internal
+          - pending_user
+          - reopened
+          - resolved
+        description: |-
+          * `new` - New
+          * `assigned` - Assigned
+          * `in_progress` - In Progress
+          * `pending_user` - Pending User
+          * `pending_internal` - Pending Internal
+          * `resolved` - Resolved
+          * `reopened` - Reopened
+          * `on_hold` - On Hold
+          * `closed` - Closed
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTicketListList'
+          description: ''
+    post:
+      operationId: v1_tickets_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TicketCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TicketCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketCreate'
+          description: ''
+  /api/v1/tickets/{id}/:
+    get:
+      operationId: v1_tickets_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this ticket.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDetail'
+          description: ''
+    put:
+      operationId: v1_tickets_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this ticket.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TicketUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TicketUpdateRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketUpdate'
+          description: ''
+    patch:
+      operationId: v1_tickets_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this ticket.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedTicketUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedTicketUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedTicketUpdateRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketUpdate'
+          description: ''
+    delete:
+      operationId: v1_tickets_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this ticket.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/tickets/{id}/messages/:
+    get:
+      operationId: v1_tickets_messages_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this ticket.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDetail'
+          description: ''
+    post:
+      operationId: v1_tickets_messages_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this ticket.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TicketDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TicketDetailRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketDetail'
+          description: ''
   /distribution/file/{version_id}/:
     get:
       operationId: distribution_file_retrieve
@@ -6305,6 +7260,270 @@ components:
         * `email` - Email
         * `in_app` - In‑App
         * `push` - Push
+    ChatBan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        ip_address:
+          type: string
+          nullable: true
+        reason:
+          type: string
+        is_permanent:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        created_by_email:
+          type: string
+          format: email
+          readOnly: true
+        is_active:
+          type: boolean
+          readOnly: true
+      required:
+      - created_at
+      - created_by
+      - created_by_email
+      - id
+      - is_active
+      - reason
+    ChatBanCreate:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        ip_address:
+          type: string
+          nullable: true
+        reason:
+          type: string
+        is_permanent:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - reason
+    ChatBanCreateRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        ip_address:
+          type: string
+          nullable: true
+          minLength: 1
+        reason:
+          type: string
+          minLength: 1
+        is_permanent:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - reason
+    ChatBanRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        ip_address:
+          type: string
+          nullable: true
+          minLength: 1
+        reason:
+          type: string
+          minLength: 1
+        is_permanent:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - reason
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        sender:
+          type: string
+          format: uuid
+          nullable: true
+          description: Null if sent by visitor
+        sender_email:
+          type: string
+          format: email
+          readOnly: true
+          nullable: true
+        sender_name:
+          type: string
+          description: Visitor's name if not authenticated
+          maxLength: 100
+        content:
+          type: string
+          minLength: 1
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_admin:
+          type: boolean
+          readOnly: true
+      required:
+      - content
+      - created_at
+      - id
+      - is_admin
+      - sender_email
+    ChatMessageRequest:
+      type: object
+      properties:
+        sender:
+          type: string
+          format: uuid
+          nullable: true
+          description: Null if sent by visitor
+        sender_name:
+          type: string
+          description: Visitor's name if not authenticated
+          maxLength: 100
+        content:
+          type: string
+          minLength: 1
+      required:
+      - content
+    ChatSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        visitor_name:
+          type: string
+          maxLength: 100
+        visitor_email:
+          type: string
+          format: email
+          maxLength: 254
+        visitor_phone:
+          type: string
+          maxLength: 17
+        status:
+          $ref: '#/components/schemas/ChatSessionStatusEnum'
+        assigned_to:
+          type: string
+          format: uuid
+          nullable: true
+        assigned_to_email:
+          type: string
+          format: email
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        closed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+          readOnly: true
+        last_message:
+          type: string
+          readOnly: true
+      required:
+      - assigned_to_email
+      - closed_at
+      - created_at
+      - id
+      - last_message
+      - messages
+      - updated_at
+      - visitor_email
+      - visitor_name
+      - visitor_phone
+    ChatSessionRequest:
+      type: object
+      properties:
+        visitor_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        visitor_email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        visitor_phone:
+          type: string
+          minLength: 1
+          maxLength: 17
+        status:
+          $ref: '#/components/schemas/ChatSessionStatusEnum'
+        assigned_to:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - visitor_email
+      - visitor_name
+      - visitor_phone
+    ChatSessionStatusEnum:
+      enum:
+      - pending
+      - active
+      - closed
+      - banned
+      type: string
+      description: |-
+        * `pending` - Pending (visitor waiting)
+        * `active` - Active (assigned to admin)
+        * `closed` - Closed
+        * `banned` - Banned
     CodeBatch:
       type: object
       properties:
@@ -7642,6 +8861,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Category'
+    PaginatedChatBanList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatBan'
+    PaginatedChatSessionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatSession'
     PaginatedCodeBatchList:
       type: object
       required:
@@ -8033,6 +9298,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Subscription'
+    PaginatedTicketBanList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TicketBan'
+    PaginatedTicketListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/TicketList'
     PaginatedTransactionList:
       type: object
       required:
@@ -8256,6 +9567,49 @@ components:
         is_active:
           type: boolean
           title: Active
+    PatchedChatBanRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        ip_address:
+          type: string
+          nullable: true
+          minLength: 1
+        reason:
+          type: string
+          minLength: 1
+        is_permanent:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+    PatchedChatSessionRequest:
+      type: object
+      properties:
+        visitor_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        visitor_email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        visitor_phone:
+          type: string
+          minLength: 1
+          maxLength: 17
+        status:
+          $ref: '#/components/schemas/ChatSessionStatusEnum'
+        assigned_to:
+          type: string
+          format: uuid
+          nullable: true
     PatchedCodeBatchRequest:
       type: object
       properties:
@@ -8659,6 +10013,36 @@ components:
         cancel_at_period_end:
           type: boolean
         metadata: {}
+    PatchedTicketBanRequest:
+      type: object
+      properties:
+        user:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          minLength: 1
+        is_permanent:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+    PatchedTicketUpdateRequest:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/Status583Enum'
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+        assigned_to:
+          type: string
+          format: uuid
+          nullable: true
+        internal_note:
+          type: string
+          writeOnly: true
+          minLength: 1
     PatchedUserRequest:
       type: object
       description: Serializer for User model (used by UserViewSet).
@@ -8793,6 +10177,18 @@ components:
       - code
       - interval
       - name
+    PriorityEnum:
+      enum:
+      - low
+      - medium
+      - high
+      - urgent
+      type: string
+      description: |-
+        * `low` - Low
+        * `medium` - Medium
+        * `high` - High
+        * `urgent` - Urgent
     RevocationRequest:
       type: object
       properties:
@@ -9419,6 +10815,28 @@ components:
       - software
       - version_code
       - version_number
+    Status583Enum:
+      enum:
+      - new
+      - assigned
+      - in_progress
+      - pending_user
+      - pending_internal
+      - resolved
+      - reopened
+      - on_hold
+      - closed
+      type: string
+      description: |-
+        * `new` - New
+        * `assigned` - Assigned
+        * `in_progress` - In Progress
+        * `pending_user` - Pending User
+        * `pending_internal` - Pending Internal
+        * `resolved` - Resolved
+        * `reopened` - Reopened
+        * `on_hold` - On Hold
+        * `closed` - Closed
     Subscription:
       type: object
       properties:
@@ -9524,6 +10942,351 @@ components:
         * `EXPIRED` - Expired
         * `SUSPENDED` - Suspended
         * `PENDING` - Pending
+    TicketBan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+        user_email:
+          type: string
+          format: email
+          readOnly: true
+        reason:
+          type: string
+        is_permanent:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        created_by_email:
+          type: string
+          format: email
+          readOnly: true
+        is_active:
+          type: boolean
+          readOnly: true
+      required:
+      - created_at
+      - created_by
+      - created_by_email
+      - id
+      - is_active
+      - reason
+      - user
+      - user_email
+    TicketBanCreate:
+      type: object
+      properties:
+        user:
+          type: string
+          format: uuid
+        reason:
+          type: string
+        is_permanent:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - reason
+      - user
+    TicketBanCreateRequest:
+      type: object
+      properties:
+        user:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          minLength: 1
+        is_permanent:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - reason
+      - user
+    TicketBanRequest:
+      type: object
+      properties:
+        user:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          minLength: 1
+        is_permanent:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - reason
+      - user
+    TicketCreate:
+      type: object
+      properties:
+        subject:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+      required:
+      - description
+      - subject
+    TicketCreateRequest:
+      type: object
+      properties:
+        subject:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          minLength: 1
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+      required:
+      - description
+      - subject
+    TicketDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user_email:
+          type: string
+          format: email
+          readOnly: true
+        assigned_to_email:
+          type: string
+          format: email
+          readOnly: true
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/TicketMessage'
+          readOnly: true
+        subject:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/Status583Enum'
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        resolved_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        closed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        assigned_to:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - assigned_to_email
+      - closed_at
+      - created_at
+      - description
+      - id
+      - messages
+      - resolved_at
+      - subject
+      - updated_at
+      - user
+      - user_email
+    TicketDetailRequest:
+      type: object
+      properties:
+        subject:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          minLength: 1
+        status:
+          $ref: '#/components/schemas/Status583Enum'
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+        assigned_to:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - description
+      - subject
+    TicketList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+        user_email:
+          type: string
+          format: email
+          readOnly: true
+        subject:
+          type: string
+          maxLength: 255
+        status:
+          $ref: '#/components/schemas/Status583Enum'
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+        assigned_to:
+          type: string
+          format: uuid
+          nullable: true
+        assigned_to_email:
+          type: string
+          format: email
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        message_count:
+          type: integer
+          readOnly: true
+        last_message_at:
+          type: string
+          readOnly: true
+      required:
+      - assigned_to_email
+      - created_at
+      - id
+      - last_message_at
+      - message_count
+      - subject
+      - updated_at
+      - user
+      - user_email
+    TicketMessage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        ticket:
+          type: string
+          format: uuid
+        user:
+          type: string
+          format: uuid
+          readOnly: true
+        user_email:
+          type: string
+          format: email
+          readOnly: true
+        is_staff_reply:
+          type: string
+          readOnly: true
+        message:
+          type: string
+          minLength: 1
+        attachments: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - is_staff_reply
+      - message
+      - ticket
+      - user
+      - user_email
+    TicketMessageRequest:
+      type: object
+      properties:
+        ticket:
+          type: string
+          format: uuid
+        message:
+          type: string
+          minLength: 1
+        attachments: {}
+      required:
+      - message
+      - ticket
+    TicketUpdate:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/Status583Enum'
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+        assigned_to:
+          type: string
+          format: uuid
+          nullable: true
+    TicketUpdateRequest:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/Status583Enum'
+        priority:
+          $ref: '#/components/schemas/PriorityEnum'
+        assigned_to:
+          type: string
+          format: uuid
+          nullable: true
+        internal_note:
+          type: string
+          writeOnly: true
+          minLength: 1
     TokenRefresh:
       type: object
       properties:
