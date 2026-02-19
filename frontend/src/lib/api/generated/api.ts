@@ -62,6 +62,8 @@ import type {
   PatchedSoftwareRequest,
   PatchedSoftwareVersionRequest,
   PatchedSubscriptionRequest,
+  PatchedTicketBanRequest,
+  PatchedTicketUpdateRequest,
   PatchedUserRequest,
   RevocationRequestRequest,
   SoftwareDocumentRequest,
@@ -69,6 +71,11 @@ import type {
   SoftwareRequest,
   SoftwareVersionRequest,
   SubscriptionRequest,
+  TicketBanCreateRequest,
+  TicketBanRequest,
+  TicketCreateRequest,
+  TicketDetailRequest,
+  TicketUpdateRequest,
   TokenRefreshRequest,
   TokenVerifyRequest,
   UserRegistrationRequest,
@@ -96,6 +103,8 @@ import type {
   V1ProductsSoftwareListParams,
   V1ProductsVersionsList2Params,
   V1ProductsVersionsListParams,
+  V1TicketBansListParams,
+  V1TicketsListParams,
   V1abuseAttemptsListParams,
   V1alertsListParams,
   V1codeBlacklistListParams,
@@ -129,8 +138,10 @@ import {
   LicenseType6d0Enum,
   NotificationStatusEnum,
   PeriodEnum,
+  PriorityEnum,
   RoleEnum,
   SoftwareLicenseTypeEnum,
+  Status583Enum,
   SubscriptionStatusEnum,
   TransactionStatusEnum,
 } from './model';
@@ -183,6 +194,8 @@ import type {
   PaginatedSoftwareList,
   PaginatedSoftwareVersionList,
   PaginatedSubscriptionList,
+  PaginatedTicketBanList,
+  PaginatedTicketListList,
   PaginatedTransactionList,
   PaginatedUserList,
   PaginatedUserSessionList,
@@ -197,6 +210,11 @@ import type {
   SoftwareImage,
   SoftwareVersion,
   Subscription,
+  TicketBan,
+  TicketBanCreate,
+  TicketCreate,
+  TicketDetail,
+  TicketUpdate,
   TokenRefresh,
   User,
   UserRegistration,
@@ -23070,6 +23088,1492 @@ export function useV1SystemMetricsRetrieve<
   return query;
 }
 
+export const v1TicketBansList = (
+  params?: V1TicketBansListParams,
+  options?: SecondParameter<typeof fetcher>,
+  signal?: AbortSignal
+) => {
+  return fetcher<PaginatedTicketBanList>(
+    { url: `/api/v1/ticket-bans/`, method: 'GET', params, signal },
+    options
+  );
+};
+
+export const getV1TicketBansListQueryKey = (
+  params?: V1TicketBansListParams
+) => {
+  return [`/api/v1/ticket-bans/`, ...(params ? [params] : [])] as const;
+};
+
+export const getV1TicketBansListQueryOptions = <
+  TData = Awaited<ReturnType<typeof v1TicketBansList>>,
+  TError = unknown,
+>(
+  params?: V1TicketBansListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketBansList>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getV1TicketBansListQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof v1TicketBansList>>
+  > = ({ signal }) => v1TicketBansList(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof v1TicketBansList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type V1TicketBansListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof v1TicketBansList>>
+>;
+export type V1TicketBansListQueryError = unknown;
+
+export function useV1TicketBansList<
+  TData = Awaited<ReturnType<typeof v1TicketBansList>>,
+  TError = unknown,
+>(
+  params: undefined | V1TicketBansListParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketBansList>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1TicketBansList>>,
+          TError,
+          Awaited<ReturnType<typeof v1TicketBansList>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData>;
+};
+export function useV1TicketBansList<
+  TData = Awaited<ReturnType<typeof v1TicketBansList>>,
+  TError = unknown,
+>(
+  params?: V1TicketBansListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketBansList>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1TicketBansList>>,
+          TError,
+          Awaited<ReturnType<typeof v1TicketBansList>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useV1TicketBansList<
+  TData = Awaited<ReturnType<typeof v1TicketBansList>>,
+  TError = unknown,
+>(
+  params?: V1TicketBansListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketBansList>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+
+export function useV1TicketBansList<
+  TData = Awaited<ReturnType<typeof v1TicketBansList>>,
+  TError = unknown,
+>(
+  params?: V1TicketBansListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketBansList>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+  const queryOptions = getV1TicketBansListQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const v1TicketBansCreate = (
+  ticketBanCreateRequest: TicketBanCreateRequest,
+  options?: SecondParameter<typeof fetcher>,
+  signal?: AbortSignal
+) => {
+  return fetcher<TicketBanCreate>(
+    {
+      url: `/api/v1/ticket-bans/`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: ticketBanCreateRequest,
+      signal,
+    },
+    options
+  );
+};
+
+export const getV1TicketBansCreateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1TicketBansCreate>>,
+    TError,
+    { data: TicketBanCreateRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof fetcher>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1TicketBansCreate>>,
+  TError,
+  { data: TicketBanCreateRequest },
+  TContext
+> => {
+  const mutationKey = ['v1TicketBansCreate'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1TicketBansCreate>>,
+    { data: TicketBanCreateRequest }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return v1TicketBansCreate(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1TicketBansCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1TicketBansCreate>>
+>;
+export type V1TicketBansCreateMutationBody = TicketBanCreateRequest;
+export type V1TicketBansCreateMutationError = unknown;
+
+export const useV1TicketBansCreate = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1TicketBansCreate>>,
+      TError,
+      { data: TicketBanCreateRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1TicketBansCreate>>,
+  TError,
+  { data: TicketBanCreateRequest },
+  TContext
+> => {
+  const mutationOptions = getV1TicketBansCreateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1TicketBansRetrieve = (
+  id: string,
+  options?: SecondParameter<typeof fetcher>,
+  signal?: AbortSignal
+) => {
+  return fetcher<TicketBan>(
+    { url: `/api/v1/ticket-bans/${id}/`, method: 'GET', signal },
+    options
+  );
+};
+
+export const getV1TicketBansRetrieveQueryKey = (id?: string) => {
+  return [`/api/v1/ticket-bans/${id}/`] as const;
+};
+
+export const getV1TicketBansRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof v1TicketBansRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketBansRetrieve>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getV1TicketBansRetrieveQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof v1TicketBansRetrieve>>
+  > = ({ signal }) => v1TicketBansRetrieve(id, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof v1TicketBansRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type V1TicketBansRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof v1TicketBansRetrieve>>
+>;
+export type V1TicketBansRetrieveQueryError = unknown;
+
+export function useV1TicketBansRetrieve<
+  TData = Awaited<ReturnType<typeof v1TicketBansRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketBansRetrieve>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1TicketBansRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof v1TicketBansRetrieve>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData>;
+};
+export function useV1TicketBansRetrieve<
+  TData = Awaited<ReturnType<typeof v1TicketBansRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketBansRetrieve>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1TicketBansRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof v1TicketBansRetrieve>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useV1TicketBansRetrieve<
+  TData = Awaited<ReturnType<typeof v1TicketBansRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketBansRetrieve>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+
+export function useV1TicketBansRetrieve<
+  TData = Awaited<ReturnType<typeof v1TicketBansRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketBansRetrieve>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+  const queryOptions = getV1TicketBansRetrieveQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const v1TicketBansUpdate = (
+  id: string,
+  ticketBanRequest: TicketBanRequest,
+  options?: SecondParameter<typeof fetcher>
+) => {
+  return fetcher<TicketBan>(
+    {
+      url: `/api/v1/ticket-bans/${id}/`,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: ticketBanRequest,
+    },
+    options
+  );
+};
+
+export const getV1TicketBansUpdateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1TicketBansUpdate>>,
+    TError,
+    { id: string; data: TicketBanRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof fetcher>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1TicketBansUpdate>>,
+  TError,
+  { id: string; data: TicketBanRequest },
+  TContext
+> => {
+  const mutationKey = ['v1TicketBansUpdate'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1TicketBansUpdate>>,
+    { id: string; data: TicketBanRequest }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return v1TicketBansUpdate(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1TicketBansUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1TicketBansUpdate>>
+>;
+export type V1TicketBansUpdateMutationBody = TicketBanRequest;
+export type V1TicketBansUpdateMutationError = unknown;
+
+export const useV1TicketBansUpdate = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1TicketBansUpdate>>,
+      TError,
+      { id: string; data: TicketBanRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1TicketBansUpdate>>,
+  TError,
+  { id: string; data: TicketBanRequest },
+  TContext
+> => {
+  const mutationOptions = getV1TicketBansUpdateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1TicketBansPartialUpdate = (
+  id: string,
+  patchedTicketBanRequest: PatchedTicketBanRequest,
+  options?: SecondParameter<typeof fetcher>
+) => {
+  return fetcher<TicketBan>(
+    {
+      url: `/api/v1/ticket-bans/${id}/`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: patchedTicketBanRequest,
+    },
+    options
+  );
+};
+
+export const getV1TicketBansPartialUpdateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1TicketBansPartialUpdate>>,
+    TError,
+    { id: string; data: PatchedTicketBanRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof fetcher>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1TicketBansPartialUpdate>>,
+  TError,
+  { id: string; data: PatchedTicketBanRequest },
+  TContext
+> => {
+  const mutationKey = ['v1TicketBansPartialUpdate'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1TicketBansPartialUpdate>>,
+    { id: string; data: PatchedTicketBanRequest }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return v1TicketBansPartialUpdate(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1TicketBansPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1TicketBansPartialUpdate>>
+>;
+export type V1TicketBansPartialUpdateMutationBody = PatchedTicketBanRequest;
+export type V1TicketBansPartialUpdateMutationError = unknown;
+
+export const useV1TicketBansPartialUpdate = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1TicketBansPartialUpdate>>,
+      TError,
+      { id: string; data: PatchedTicketBanRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1TicketBansPartialUpdate>>,
+  TError,
+  { id: string; data: PatchedTicketBanRequest },
+  TContext
+> => {
+  const mutationOptions = getV1TicketBansPartialUpdateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1TicketBansDestroy = (
+  id: string,
+  options?: SecondParameter<typeof fetcher>
+) => {
+  return fetcher<void>(
+    { url: `/api/v1/ticket-bans/${id}/`, method: 'DELETE' },
+    options
+  );
+};
+
+export const getV1TicketBansDestroyMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1TicketBansDestroy>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof fetcher>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1TicketBansDestroy>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ['v1TicketBansDestroy'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1TicketBansDestroy>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return v1TicketBansDestroy(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1TicketBansDestroyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1TicketBansDestroy>>
+>;
+
+export type V1TicketBansDestroyMutationError = unknown;
+
+export const useV1TicketBansDestroy = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1TicketBansDestroy>>,
+      TError,
+      { id: string },
+      TContext
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1TicketBansDestroy>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationOptions = getV1TicketBansDestroyMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1TicketsList = (
+  params?: V1TicketsListParams,
+  options?: SecondParameter<typeof fetcher>,
+  signal?: AbortSignal
+) => {
+  return fetcher<PaginatedTicketListList>(
+    { url: `/api/v1/tickets/`, method: 'GET', params, signal },
+    options
+  );
+};
+
+export const getV1TicketsListQueryKey = (params?: V1TicketsListParams) => {
+  return [`/api/v1/tickets/`, ...(params ? [params] : [])] as const;
+};
+
+export const getV1TicketsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof v1TicketsList>>,
+  TError = unknown,
+>(
+  params?: V1TicketsListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof v1TicketsList>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getV1TicketsListQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof v1TicketsList>>> = ({
+    signal,
+  }) => v1TicketsList(params, requestOptions, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof v1TicketsList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type V1TicketsListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof v1TicketsList>>
+>;
+export type V1TicketsListQueryError = unknown;
+
+export function useV1TicketsList<
+  TData = Awaited<ReturnType<typeof v1TicketsList>>,
+  TError = unknown,
+>(
+  params: undefined | V1TicketsListParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof v1TicketsList>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1TicketsList>>,
+          TError,
+          Awaited<ReturnType<typeof v1TicketsList>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData>;
+};
+export function useV1TicketsList<
+  TData = Awaited<ReturnType<typeof v1TicketsList>>,
+  TError = unknown,
+>(
+  params?: V1TicketsListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof v1TicketsList>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1TicketsList>>,
+          TError,
+          Awaited<ReturnType<typeof v1TicketsList>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useV1TicketsList<
+  TData = Awaited<ReturnType<typeof v1TicketsList>>,
+  TError = unknown,
+>(
+  params?: V1TicketsListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof v1TicketsList>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+
+export function useV1TicketsList<
+  TData = Awaited<ReturnType<typeof v1TicketsList>>,
+  TError = unknown,
+>(
+  params?: V1TicketsListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof v1TicketsList>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+  const queryOptions = getV1TicketsListQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const v1TicketsCreate = (
+  ticketCreateRequest: TicketCreateRequest,
+  options?: SecondParameter<typeof fetcher>,
+  signal?: AbortSignal
+) => {
+  return fetcher<TicketCreate>(
+    {
+      url: `/api/v1/tickets/`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: ticketCreateRequest,
+      signal,
+    },
+    options
+  );
+};
+
+export const getV1TicketsCreateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1TicketsCreate>>,
+    TError,
+    { data: TicketCreateRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof fetcher>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1TicketsCreate>>,
+  TError,
+  { data: TicketCreateRequest },
+  TContext
+> => {
+  const mutationKey = ['v1TicketsCreate'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1TicketsCreate>>,
+    { data: TicketCreateRequest }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return v1TicketsCreate(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1TicketsCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1TicketsCreate>>
+>;
+export type V1TicketsCreateMutationBody = TicketCreateRequest;
+export type V1TicketsCreateMutationError = unknown;
+
+export const useV1TicketsCreate = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1TicketsCreate>>,
+      TError,
+      { data: TicketCreateRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1TicketsCreate>>,
+  TError,
+  { data: TicketCreateRequest },
+  TContext
+> => {
+  const mutationOptions = getV1TicketsCreateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1TicketsRetrieve = (
+  id: string,
+  options?: SecondParameter<typeof fetcher>,
+  signal?: AbortSignal
+) => {
+  return fetcher<TicketDetail>(
+    { url: `/api/v1/tickets/${id}/`, method: 'GET', signal },
+    options
+  );
+};
+
+export const getV1TicketsRetrieveQueryKey = (id?: string) => {
+  return [`/api/v1/tickets/${id}/`] as const;
+};
+
+export const getV1TicketsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof v1TicketsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketsRetrieve>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getV1TicketsRetrieveQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof v1TicketsRetrieve>>
+  > = ({ signal }) => v1TicketsRetrieve(id, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof v1TicketsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type V1TicketsRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof v1TicketsRetrieve>>
+>;
+export type V1TicketsRetrieveQueryError = unknown;
+
+export function useV1TicketsRetrieve<
+  TData = Awaited<ReturnType<typeof v1TicketsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketsRetrieve>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1TicketsRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof v1TicketsRetrieve>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData>;
+};
+export function useV1TicketsRetrieve<
+  TData = Awaited<ReturnType<typeof v1TicketsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketsRetrieve>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1TicketsRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof v1TicketsRetrieve>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useV1TicketsRetrieve<
+  TData = Awaited<ReturnType<typeof v1TicketsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketsRetrieve>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+
+export function useV1TicketsRetrieve<
+  TData = Awaited<ReturnType<typeof v1TicketsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketsRetrieve>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+  const queryOptions = getV1TicketsRetrieveQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const v1TicketsUpdate = (
+  id: string,
+  ticketUpdateRequest: TicketUpdateRequest,
+  options?: SecondParameter<typeof fetcher>
+) => {
+  return fetcher<TicketUpdate>(
+    {
+      url: `/api/v1/tickets/${id}/`,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: ticketUpdateRequest,
+    },
+    options
+  );
+};
+
+export const getV1TicketsUpdateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1TicketsUpdate>>,
+    TError,
+    { id: string; data: TicketUpdateRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof fetcher>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1TicketsUpdate>>,
+  TError,
+  { id: string; data: TicketUpdateRequest },
+  TContext
+> => {
+  const mutationKey = ['v1TicketsUpdate'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1TicketsUpdate>>,
+    { id: string; data: TicketUpdateRequest }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return v1TicketsUpdate(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1TicketsUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1TicketsUpdate>>
+>;
+export type V1TicketsUpdateMutationBody = TicketUpdateRequest;
+export type V1TicketsUpdateMutationError = unknown;
+
+export const useV1TicketsUpdate = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1TicketsUpdate>>,
+      TError,
+      { id: string; data: TicketUpdateRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1TicketsUpdate>>,
+  TError,
+  { id: string; data: TicketUpdateRequest },
+  TContext
+> => {
+  const mutationOptions = getV1TicketsUpdateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1TicketsPartialUpdate = (
+  id: string,
+  patchedTicketUpdateRequest: PatchedTicketUpdateRequest,
+  options?: SecondParameter<typeof fetcher>
+) => {
+  return fetcher<TicketUpdate>(
+    {
+      url: `/api/v1/tickets/${id}/`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: patchedTicketUpdateRequest,
+    },
+    options
+  );
+};
+
+export const getV1TicketsPartialUpdateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1TicketsPartialUpdate>>,
+    TError,
+    { id: string; data: PatchedTicketUpdateRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof fetcher>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1TicketsPartialUpdate>>,
+  TError,
+  { id: string; data: PatchedTicketUpdateRequest },
+  TContext
+> => {
+  const mutationKey = ['v1TicketsPartialUpdate'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1TicketsPartialUpdate>>,
+    { id: string; data: PatchedTicketUpdateRequest }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return v1TicketsPartialUpdate(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1TicketsPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1TicketsPartialUpdate>>
+>;
+export type V1TicketsPartialUpdateMutationBody = PatchedTicketUpdateRequest;
+export type V1TicketsPartialUpdateMutationError = unknown;
+
+export const useV1TicketsPartialUpdate = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1TicketsPartialUpdate>>,
+      TError,
+      { id: string; data: PatchedTicketUpdateRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1TicketsPartialUpdate>>,
+  TError,
+  { id: string; data: PatchedTicketUpdateRequest },
+  TContext
+> => {
+  const mutationOptions = getV1TicketsPartialUpdateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1TicketsDestroy = (
+  id: string,
+  options?: SecondParameter<typeof fetcher>
+) => {
+  return fetcher<void>(
+    { url: `/api/v1/tickets/${id}/`, method: 'DELETE' },
+    options
+  );
+};
+
+export const getV1TicketsDestroyMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1TicketsDestroy>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+  request?: SecondParameter<typeof fetcher>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1TicketsDestroy>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ['v1TicketsDestroy'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1TicketsDestroy>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return v1TicketsDestroy(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1TicketsDestroyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1TicketsDestroy>>
+>;
+
+export type V1TicketsDestroyMutationError = unknown;
+
+export const useV1TicketsDestroy = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1TicketsDestroy>>,
+      TError,
+      { id: string },
+      TContext
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1TicketsDestroy>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationOptions = getV1TicketsDestroyMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1TicketsMessagesRetrieve = (
+  id: string,
+  options?: SecondParameter<typeof fetcher>,
+  signal?: AbortSignal
+) => {
+  return fetcher<TicketDetail>(
+    { url: `/api/v1/tickets/${id}/messages/`, method: 'GET', signal },
+    options
+  );
+};
+
+export const getV1TicketsMessagesRetrieveQueryKey = (id?: string) => {
+  return [`/api/v1/tickets/${id}/messages/`] as const;
+};
+
+export const getV1TicketsMessagesRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getV1TicketsMessagesRetrieveQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>
+  > = ({ signal }) => v1TicketsMessagesRetrieve(id, requestOptions, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type V1TicketsMessagesRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>
+>;
+export type V1TicketsMessagesRetrieveQueryError = unknown;
+
+export function useV1TicketsMessagesRetrieve<
+  TData = Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData>;
+};
+export function useV1TicketsMessagesRetrieve<
+  TData = Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>
+        >,
+        'initialData'
+      >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useV1TicketsMessagesRetrieve<
+  TData = Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+
+export function useV1TicketsMessagesRetrieve<
+  TData = Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+  const queryOptions = getV1TicketsMessagesRetrieveQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const v1TicketsMessagesCreate = (
+  id: string,
+  ticketDetailRequest: TicketDetailRequest,
+  options?: SecondParameter<typeof fetcher>,
+  signal?: AbortSignal
+) => {
+  return fetcher<TicketDetail>(
+    {
+      url: `/api/v1/tickets/${id}/messages/`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: ticketDetailRequest,
+      signal,
+    },
+    options
+  );
+};
+
+export const getV1TicketsMessagesCreateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1TicketsMessagesCreate>>,
+    TError,
+    { id: string; data: TicketDetailRequest },
+    TContext
+  >;
+  request?: SecondParameter<typeof fetcher>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1TicketsMessagesCreate>>,
+  TError,
+  { id: string; data: TicketDetailRequest },
+  TContext
+> => {
+  const mutationKey = ['v1TicketsMessagesCreate'];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1TicketsMessagesCreate>>,
+    { id: string; data: TicketDetailRequest }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return v1TicketsMessagesCreate(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1TicketsMessagesCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1TicketsMessagesCreate>>
+>;
+export type V1TicketsMessagesCreateMutationBody = TicketDetailRequest;
+export type V1TicketsMessagesCreateMutationError = unknown;
+
+export const useV1TicketsMessagesCreate = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1TicketsMessagesCreate>>,
+      TError,
+      { id: string; data: TicketDetailRequest },
+      TContext
+    >;
+    request?: SecondParameter<typeof fetcher>;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1TicketsMessagesCreate>>,
+  TError,
+  { id: string; data: TicketDetailRequest },
+  TContext
+> => {
+  const mutationOptions = getV1TicketsMessagesCreateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
 /**
  * Redirect to the best mirror for a given software version and artifact type.
 - Simple usage (defaults to 'installer'): /file/<version_id>/
@@ -31353,6 +32857,369 @@ export const getV1securityLogsRetrieveResponseMock = (
   ...overrideResponse,
 });
 
+export const getV1TicketBansListResponseMock = (
+  overrideResponse: Partial<PaginatedTicketBanList> = {}
+): PaginatedTicketBanList => ({
+  count: faker.number.int({ min: undefined, max: undefined }),
+  next: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.internet.url(), null]),
+    undefined,
+  ]),
+  previous: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.internet.url(), null]),
+    undefined,
+  ]),
+  results: Array.from(
+    { length: faker.number.int({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.string.uuid(),
+    user: faker.string.uuid(),
+    user_email: faker.internet.email(),
+    reason: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    is_permanent: faker.helpers.arrayElement([
+      faker.datatype.boolean(),
+      undefined,
+    ]),
+    expires_at: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([
+        `${faker.date.past().toISOString().split('.')[0]}Z`,
+        null,
+      ]),
+      undefined,
+    ]),
+    created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    created_by: faker.helpers.arrayElement([faker.string.uuid(), null]),
+    created_by_email: faker.internet.email(),
+    is_active: faker.datatype.boolean(),
+  })),
+  ...overrideResponse,
+});
+
+export const getV1TicketBansCreateResponseMock = (
+  overrideResponse: Partial<TicketBanCreate> = {}
+): TicketBanCreate => ({
+  user: faker.string.uuid(),
+  reason: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  is_permanent: faker.helpers.arrayElement([
+    faker.datatype.boolean(),
+    undefined,
+  ]),
+  expires_at: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      `${faker.date.past().toISOString().split('.')[0]}Z`,
+      null,
+    ]),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getV1TicketBansRetrieveResponseMock = (
+  overrideResponse: Partial<TicketBan> = {}
+): TicketBan => ({
+  id: faker.string.uuid(),
+  user: faker.string.uuid(),
+  user_email: faker.internet.email(),
+  reason: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  is_permanent: faker.helpers.arrayElement([
+    faker.datatype.boolean(),
+    undefined,
+  ]),
+  expires_at: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      `${faker.date.past().toISOString().split('.')[0]}Z`,
+      null,
+    ]),
+    undefined,
+  ]),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  created_by: faker.helpers.arrayElement([faker.string.uuid(), null]),
+  created_by_email: faker.internet.email(),
+  is_active: faker.datatype.boolean(),
+  ...overrideResponse,
+});
+
+export const getV1TicketBansUpdateResponseMock = (
+  overrideResponse: Partial<TicketBan> = {}
+): TicketBan => ({
+  id: faker.string.uuid(),
+  user: faker.string.uuid(),
+  user_email: faker.internet.email(),
+  reason: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  is_permanent: faker.helpers.arrayElement([
+    faker.datatype.boolean(),
+    undefined,
+  ]),
+  expires_at: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      `${faker.date.past().toISOString().split('.')[0]}Z`,
+      null,
+    ]),
+    undefined,
+  ]),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  created_by: faker.helpers.arrayElement([faker.string.uuid(), null]),
+  created_by_email: faker.internet.email(),
+  is_active: faker.datatype.boolean(),
+  ...overrideResponse,
+});
+
+export const getV1TicketBansPartialUpdateResponseMock = (
+  overrideResponse: Partial<TicketBan> = {}
+): TicketBan => ({
+  id: faker.string.uuid(),
+  user: faker.string.uuid(),
+  user_email: faker.internet.email(),
+  reason: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  is_permanent: faker.helpers.arrayElement([
+    faker.datatype.boolean(),
+    undefined,
+  ]),
+  expires_at: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      `${faker.date.past().toISOString().split('.')[0]}Z`,
+      null,
+    ]),
+    undefined,
+  ]),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  created_by: faker.helpers.arrayElement([faker.string.uuid(), null]),
+  created_by_email: faker.internet.email(),
+  is_active: faker.datatype.boolean(),
+  ...overrideResponse,
+});
+
+export const getV1TicketsListResponseMock = (
+  overrideResponse: Partial<PaginatedTicketListList> = {}
+): PaginatedTicketListList => ({
+  count: faker.number.int({ min: undefined, max: undefined }),
+  next: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.internet.url(), null]),
+    undefined,
+  ]),
+  previous: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.internet.url(), null]),
+    undefined,
+  ]),
+  results: Array.from(
+    { length: faker.number.int({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.string.uuid(),
+    user: faker.string.uuid(),
+    user_email: faker.internet.email(),
+    subject: faker.string.alpha({ length: { min: 10, max: 255 } }),
+    status: faker.helpers.arrayElement([
+      faker.helpers.arrayElement(Object.values(Status583Enum)),
+      undefined,
+    ]),
+    priority: faker.helpers.arrayElement([
+      faker.helpers.arrayElement(Object.values(PriorityEnum)),
+      undefined,
+    ]),
+    assigned_to: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.uuid(), null]),
+      undefined,
+    ]),
+    assigned_to_email: faker.internet.email(),
+    created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    updated_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    message_count: faker.number.int({ min: undefined, max: undefined }),
+    last_message_at: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  })),
+  ...overrideResponse,
+});
+
+export const getV1TicketsCreateResponseMock = (
+  overrideResponse: Partial<TicketCreate> = {}
+): TicketCreate => ({
+  subject: faker.string.alpha({ length: { min: 10, max: 255 } }),
+  description: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  priority: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(PriorityEnum)),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getV1TicketsRetrieveResponseMock = (
+  overrideResponse: Partial<TicketDetail> = {}
+): TicketDetail => ({
+  id: faker.string.uuid(),
+  user_email: faker.internet.email(),
+  assigned_to_email: faker.internet.email(),
+  messages: Array.from(
+    { length: faker.number.int({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.string.uuid(),
+    ticket: faker.string.uuid(),
+    user: faker.string.uuid(),
+    user_email: faker.internet.email(),
+    is_staff_reply: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    message: faker.string.alpha({ length: { min: 1, max: 20 } }),
+    attachments: faker.helpers.arrayElement([{}, undefined]),
+    created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  })),
+  subject: faker.string.alpha({ length: { min: 10, max: 255 } }),
+  description: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(Status583Enum)),
+    undefined,
+  ]),
+  priority: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(PriorityEnum)),
+    undefined,
+  ]),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  updated_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  resolved_at: faker.helpers.arrayElement([
+    `${faker.date.past().toISOString().split('.')[0]}Z`,
+    null,
+  ]),
+  closed_at: faker.helpers.arrayElement([
+    `${faker.date.past().toISOString().split('.')[0]}Z`,
+    null,
+  ]),
+  user: faker.string.uuid(),
+  assigned_to: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.uuid(), null]),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getV1TicketsUpdateResponseMock = (
+  overrideResponse: Partial<TicketUpdate> = {}
+): TicketUpdate => ({
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(Status583Enum)),
+    undefined,
+  ]),
+  priority: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(PriorityEnum)),
+    undefined,
+  ]),
+  assigned_to: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.uuid(), null]),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getV1TicketsPartialUpdateResponseMock = (
+  overrideResponse: Partial<TicketUpdate> = {}
+): TicketUpdate => ({
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(Status583Enum)),
+    undefined,
+  ]),
+  priority: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(PriorityEnum)),
+    undefined,
+  ]),
+  assigned_to: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.uuid(), null]),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getV1TicketsMessagesRetrieveResponseMock = (
+  overrideResponse: Partial<TicketDetail> = {}
+): TicketDetail => ({
+  id: faker.string.uuid(),
+  user_email: faker.internet.email(),
+  assigned_to_email: faker.internet.email(),
+  messages: Array.from(
+    { length: faker.number.int({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.string.uuid(),
+    ticket: faker.string.uuid(),
+    user: faker.string.uuid(),
+    user_email: faker.internet.email(),
+    is_staff_reply: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    message: faker.string.alpha({ length: { min: 1, max: 20 } }),
+    attachments: faker.helpers.arrayElement([{}, undefined]),
+    created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  })),
+  subject: faker.string.alpha({ length: { min: 10, max: 255 } }),
+  description: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(Status583Enum)),
+    undefined,
+  ]),
+  priority: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(PriorityEnum)),
+    undefined,
+  ]),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  updated_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  resolved_at: faker.helpers.arrayElement([
+    `${faker.date.past().toISOString().split('.')[0]}Z`,
+    null,
+  ]),
+  closed_at: faker.helpers.arrayElement([
+    `${faker.date.past().toISOString().split('.')[0]}Z`,
+    null,
+  ]),
+  user: faker.string.uuid(),
+  assigned_to: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.uuid(), null]),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getV1TicketsMessagesCreateResponseMock = (
+  overrideResponse: Partial<TicketDetail> = {}
+): TicketDetail => ({
+  id: faker.string.uuid(),
+  user_email: faker.internet.email(),
+  assigned_to_email: faker.internet.email(),
+  messages: Array.from(
+    { length: faker.number.int({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.string.uuid(),
+    ticket: faker.string.uuid(),
+    user: faker.string.uuid(),
+    user_email: faker.internet.email(),
+    is_staff_reply: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    message: faker.string.alpha({ length: { min: 1, max: 20 } }),
+    attachments: faker.helpers.arrayElement([{}, undefined]),
+    created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  })),
+  subject: faker.string.alpha({ length: { min: 10, max: 255 } }),
+  description: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(Status583Enum)),
+    undefined,
+  ]),
+  priority: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(PriorityEnum)),
+    undefined,
+  ]),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  updated_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  resolved_at: faker.helpers.arrayElement([
+    `${faker.date.past().toISOString().split('.')[0]}Z`,
+    null,
+  ]),
+  closed_at: faker.helpers.arrayElement([
+    `${faker.date.past().toISOString().split('.')[0]}Z`,
+    null,
+  ]),
+  user: faker.string.uuid(),
+  assigned_to: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.uuid(), null]),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
 export const getDistributionMirrorsListResponseMock = (
   overrideResponse: Partial<PaginatedMirrorList> = {}
 ): PaginatedMirrorList => ({
@@ -36376,6 +38243,384 @@ export const getV1SystemMetricsRetrieveMockHandler = (
   );
 };
 
+export const getV1TicketBansListMockHandler = (
+  overrideResponse?:
+    | PaginatedTicketBanList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) => Promise<PaginatedTicketBanList> | PaginatedTicketBanList),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    '*/api/v1/ticket-bans/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1TicketBansListResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1TicketBansCreateMockHandler = (
+  overrideResponse?:
+    | TicketBanCreate
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0]
+      ) => Promise<TicketBanCreate> | TicketBanCreate),
+  options?: RequestHandlerOptions
+) => {
+  return http.post(
+    '*/api/v1/ticket-bans/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1TicketBansCreateResponseMock()
+        ),
+        { status: 201, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1TicketBansRetrieveMockHandler = (
+  overrideResponse?:
+    | TicketBan
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) => Promise<TicketBan> | TicketBan),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    '*/api/v1/ticket-bans/:id/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1TicketBansRetrieveResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1TicketBansUpdateMockHandler = (
+  overrideResponse?:
+    | TicketBan
+    | ((
+        info: Parameters<Parameters<typeof http.put>[1]>[0]
+      ) => Promise<TicketBan> | TicketBan),
+  options?: RequestHandlerOptions
+) => {
+  return http.put(
+    '*/api/v1/ticket-bans/:id/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1TicketBansUpdateResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1TicketBansPartialUpdateMockHandler = (
+  overrideResponse?:
+    | TicketBan
+    | ((
+        info: Parameters<Parameters<typeof http.patch>[1]>[0]
+      ) => Promise<TicketBan> | TicketBan),
+  options?: RequestHandlerOptions
+) => {
+  return http.patch(
+    '*/api/v1/ticket-bans/:id/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1TicketBansPartialUpdateResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1TicketBansDestroyMockHandler = (
+  overrideResponse?:
+    | void
+    | ((
+        info: Parameters<Parameters<typeof http.delete>[1]>[0]
+      ) => Promise<void> | void),
+  options?: RequestHandlerOptions
+) => {
+  return http.delete(
+    '*/api/v1/ticket-bans/:id/',
+    async (info) => {
+      await delay(1000);
+      if (typeof overrideResponse === 'function') {
+        await overrideResponse(info);
+      }
+      return new HttpResponse(null, { status: 204 });
+    },
+    options
+  );
+};
+
+export const getV1TicketsListMockHandler = (
+  overrideResponse?:
+    | PaginatedTicketListList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) => Promise<PaginatedTicketListList> | PaginatedTicketListList),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    '*/api/v1/tickets/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1TicketsListResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1TicketsCreateMockHandler = (
+  overrideResponse?:
+    | TicketCreate
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0]
+      ) => Promise<TicketCreate> | TicketCreate),
+  options?: RequestHandlerOptions
+) => {
+  return http.post(
+    '*/api/v1/tickets/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1TicketsCreateResponseMock()
+        ),
+        { status: 201, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1TicketsRetrieveMockHandler = (
+  overrideResponse?:
+    | TicketDetail
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) => Promise<TicketDetail> | TicketDetail),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    '*/api/v1/tickets/:id/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1TicketsRetrieveResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1TicketsUpdateMockHandler = (
+  overrideResponse?:
+    | TicketUpdate
+    | ((
+        info: Parameters<Parameters<typeof http.put>[1]>[0]
+      ) => Promise<TicketUpdate> | TicketUpdate),
+  options?: RequestHandlerOptions
+) => {
+  return http.put(
+    '*/api/v1/tickets/:id/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1TicketsUpdateResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1TicketsPartialUpdateMockHandler = (
+  overrideResponse?:
+    | TicketUpdate
+    | ((
+        info: Parameters<Parameters<typeof http.patch>[1]>[0]
+      ) => Promise<TicketUpdate> | TicketUpdate),
+  options?: RequestHandlerOptions
+) => {
+  return http.patch(
+    '*/api/v1/tickets/:id/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1TicketsPartialUpdateResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1TicketsDestroyMockHandler = (
+  overrideResponse?:
+    | void
+    | ((
+        info: Parameters<Parameters<typeof http.delete>[1]>[0]
+      ) => Promise<void> | void),
+  options?: RequestHandlerOptions
+) => {
+  return http.delete(
+    '*/api/v1/tickets/:id/',
+    async (info) => {
+      await delay(1000);
+      if (typeof overrideResponse === 'function') {
+        await overrideResponse(info);
+      }
+      return new HttpResponse(null, { status: 204 });
+    },
+    options
+  );
+};
+
+export const getV1TicketsMessagesRetrieveMockHandler = (
+  overrideResponse?:
+    | TicketDetail
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) => Promise<TicketDetail> | TicketDetail),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    '*/api/v1/tickets/:id/messages/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1TicketsMessagesRetrieveResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1TicketsMessagesCreateMockHandler = (
+  overrideResponse?:
+    | TicketDetail
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0]
+      ) => Promise<TicketDetail> | TicketDetail),
+  options?: RequestHandlerOptions
+) => {
+  return http.post(
+    '*/api/v1/tickets/:id/messages/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1TicketsMessagesCreateResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
 export const getDistributionFileRetrieveMockHandler = (
   overrideResponse?:
     | void
@@ -36691,6 +38936,20 @@ export const getSoftwareDistributionPlatformAPIMock = () => [
   getV1SystemConfigRetrieveMockHandler(),
   getV1SystemHealthRetrieveMockHandler(),
   getV1SystemMetricsRetrieveMockHandler(),
+  getV1TicketBansListMockHandler(),
+  getV1TicketBansCreateMockHandler(),
+  getV1TicketBansRetrieveMockHandler(),
+  getV1TicketBansUpdateMockHandler(),
+  getV1TicketBansPartialUpdateMockHandler(),
+  getV1TicketBansDestroyMockHandler(),
+  getV1TicketsListMockHandler(),
+  getV1TicketsCreateMockHandler(),
+  getV1TicketsRetrieveMockHandler(),
+  getV1TicketsUpdateMockHandler(),
+  getV1TicketsPartialUpdateMockHandler(),
+  getV1TicketsDestroyMockHandler(),
+  getV1TicketsMessagesRetrieveMockHandler(),
+  getV1TicketsMessagesCreateMockHandler(),
   getDistributionFileRetrieveMockHandler(),
   getDistributionFileRetrieve2MockHandler(),
   getDistributionMirrorsListMockHandler(),

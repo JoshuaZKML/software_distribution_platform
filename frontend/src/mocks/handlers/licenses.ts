@@ -34,7 +34,7 @@ const generateLicense = () => ({
 });
 
 export const licensesHandlers = [
-  http.get('*/api/v1/licenses/my-licenses/', () => {
+  http.get('/api/v1/licenses/my-licenses/', () => {
     return HttpResponse.json({
       summary: {
         total: 10,
@@ -56,7 +56,7 @@ export const licensesHandlers = [
     });
   }),
 
-  http.get('*/api/v1/licenses/activation-codes/:id/', ({ params }) => {
+  http.get('/api/v1/licenses/activation-codes/:id/', ({ params }) => {
     return HttpResponse.json(generateLicense());
   }),
 ];

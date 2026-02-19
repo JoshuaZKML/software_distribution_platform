@@ -518,6 +518,15 @@ class AdminActionLog(models.Model):
         ("SETTINGS_UPDATED", "Settings updated"),
         ("ACTION_UNDONE", "Action undone"),
         ("MFA_USAGE", "MFA usage"),  # ADDED for MFA audit
+        # ===== TICKET SYSTEM ACTIONS (added for tickets app) =====
+        ("USER_BANNED_FROM_TICKETS", "User banned from tickets"),
+        ("USER_UNBANNED_FROM_TICKETS", "User unbanned from tickets"),
+        ("TICKET_CREATED", "Ticket created"),
+        ("TICKET_UPDATED", "Ticket updated"),
+        ("TICKET_ASSIGNED", "Ticket assigned"),
+        ("TICKET_CLOSED", "Ticket closed"),
+        ("TICKET_REOPENED", "Ticket reopened"),
+        ("TICKET_MESSAGE_ADDED", "Ticket message added"),
     ]
 
     user = models.ForeignKey(

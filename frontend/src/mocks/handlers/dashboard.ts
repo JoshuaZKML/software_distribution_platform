@@ -2,7 +2,7 @@ import { http, HttpResponse } from 'msw';
 import { faker } from '@faker-js/faker';
 
 export const dashboardHandlers = [
-  http.get('*/api/v1/dashboard/stats/', () => {
+  http.get('/api/v1/dashboard/stats/', () => {
     return HttpResponse.json({
       latest_daily: {
         date: faker.date.recent().toISOString().split('T')[0],

@@ -65,6 +65,8 @@ app_includes = [
     ("backend.apps.health_check.urls", "health/"),
     ("backend.apps.notifications.urls", "notifications/"),
     ("backend.apps.analytics.urls", "analytics/"),
+    # ✅ NEW: Tickets app URLs (under /api/v1/tickets/ and /api/v1/ticket-bans/)
+    ("backend.apps.tickets.urls", "api/v1/"),
 ]
 
 for mod, prefix in app_includes:
