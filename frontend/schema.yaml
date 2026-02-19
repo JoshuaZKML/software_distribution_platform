@@ -1297,6 +1297,479 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/v1/chat/bans/:
+    get:
+      operationId: v1_chat_bans_list
+      parameters:
+      - in: query
+        name: email
+        schema:
+          type: string
+      - in: query
+        name: ip_address
+        schema:
+          type: string
+      - in: query
+        name: is_permanent
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedChatBanList'
+          description: ''
+    post:
+      operationId: v1_chat_bans_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatBanCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatBanCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatBanCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatBanCreate'
+          description: ''
+  /api/v1/chat/bans/{id}/:
+    get:
+      operationId: v1_chat_bans_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat ban.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatBan'
+          description: ''
+    put:
+      operationId: v1_chat_bans_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat ban.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatBanRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatBanRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatBanRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatBan'
+          description: ''
+    patch:
+      operationId: v1_chat_bans_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat ban.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedChatBanRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedChatBanRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedChatBanRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatBan'
+          description: ''
+    delete:
+      operationId: v1_chat_bans_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat ban.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/chat/sessions/:
+    get:
+      operationId: v1_chat_sessions_list
+      parameters:
+      - in: query
+        name: assigned_to
+        schema:
+          type: string
+          format: uuid
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - active
+          - banned
+          - closed
+          - pending
+        description: |-
+          * `pending` - Pending (visitor waiting)
+          * `active` - Active (assigned to admin)
+          * `closed` - Closed
+          * `banned` - Banned
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedChatSessionList'
+          description: ''
+    post:
+      operationId: v1_chat_sessions_create
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+          description: ''
+  /api/v1/chat/sessions/{id}/:
+    get:
+      operationId: v1_chat_sessions_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat session.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+          description: ''
+    put:
+      operationId: v1_chat_sessions_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat session.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+          description: ''
+    patch:
+      operationId: v1_chat_sessions_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat session.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedChatSessionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedChatSessionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedChatSessionRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+          description: ''
+    delete:
+      operationId: v1_chat_sessions_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat session.
+        required: true
+      tags:
+      - v1
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/chat/sessions/{id}/assign/:
+    post:
+      operationId: v1_chat_sessions_assign_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat session.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+          description: ''
+  /api/v1/chat/sessions/{id}/close/:
+    post:
+      operationId: v1_chat_sessions_close_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat session.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+          description: ''
+  /api/v1/chat/sessions/{id}/messages/:
+    post:
+      operationId: v1_chat_sessions_messages_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this chat session.
+        required: true
+      tags:
+      - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChatSessionRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatSession'
+          description: ''
   /api/v1/dashboard/analytics/:
     get:
       operationId: v1analytics_retrieve
@@ -6787,6 +7260,270 @@ components:
         * `email` - Email
         * `in_app` - In‑App
         * `push` - Push
+    ChatBan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        ip_address:
+          type: string
+          nullable: true
+        reason:
+          type: string
+        is_permanent:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        created_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        created_by_email:
+          type: string
+          format: email
+          readOnly: true
+        is_active:
+          type: boolean
+          readOnly: true
+      required:
+      - created_at
+      - created_by
+      - created_by_email
+      - id
+      - is_active
+      - reason
+    ChatBanCreate:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        ip_address:
+          type: string
+          nullable: true
+        reason:
+          type: string
+        is_permanent:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - reason
+    ChatBanCreateRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        ip_address:
+          type: string
+          nullable: true
+          minLength: 1
+        reason:
+          type: string
+          minLength: 1
+        is_permanent:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - reason
+    ChatBanRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        ip_address:
+          type: string
+          nullable: true
+          minLength: 1
+        reason:
+          type: string
+          minLength: 1
+        is_permanent:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - reason
+    ChatMessage:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        sender:
+          type: string
+          format: uuid
+          nullable: true
+          description: Null if sent by visitor
+        sender_email:
+          type: string
+          format: email
+          readOnly: true
+          nullable: true
+        sender_name:
+          type: string
+          description: Visitor's name if not authenticated
+          maxLength: 100
+        content:
+          type: string
+          minLength: 1
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        is_admin:
+          type: boolean
+          readOnly: true
+      required:
+      - content
+      - created_at
+      - id
+      - is_admin
+      - sender_email
+    ChatMessageRequest:
+      type: object
+      properties:
+        sender:
+          type: string
+          format: uuid
+          nullable: true
+          description: Null if sent by visitor
+        sender_name:
+          type: string
+          description: Visitor's name if not authenticated
+          maxLength: 100
+        content:
+          type: string
+          minLength: 1
+      required:
+      - content
+    ChatSession:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        visitor_name:
+          type: string
+          maxLength: 100
+        visitor_email:
+          type: string
+          format: email
+          maxLength: 254
+        visitor_phone:
+          type: string
+          maxLength: 17
+        status:
+          $ref: '#/components/schemas/ChatSessionStatusEnum'
+        assigned_to:
+          type: string
+          format: uuid
+          nullable: true
+        assigned_to_email:
+          type: string
+          format: email
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        closed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+          readOnly: true
+        last_message:
+          type: string
+          readOnly: true
+      required:
+      - assigned_to_email
+      - closed_at
+      - created_at
+      - id
+      - last_message
+      - messages
+      - updated_at
+      - visitor_email
+      - visitor_name
+      - visitor_phone
+    ChatSessionRequest:
+      type: object
+      properties:
+        visitor_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        visitor_email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        visitor_phone:
+          type: string
+          minLength: 1
+          maxLength: 17
+        status:
+          $ref: '#/components/schemas/ChatSessionStatusEnum'
+        assigned_to:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - visitor_email
+      - visitor_name
+      - visitor_phone
+    ChatSessionStatusEnum:
+      enum:
+      - pending
+      - active
+      - closed
+      - banned
+      type: string
+      description: |-
+        * `pending` - Pending (visitor waiting)
+        * `active` - Active (assigned to admin)
+        * `closed` - Closed
+        * `banned` - Banned
     CodeBatch:
       type: object
       properties:
@@ -8124,6 +8861,52 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Category'
+    PaginatedChatBanList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatBan'
+    PaginatedChatSessionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatSession'
     PaginatedCodeBatchList:
       type: object
       required:
@@ -8784,6 +9567,49 @@ components:
         is_active:
           type: boolean
           title: Active
+    PatchedChatBanRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          nullable: true
+          maxLength: 254
+        ip_address:
+          type: string
+          nullable: true
+          minLength: 1
+        reason:
+          type: string
+          minLength: 1
+        is_permanent:
+          type: boolean
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+    PatchedChatSessionRequest:
+      type: object
+      properties:
+        visitor_name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        visitor_email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        visitor_phone:
+          type: string
+          minLength: 1
+          maxLength: 17
+        status:
+          $ref: '#/components/schemas/ChatSessionStatusEnum'
+        assigned_to:
+          type: string
+          format: uuid
+          nullable: true
     PatchedCodeBatchRequest:
       type: object
       properties:
