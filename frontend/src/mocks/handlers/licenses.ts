@@ -34,25 +34,14 @@ const generateLicense = () => ({
 });
 
 export const licensesHandlers = [
+  // Aligned with real API pagination
   http.get('/api/v1/licenses/my-licenses/', () => {
+    const licenses = faker.helpers.multiple(generateLicense, { count: 10 });
     return HttpResponse.json({
-      summary: {
-        total: 10,
-        active: 7,
-        expiring_soon: 2,
-      },
-      licenses_by_software: [
-        {
-          software_name: 'Product A',
-          software_slug: 'product-a',
-          licenses: faker.helpers.multiple(generateLicense, { count: 3 }),
-        },
-        {
-          software_name: 'Product B',
-          software_slug: 'product-b',
-          licenses: faker.helpers.multiple(generateLicense, { count: 2 }),
-        },
-      ],
+      count: licenses.length,
+      next: null,
+      previous: null,
+      results: licenses,
     });
   }),
 

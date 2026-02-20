@@ -6,14 +6,19 @@ import { z } from 'zod';
 import { useAuth } from '@/lib/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+  password: z
+    .string()
+    .min(1, 'Password is required')
+    .min(8, 'Password must be at least 8 characters'),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
@@ -22,6 +27,15 @@ export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [fpPromise, setFpPromise] = useState<Promise<any> | null>(null);
+
+  // Load FingerprintJS only on the client side
+  useEffect(() => {
+    import('@fingerprintjs/fingerprintjs').then((FingerprintJS) => {
+      setFpPromise(FingerprintJS.load());
+    });
+  }, []);
+
   const {
     register,
     handleSubmit,
@@ -33,7 +47,10 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginForm) => {
     try {
       setError(null);
-      const fp = await FingerprintJS.load();
+      if (!fpPromise) {
+        throw new Error('FingerprintJS is still loading. Please try again.');
+      }
+      const fp = await fpPromise;
       const result = await fp.get();
       const deviceFingerprint = result.visitorId;
 
@@ -82,7 +99,7 @@ export default function LoginPage() {
           {error && <div className="text-error text-sm">{error}</div>}
 
           <div>
-            <Button type="submit" disabled={isSubmitting} className="w-full">
+            <Button type="submit" disabled={isSubmitting || !fpPromise} className="w-full">
               {isSubmitting ? 'Signing in...' : 'Sign in'}
             </Button>
           </div>

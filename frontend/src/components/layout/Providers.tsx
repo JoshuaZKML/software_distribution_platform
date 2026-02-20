@@ -9,12 +9,19 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ThemeProvider } from 'next-themes';
 
+// Smarter retry logic
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000,
       gcTime: 10 * 60 * 1000,
-      retry: 1,
+      retry: (failureCount, error: any) => {
+        // Don't retry on 4xx errors
+        if (error?.response?.status >= 400 && error?.response?.status < 500) {
+          return false;
+        }
+        return failureCount < 2;
+      },
       refetchOnWindowFocus: false,
     },
   },
@@ -46,7 +53,8 @@ function MSWInitializer({ children }: { children: React.ReactNode }) {
     initMsw();
   }, []);
 
-  if (!mswReady) return null;
+  // In production, children render immediately; in development, wait for MSW
+  if (!mswReady && process.env.NODE_ENV === 'development') return null;
 
   return <>{children}</>;
 }

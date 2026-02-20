@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import apiClient from '@/lib/api/client';
 import { Card } from '@/components/ui/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 export default function LicenseDetailPage() {
   const { id } = useParams();
@@ -12,13 +13,13 @@ export default function LicenseDetailPage() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['license', id],
     queryFn: async () => {
-      // ✅ Use template string (or '/licenses/activation-codes/' + id)
       const { data } = await apiClient.get(`/licenses/activation-codes/${id}/`);
       return data;
     },
+    enabled: !!id, // prevent fetch when id is undefined
   });
 
-  if (isLoading) return <div className="p-8">Loading...</div>;
+  if (isLoading) return <div className="p-8"><Skeleton className="h-32 w-full" /></div>;
   if (error) return <div className="p-8 text-state-error">Error loading license</div>;
   if (!data) return <div className="p-8">Not found</div>;
 

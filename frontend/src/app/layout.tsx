@@ -19,7 +19,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: 'Software Distribution Platform',
   description: 'Secure software licensing and distribution',
-  referrer: 'strict-origin-when-cross-origin', // added for security
+  referrer: 'strict-origin-when-cross-origin',
 };
 
 export default function RootLayout({

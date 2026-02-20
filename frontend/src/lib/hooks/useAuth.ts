@@ -1,7 +1,7 @@
 ﻿import { useEffect } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import apiClient from '@/lib/api/client';
+import apiClient, { setMemoryAccessToken } from '@/lib/api/client';
 import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY } from '@/lib/constants/auth';
 import type { User, LoginRequest } from '@/types/api';
 
@@ -25,10 +25,11 @@ export const useAuth = create<AuthState>()(
       login: async (data) => {
         set({ isLoading: true, error: null });
         try {
-          // ✅ Now uses relative path without /api/v1
           const response = await apiClient.post('/auth/login', data);
           const { access, refresh, user } = response.data;
 
+          // Store tokens in memory and localStorage
+          setMemoryAccessToken(access);
           localStorage.setItem(ACCESS_TOKEN_KEY, access);
           localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
 
@@ -52,6 +53,7 @@ export const useAuth = create<AuthState>()(
         } finally {
           localStorage.removeItem(ACCESS_TOKEN_KEY);
           localStorage.removeItem(REFRESH_TOKEN_KEY);
+          setMemoryAccessToken(null);
           set({ user: null });
         }
       },
@@ -72,7 +74,10 @@ export const useAuth = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({ user: state.user }),
+      // Persist only minimal user data to avoid stale permissions
+      partialize: (state) => ({
+        user: state.user ? { id: state.user.id, email: state.user.email } : null,
+      }),
     }
   )
 );
@@ -80,6 +85,13 @@ export const useAuth = create<AuthState>()(
 export function useAuthInit() {
   const fetchUser = useAuth((state) => state.fetchUser);
   useEffect(() => {
-    fetchUser();
+    // Only fetch if we have a token
+    const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+    if (token) {
+      fetchUser();
+    } else {
+      // No token, set loading to false so UI can render login page
+      useAuth.setState({ isLoading: false });
+    }
   }, [fetchUser]);
 }
