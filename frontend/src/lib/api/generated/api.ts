@@ -28,6 +28,9 @@ import type {
   ApiListParams,
   CategoryRequest,
   ChangePasswordRequest,
+  ChatBanCreateRequest,
+  ChatBanRequest,
+  ChatSessionRequest,
   CodeBatchRequest,
   CodeBlacklistRequest,
   CohortsListParams,
@@ -51,6 +54,8 @@ import type {
   PatchedActivationCodeRequest,
   PatchedAdminProfileRequest,
   PatchedCategoryRequest,
+  PatchedChatBanRequest,
+  PatchedChatSessionRequest,
   PatchedCodeBatchRequest,
   PatchedCodeBlacklistRequest,
   PatchedCouponRequest,
@@ -84,6 +89,8 @@ import type {
   V1AuthAdminProfilesListParams,
   V1AuthSessionsListParams,
   V1AuthUsersListParams,
+  V1ChatBansListParams,
+  V1ChatSessionsListParams,
   V1LicensesActivationCodesListParams,
   V1LicensesBatchesListParams,
   V1LicensesFeaturesListParams,
@@ -126,6 +133,7 @@ import {
   AlertTypeEnum,
   AttemptTypeEnum,
   ChannelEnum,
+  ChatSessionStatusEnum,
   CodeBlacklistSourceEnum,
   DiscountTypeEnum,
   DocumentTypeEnum,
@@ -154,6 +162,9 @@ import type {
   AdminActionLog,
   AdminProfile,
   Category,
+  ChatBan,
+  ChatBanCreate,
+  ChatSession,
   CodeBatch,
   CodeBlacklist,
   CohortAggregate,
@@ -177,6 +188,8 @@ import type {
   PaginatedAdminActionLogList,
   PaginatedAdminProfileList,
   PaginatedCategoryList,
+  PaginatedChatBanList,
+  PaginatedChatSessionList,
   PaginatedCodeBatchList,
   PaginatedCodeBlacklistList,
   PaginatedCouponList,
@@ -223,21 +236,20 @@ import type {
 } from './model';
 
 import { fetcher } from '../fetcher';
-type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
 /**
  * List cohort aggregates, most recent first.
 Supports filtering by cohort_date, period, and period_number.
  */
 export const cohortsList = (
   params?: CohortsListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<CohortAggregate[]>(
-    { url: `/analytics/cohorts/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<CohortAggregate[]>({
+    url: `/analytics/cohorts/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getCohortsListQueryKey = (params?: CohortsListParams) => {
@@ -253,16 +265,15 @@ export const getCohortsListQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof cohortsList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getCohortsListQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof cohortsList>>> = ({
     signal,
-  }) => cohortsList(params, requestOptions, signal);
+  }) => cohortsList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof cohortsList>>,
@@ -293,7 +304,6 @@ export function useCohortsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -316,7 +326,6 @@ export function useCohortsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -329,7 +338,6 @@ export function useCohortsList<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof cohortsList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -343,7 +351,6 @@ export function useCohortsList<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof cohortsList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -363,15 +370,13 @@ export function useCohortsList<
  * List daily aggregates, most recent first.
 Supports filtering by date range and ordering.
  */
-export const dailyList = (
-  params?: DailyListParams,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<DailyAggregate[]>(
-    { url: `/analytics/daily/`, method: 'GET', params, signal },
-    options
-  );
+export const dailyList = (params?: DailyListParams, signal?: AbortSignal) => {
+  return fetcher<DailyAggregate[]>({
+    url: `/analytics/daily/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getDailyListQueryKey = (params?: DailyListParams) => {
@@ -387,16 +392,15 @@ export const getDailyListQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof dailyList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getDailyListQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof dailyList>>> = ({
     signal,
-  }) => dailyList(params, requestOptions, signal);
+  }) => dailyList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof dailyList>>,
@@ -427,7 +431,6 @@ export function useDailyList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -450,7 +453,6 @@ export function useDailyList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -463,7 +465,6 @@ export function useDailyList<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof dailyList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -477,7 +478,6 @@ export function useDailyList<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof dailyList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -497,15 +497,12 @@ export function useDailyList<
  * Retrieve a specific day's aggregate.
 Accepts primary key or date (via lookup_field customization).
  */
-export const dailyRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<DailyAggregate>(
-    { url: `/analytics/daily/${id}/`, method: 'GET', signal },
-    options
-  );
+export const dailyRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<DailyAggregate>({
+    url: `/analytics/daily/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getDailyRetrieveQueryKey = (id?: string) => {
@@ -521,16 +518,15 @@ export const getDailyRetrieveQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof dailyRetrieve>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getDailyRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof dailyRetrieve>>> = ({
     signal,
-  }) => dailyRetrieve(id, requestOptions, signal);
+  }) => dailyRetrieve(id, signal);
 
   return {
     queryKey,
@@ -566,7 +562,6 @@ export function useDailyRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -589,7 +584,6 @@ export function useDailyRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -602,7 +596,6 @@ export function useDailyRetrieve<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof dailyRetrieve>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -616,7 +609,6 @@ export function useDailyRetrieve<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof dailyRetrieve>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -638,13 +630,14 @@ Also allows creating a new export job (POST).
  */
 export const exportsList = (
   params?: ExportsListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedExportJobList>(
-    { url: `/analytics/exports/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedExportJobList>({
+    url: `/analytics/exports/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getExportsListQueryKey = (params?: ExportsListParams) => {
@@ -660,16 +653,15 @@ export const getExportsListQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof exportsList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getExportsListQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof exportsList>>> = ({
     signal,
-  }) => exportsList(params, requestOptions, signal);
+  }) => exportsList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof exportsList>>,
@@ -700,7 +692,6 @@ export function useExportsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -723,7 +714,6 @@ export function useExportsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -736,7 +726,6 @@ export function useExportsList<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof exportsList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -750,7 +739,6 @@ export function useExportsList<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof exportsList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -772,19 +760,15 @@ Also allows creating a new export job (POST).
  */
 export const exportsCreate = (
   exportJobRequest: ExportJobRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<ExportJob>(
-    {
-      url: `/analytics/exports/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: exportJobRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<ExportJob>({
+    url: `/analytics/exports/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: exportJobRequest,
+    signal,
+  });
 };
 
 export const getExportsCreateMutationOptions = <
@@ -797,7 +781,6 @@ export const getExportsCreateMutationOptions = <
     { data: ExportJobRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof exportsCreate>>,
   TError,
@@ -805,13 +788,13 @@ export const getExportsCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['exportsCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof exportsCreate>>,
@@ -819,7 +802,7 @@ export const getExportsCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return exportsCreate(data, requestOptions);
+    return exportsCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -839,7 +822,6 @@ export const useExportsCreate = <TError = unknown, TContext = unknown>(
       { data: ExportJobRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -856,15 +838,12 @@ export const useExportsCreate = <TError = unknown, TContext = unknown>(
 /**
  * Retrieve details of a specific export job.
  */
-export const exportsRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<ExportJob>(
-    { url: `/analytics/exports/${id}/`, method: 'GET', signal },
-    options
-  );
+export const exportsRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<ExportJob>({
+    url: `/analytics/exports/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getExportsRetrieveQueryKey = (id?: string) => {
@@ -884,16 +863,15 @@ export const getExportsRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getExportsRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof exportsRetrieve>>> = ({
     signal,
-  }) => exportsRetrieve(id, requestOptions, signal);
+  }) => exportsRetrieve(id, signal);
 
   return {
     queryKey,
@@ -933,7 +911,6 @@ export function useExportsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -960,7 +937,6 @@ export function useExportsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -977,7 +953,6 @@ export function useExportsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -995,7 +970,6 @@ export function useExportsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -1014,15 +988,12 @@ export function useExportsRetrieve<
 /**
  * Securely download the exported file. Returns either the file (binary) or a JSON with a download URL when using S3.
  */
-export const exportsDownloadRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<ExportsDownloadRetrieve200>(
-    { url: `/analytics/exports/${id}/download/`, method: 'GET', signal },
-    options
-  );
+export const exportsDownloadRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<ExportsDownloadRetrieve200>({
+    url: `/analytics/exports/${id}/download/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getExportsDownloadRetrieveQueryKey = (id?: string) => {
@@ -1045,17 +1016,16 @@ export const getExportsDownloadRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getExportsDownloadRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof exportsDownloadRetrieve>>
-  > = ({ signal }) => exportsDownloadRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => exportsDownloadRetrieve(id, signal);
 
   return {
     queryKey,
@@ -1101,7 +1071,6 @@ export function useExportsDownloadRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -1131,7 +1100,6 @@ export function useExportsDownloadRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -1151,7 +1119,6 @@ export function useExportsDownloadRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -1172,7 +1139,6 @@ export function useExportsDownloadRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -1192,17 +1158,13 @@ export function useExportsDownloadRetrieve<
  * Regenerate emergency backup codes.
  */
 export const v1Auth2faEmergencyRegenerateBackupCodesCreate = (
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<void>(
-    {
-      url: `/api/v1/auth/2fa/emergency/regenerate-backup-codes/`,
-      method: 'POST',
-      signal,
-    },
-    options
-  );
+  return fetcher<void>({
+    url: `/api/v1/auth/2fa/emergency/regenerate-backup-codes/`,
+    method: 'POST',
+    signal,
+  });
 };
 
 export const getV1Auth2faEmergencyRegenerateBackupCodesCreateMutationOptions = <
@@ -1215,7 +1177,6 @@ export const getV1Auth2faEmergencyRegenerateBackupCodesCreateMutationOptions = <
     void,
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1Auth2faEmergencyRegenerateBackupCodesCreate>>,
   TError,
@@ -1223,19 +1184,19 @@ export const getV1Auth2faEmergencyRegenerateBackupCodesCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1Auth2faEmergencyRegenerateBackupCodesCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1Auth2faEmergencyRegenerateBackupCodesCreate>>,
     void
   > = () => {
-    return v1Auth2faEmergencyRegenerateBackupCodesCreate(requestOptions);
+    return v1Auth2faEmergencyRegenerateBackupCodesCreate();
   };
 
   return { mutationFn, ...mutationOptions };
@@ -1260,7 +1221,6 @@ export const useV1Auth2faEmergencyRegenerateBackupCodesCreate = <
       void,
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -1281,14 +1241,12 @@ export const useV1Auth2faEmergencyRegenerateBackupCodesCreate = <
   provide a valid TOTP code before MFA is enabled.
 - Backward‑compatible: POST with {'code': '123456'} after initial POST.
  */
-export const v1Auth2faEmergencySetupRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/auth/2fa/emergency/setup/`, method: 'GET', signal },
-    options
-  );
+export const v1Auth2faEmergencySetupRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/auth/2fa/emergency/setup/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1Auth2faEmergencySetupRetrieveQueryKey = () => {
@@ -1306,16 +1264,15 @@ export const getV1Auth2faEmergencySetupRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1Auth2faEmergencySetupRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1Auth2faEmergencySetupRetrieve>>
-  > = ({ signal }) => v1Auth2faEmergencySetupRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1Auth2faEmergencySetupRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1Auth2faEmergencySetupRetrieve>>,
@@ -1349,7 +1306,6 @@ export function useV1Auth2faEmergencySetupRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -1375,7 +1331,6 @@ export function useV1Auth2faEmergencySetupRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -1391,7 +1346,6 @@ export function useV1Auth2faEmergencySetupRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -1408,7 +1362,6 @@ export function useV1Auth2faEmergencySetupRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -1430,14 +1383,12 @@ export function useV1Auth2faEmergencySetupRetrieve<
   provide a valid TOTP code before MFA is enabled.
 - Backward‑compatible: POST with {'code': '123456'} after initial POST.
  */
-export const v1Auth2faEmergencySetupCreate = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/auth/2fa/emergency/setup/`, method: 'POST', signal },
-    options
-  );
+export const v1Auth2faEmergencySetupCreate = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/auth/2fa/emergency/setup/`,
+    method: 'POST',
+    signal,
+  });
 };
 
 export const getV1Auth2faEmergencySetupCreateMutationOptions = <
@@ -1450,7 +1401,6 @@ export const getV1Auth2faEmergencySetupCreateMutationOptions = <
     void,
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1Auth2faEmergencySetupCreate>>,
   TError,
@@ -1458,19 +1408,19 @@ export const getV1Auth2faEmergencySetupCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1Auth2faEmergencySetupCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1Auth2faEmergencySetupCreate>>,
     void
   > = () => {
-    return v1Auth2faEmergencySetupCreate(requestOptions);
+    return v1Auth2faEmergencySetupCreate();
   };
 
   return { mutationFn, ...mutationOptions };
@@ -1493,7 +1443,6 @@ export const useV1Auth2faEmergencySetupCreate = <
       void,
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -1514,13 +1463,11 @@ export const useV1Auth2faEmergencySetupCreate = <
   provide a valid TOTP code before MFA is enabled.
 - Backward‑compatible: POST with {'code': '123456'} after initial POST.
  */
-export const v1Auth2faEmergencySetupDestroy = (
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/auth/2fa/emergency/setup/`, method: 'DELETE' },
-    options
-  );
+export const v1Auth2faEmergencySetupDestroy = () => {
+  return fetcher<void>({
+    url: `/api/v1/auth/2fa/emergency/setup/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1Auth2faEmergencySetupDestroyMutationOptions = <
@@ -1533,7 +1480,6 @@ export const getV1Auth2faEmergencySetupDestroyMutationOptions = <
     void,
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1Auth2faEmergencySetupDestroy>>,
   TError,
@@ -1541,19 +1487,19 @@ export const getV1Auth2faEmergencySetupDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1Auth2faEmergencySetupDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1Auth2faEmergencySetupDestroy>>,
     void
   > = () => {
-    return v1Auth2faEmergencySetupDestroy(requestOptions);
+    return v1Auth2faEmergencySetupDestroy();
   };
 
   return { mutationFn, ...mutationOptions };
@@ -1576,7 +1522,6 @@ export const useV1Auth2faEmergencySetupDestroy = <
       void,
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -1598,19 +1543,15 @@ export const useV1Auth2faEmergencySetupDestroy = <
  */
 export const v1Auth2faEmergencyVerifyCreate = (
   emergencyTwoFactorVerifyRequest: EmergencyTwoFactorVerifyRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<EmergencyTwoFactorVerify>(
-    {
-      url: `/api/v1/auth/2fa/emergency/verify/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: emergencyTwoFactorVerifyRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<EmergencyTwoFactorVerify>({
+    url: `/api/v1/auth/2fa/emergency/verify/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: emergencyTwoFactorVerifyRequest,
+    signal,
+  });
 };
 
 export const getV1Auth2faEmergencyVerifyCreateMutationOptions = <
@@ -1623,7 +1564,6 @@ export const getV1Auth2faEmergencyVerifyCreateMutationOptions = <
     { data: EmergencyTwoFactorVerifyRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1Auth2faEmergencyVerifyCreate>>,
   TError,
@@ -1631,13 +1571,13 @@ export const getV1Auth2faEmergencyVerifyCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1Auth2faEmergencyVerifyCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1Auth2faEmergencyVerifyCreate>>,
@@ -1645,7 +1585,7 @@ export const getV1Auth2faEmergencyVerifyCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1Auth2faEmergencyVerifyCreate(data, requestOptions);
+    return v1Auth2faEmergencyVerifyCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -1669,7 +1609,6 @@ export const useV1Auth2faEmergencyVerifyCreate = <
       { data: EmergencyTwoFactorVerifyRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -1689,13 +1628,14 @@ export const useV1Auth2faEmergencyVerifyCreate = <
  */
 export const v1AuthActionsList = (
   params?: V1AuthActionsListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedAdminActionLogList>(
-    { url: `/api/v1/auth/actions/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedAdminActionLogList>({
+    url: `/api/v1/auth/actions/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1AuthActionsListQueryKey = (
@@ -1717,17 +1657,16 @@ export const getV1AuthActionsListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1AuthActionsListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1AuthActionsList>>
-  > = ({ signal }) => v1AuthActionsList(params, requestOptions, signal);
+  > = ({ signal }) => v1AuthActionsList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1AuthActionsList>>,
@@ -1762,7 +1701,6 @@ export function useV1AuthActionsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -1789,7 +1727,6 @@ export function useV1AuthActionsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -1806,7 +1743,6 @@ export function useV1AuthActionsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -1824,7 +1760,6 @@ export function useV1AuthActionsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -1843,15 +1778,12 @@ export function useV1AuthActionsList<
 /**
  * Retrieve an action log entry
  */
-export const v1AuthActionsRetrieve = (
-  id: number,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<AdminActionLog>(
-    { url: `/api/v1/auth/actions/${id}/`, method: 'GET', signal },
-    options
-  );
+export const v1AuthActionsRetrieve = (id: number, signal?: AbortSignal) => {
+  return fetcher<AdminActionLog>({
+    url: `/api/v1/auth/actions/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1AuthActionsRetrieveQueryKey = (id?: number) => {
@@ -1871,17 +1803,16 @@ export const getV1AuthActionsRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1AuthActionsRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1AuthActionsRetrieve>>
-  > = ({ signal }) => v1AuthActionsRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1AuthActionsRetrieve(id, signal);
 
   return {
     queryKey,
@@ -1921,7 +1852,6 @@ export function useV1AuthActionsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -1948,7 +1878,6 @@ export function useV1AuthActionsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -1965,7 +1894,6 @@ export function useV1AuthActionsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -1983,7 +1911,6 @@ export function useV1AuthActionsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -2004,13 +1931,14 @@ export function useV1AuthActionsRetrieve<
  */
 export const v1AuthAdminProfilesList = (
   params?: V1AuthAdminProfilesListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedAdminProfileList>(
-    { url: `/api/v1/auth/admin-profiles/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedAdminProfileList>({
+    url: `/api/v1/auth/admin-profiles/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1AuthAdminProfilesListQueryKey = (
@@ -2032,17 +1960,16 @@ export const getV1AuthAdminProfilesListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1AuthAdminProfilesListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1AuthAdminProfilesList>>
-  > = ({ signal }) => v1AuthAdminProfilesList(params, requestOptions, signal);
+  > = ({ signal }) => v1AuthAdminProfilesList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1AuthAdminProfilesList>>,
@@ -2077,7 +2004,6 @@ export function useV1AuthAdminProfilesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -2104,7 +2030,6 @@ export function useV1AuthAdminProfilesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -2121,7 +2046,6 @@ export function useV1AuthAdminProfilesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -2139,7 +2063,6 @@ export function useV1AuthAdminProfilesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -2160,19 +2083,15 @@ export function useV1AuthAdminProfilesList<
  */
 export const v1AuthAdminProfilesCreate = (
   adminProfileRequest: AdminProfileRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<AdminProfile>(
-    {
-      url: `/api/v1/auth/admin-profiles/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: adminProfileRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<AdminProfile>({
+    url: `/api/v1/auth/admin-profiles/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: adminProfileRequest,
+    signal,
+  });
 };
 
 export const getV1AuthAdminProfilesCreateMutationOptions = <
@@ -2185,7 +2104,6 @@ export const getV1AuthAdminProfilesCreateMutationOptions = <
     { data: AdminProfileRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthAdminProfilesCreate>>,
   TError,
@@ -2193,13 +2111,13 @@ export const getV1AuthAdminProfilesCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthAdminProfilesCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthAdminProfilesCreate>>,
@@ -2207,7 +2125,7 @@ export const getV1AuthAdminProfilesCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1AuthAdminProfilesCreate(data, requestOptions);
+    return v1AuthAdminProfilesCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -2230,7 +2148,6 @@ export const useV1AuthAdminProfilesCreate = <
       { data: AdminProfileRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -2249,13 +2166,13 @@ export const useV1AuthAdminProfilesCreate = <
  */
 export const v1AuthAdminProfilesRetrieve = (
   user: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<AdminProfile>(
-    { url: `/api/v1/auth/admin-profiles/${user}/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<AdminProfile>({
+    url: `/api/v1/auth/admin-profiles/${user}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1AuthAdminProfilesRetrieveQueryKey = (user?: string) => {
@@ -2275,17 +2192,16 @@ export const getV1AuthAdminProfilesRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1AuthAdminProfilesRetrieveQueryKey(user);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1AuthAdminProfilesRetrieve>>
-  > = ({ signal }) => v1AuthAdminProfilesRetrieve(user, requestOptions, signal);
+  > = ({ signal }) => v1AuthAdminProfilesRetrieve(user, signal);
 
   return {
     queryKey,
@@ -2325,7 +2241,6 @@ export function useV1AuthAdminProfilesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -2352,7 +2267,6 @@ export function useV1AuthAdminProfilesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -2369,7 +2283,6 @@ export function useV1AuthAdminProfilesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -2387,7 +2300,6 @@ export function useV1AuthAdminProfilesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -2411,18 +2323,14 @@ export function useV1AuthAdminProfilesRetrieve<
  */
 export const v1AuthAdminProfilesUpdate = (
   user: string,
-  adminProfileRequest: AdminProfileRequest,
-  options?: SecondParameter<typeof fetcher>
+  adminProfileRequest: AdminProfileRequest
 ) => {
-  return fetcher<AdminProfile>(
-    {
-      url: `/api/v1/auth/admin-profiles/${user}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: adminProfileRequest,
-    },
-    options
-  );
+  return fetcher<AdminProfile>({
+    url: `/api/v1/auth/admin-profiles/${user}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: adminProfileRequest,
+  });
 };
 
 export const getV1AuthAdminProfilesUpdateMutationOptions = <
@@ -2435,7 +2343,6 @@ export const getV1AuthAdminProfilesUpdateMutationOptions = <
     { user: string; data: AdminProfileRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthAdminProfilesUpdate>>,
   TError,
@@ -2443,13 +2350,13 @@ export const getV1AuthAdminProfilesUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthAdminProfilesUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthAdminProfilesUpdate>>,
@@ -2457,7 +2364,7 @@ export const getV1AuthAdminProfilesUpdateMutationOptions = <
   > = (props) => {
     const { user, data } = props ?? {};
 
-    return v1AuthAdminProfilesUpdate(user, data, requestOptions);
+    return v1AuthAdminProfilesUpdate(user, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -2480,7 +2387,6 @@ export const useV1AuthAdminProfilesUpdate = <
       { user: string; data: AdminProfileRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -2499,18 +2405,14 @@ export const useV1AuthAdminProfilesUpdate = <
  */
 export const v1AuthAdminProfilesPartialUpdate = (
   user: string,
-  patchedAdminProfileRequest: PatchedAdminProfileRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedAdminProfileRequest: PatchedAdminProfileRequest
 ) => {
-  return fetcher<AdminProfile>(
-    {
-      url: `/api/v1/auth/admin-profiles/${user}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedAdminProfileRequest,
-    },
-    options
-  );
+  return fetcher<AdminProfile>({
+    url: `/api/v1/auth/admin-profiles/${user}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedAdminProfileRequest,
+  });
 };
 
 export const getV1AuthAdminProfilesPartialUpdateMutationOptions = <
@@ -2523,7 +2425,6 @@ export const getV1AuthAdminProfilesPartialUpdateMutationOptions = <
     { user: string; data: PatchedAdminProfileRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthAdminProfilesPartialUpdate>>,
   TError,
@@ -2531,13 +2432,13 @@ export const getV1AuthAdminProfilesPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthAdminProfilesPartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthAdminProfilesPartialUpdate>>,
@@ -2545,7 +2446,7 @@ export const getV1AuthAdminProfilesPartialUpdateMutationOptions = <
   > = (props) => {
     const { user, data } = props ?? {};
 
-    return v1AuthAdminProfilesPartialUpdate(user, data, requestOptions);
+    return v1AuthAdminProfilesPartialUpdate(user, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -2569,7 +2470,6 @@ export const useV1AuthAdminProfilesPartialUpdate = <
       { user: string; data: PatchedAdminProfileRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -2587,14 +2487,11 @@ export const useV1AuthAdminProfilesPartialUpdate = <
 /**
  * Delete an admin profile
  */
-export const v1AuthAdminProfilesDestroy = (
-  user: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/auth/admin-profiles/${user}/`, method: 'DELETE' },
-    options
-  );
+export const v1AuthAdminProfilesDestroy = (user: string) => {
+  return fetcher<void>({
+    url: `/api/v1/auth/admin-profiles/${user}/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1AuthAdminProfilesDestroyMutationOptions = <
@@ -2607,7 +2504,6 @@ export const getV1AuthAdminProfilesDestroyMutationOptions = <
     { user: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthAdminProfilesDestroy>>,
   TError,
@@ -2615,13 +2511,13 @@ export const getV1AuthAdminProfilesDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthAdminProfilesDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthAdminProfilesDestroy>>,
@@ -2629,7 +2525,7 @@ export const getV1AuthAdminProfilesDestroyMutationOptions = <
   > = (props) => {
     const { user } = props ?? {};
 
-    return v1AuthAdminProfilesDestroy(user, requestOptions);
+    return v1AuthAdminProfilesDestroy(user);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -2652,7 +2548,6 @@ export const useV1AuthAdminProfilesDestroy = <
       { user: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -2671,19 +2566,15 @@ export const useV1AuthAdminProfilesDestroy = <
  */
 export const v1AuthChangePasswordCreate = (
   changePasswordRequest: ChangePasswordRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<void>(
-    {
-      url: `/api/v1/auth/change-password/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: changePasswordRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<void>({
+    url: `/api/v1/auth/change-password/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: changePasswordRequest,
+    signal,
+  });
 };
 
 export const getV1AuthChangePasswordCreateMutationOptions = <
@@ -2696,7 +2587,6 @@ export const getV1AuthChangePasswordCreateMutationOptions = <
     { data: ChangePasswordRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthChangePasswordCreate>>,
   TError,
@@ -2704,13 +2594,13 @@ export const getV1AuthChangePasswordCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthChangePasswordCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthChangePasswordCreate>>,
@@ -2718,7 +2608,7 @@ export const getV1AuthChangePasswordCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1AuthChangePasswordCreate(data, requestOptions);
+    return v1AuthChangePasswordCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -2741,7 +2631,6 @@ export const useV1AuthChangePasswordCreate = <
       { data: ChangePasswordRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -2759,14 +2648,12 @@ export const useV1AuthChangePasswordCreate = <
  * Confirm device verification using token and code from email.
 Completes the device change flow.
  */
-export const v1AuthDeviceVerifyConfirmCreate = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/auth/device/verify/confirm/`, method: 'POST', signal },
-    options
-  );
+export const v1AuthDeviceVerifyConfirmCreate = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/auth/device/verify/confirm/`,
+    method: 'POST',
+    signal,
+  });
 };
 
 export const getV1AuthDeviceVerifyConfirmCreateMutationOptions = <
@@ -2779,7 +2666,6 @@ export const getV1AuthDeviceVerifyConfirmCreateMutationOptions = <
     void,
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthDeviceVerifyConfirmCreate>>,
   TError,
@@ -2787,19 +2673,19 @@ export const getV1AuthDeviceVerifyConfirmCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthDeviceVerifyConfirmCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthDeviceVerifyConfirmCreate>>,
     void
   > = () => {
-    return v1AuthDeviceVerifyConfirmCreate(requestOptions);
+    return v1AuthDeviceVerifyConfirmCreate();
   };
 
   return { mutationFn, ...mutationOptions };
@@ -2822,7 +2708,6 @@ export const useV1AuthDeviceVerifyConfirmCreate = <
       void,
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -2840,14 +2725,8 @@ export const useV1AuthDeviceVerifyConfirmCreate = <
 /**
  * Manage user's trusted devices and active sessions.
  */
-export const v1AuthDevicesRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/auth/devices/`, method: 'GET', signal },
-    options
-  );
+export const v1AuthDevicesRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({ url: `/api/v1/auth/devices/`, method: 'GET', signal });
 };
 
 export const getV1AuthDevicesRetrieveQueryKey = () => {
@@ -2865,15 +2744,14 @@ export const getV1AuthDevicesRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1AuthDevicesRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1AuthDevicesRetrieve>>
-  > = ({ signal }) => v1AuthDevicesRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1AuthDevicesRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1AuthDevicesRetrieve>>,
@@ -2907,7 +2785,6 @@ export function useV1AuthDevicesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -2933,7 +2810,6 @@ export function useV1AuthDevicesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -2949,7 +2825,6 @@ export function useV1AuthDevicesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -2966,7 +2841,6 @@ export function useV1AuthDevicesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -2985,13 +2859,8 @@ export function useV1AuthDevicesRetrieve<
 /**
  * Manage user's trusted devices and active sessions.
  */
-export const v1AuthDevicesDestroy = (
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/auth/devices/`, method: 'DELETE' },
-    options
-  );
+export const v1AuthDevicesDestroy = () => {
+  return fetcher<void>({ url: `/api/v1/auth/devices/`, method: 'DELETE' });
 };
 
 export const getV1AuthDevicesDestroyMutationOptions = <
@@ -3004,7 +2873,6 @@ export const getV1AuthDevicesDestroyMutationOptions = <
     void,
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthDevicesDestroy>>,
   TError,
@@ -3012,19 +2880,19 @@ export const getV1AuthDevicesDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthDevicesDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthDevicesDestroy>>,
     void
   > = () => {
-    return v1AuthDevicesDestroy(requestOptions);
+    return v1AuthDevicesDestroy();
   };
 
   return { mutationFn, ...mutationOptions };
@@ -3044,7 +2912,6 @@ export const useV1AuthDevicesDestroy = <TError = unknown, TContext = unknown>(
       void,
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -3063,13 +2930,13 @@ export const useV1AuthDevicesDestroy = <TError = unknown, TContext = unknown>(
  */
 export const v1AuthDevicesRetrieve2 = (
   sessionId: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<void>(
-    { url: `/api/v1/auth/devices/${sessionId}/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<void>({
+    url: `/api/v1/auth/devices/${sessionId}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1AuthDevicesRetrieve2QueryKey = (sessionId?: string) => {
@@ -3089,17 +2956,16 @@ export const getV1AuthDevicesRetrieve2QueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1AuthDevicesRetrieve2QueryKey(sessionId);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1AuthDevicesRetrieve2>>
-  > = ({ signal }) => v1AuthDevicesRetrieve2(sessionId, requestOptions, signal);
+  > = ({ signal }) => v1AuthDevicesRetrieve2(sessionId, signal);
 
   return {
     queryKey,
@@ -3139,7 +3005,6 @@ export function useV1AuthDevicesRetrieve2<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -3166,7 +3031,6 @@ export function useV1AuthDevicesRetrieve2<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -3183,7 +3047,6 @@ export function useV1AuthDevicesRetrieve2<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -3201,7 +3064,6 @@ export function useV1AuthDevicesRetrieve2<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -3223,14 +3085,11 @@ export function useV1AuthDevicesRetrieve2<
 /**
  * Manage user's trusted devices and active sessions.
  */
-export const v1AuthDevicesDestroy2 = (
-  sessionId: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/auth/devices/${sessionId}/`, method: 'DELETE' },
-    options
-  );
+export const v1AuthDevicesDestroy2 = (sessionId: string) => {
+  return fetcher<void>({
+    url: `/api/v1/auth/devices/${sessionId}/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1AuthDevicesDestroy2MutationOptions = <
@@ -3243,7 +3102,6 @@ export const getV1AuthDevicesDestroy2MutationOptions = <
     { sessionId: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthDevicesDestroy2>>,
   TError,
@@ -3251,13 +3109,13 @@ export const getV1AuthDevicesDestroy2MutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthDevicesDestroy2'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthDevicesDestroy2>>,
@@ -3265,7 +3123,7 @@ export const getV1AuthDevicesDestroy2MutationOptions = <
   > = (props) => {
     const { sessionId } = props ?? {};
 
-    return v1AuthDevicesDestroy2(sessionId, requestOptions);
+    return v1AuthDevicesDestroy2(sessionId);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -3285,7 +3143,6 @@ export const useV1AuthDevicesDestroy2 = <TError = unknown, TContext = unknown>(
       { sessionId: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -3305,19 +3162,15 @@ and risk‑based emergency 2FA. No longer returns risk reasons to client.
  */
 export const v1AuthLoginCreate = (
   customTokenObtainPairRequest: CustomTokenObtainPairRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<CustomTokenObtainPair>(
-    {
-      url: `/api/v1/auth/login/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: customTokenObtainPairRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<CustomTokenObtainPair>({
+    url: `/api/v1/auth/login/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: customTokenObtainPairRequest,
+    signal,
+  });
 };
 
 export const getV1AuthLoginCreateMutationOptions = <
@@ -3330,7 +3183,6 @@ export const getV1AuthLoginCreateMutationOptions = <
     { data: CustomTokenObtainPairRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthLoginCreate>>,
   TError,
@@ -3338,13 +3190,13 @@ export const getV1AuthLoginCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthLoginCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthLoginCreate>>,
@@ -3352,7 +3204,7 @@ export const getV1AuthLoginCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1AuthLoginCreate(data, requestOptions);
+    return v1AuthLoginCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -3372,7 +3224,6 @@ export const useV1AuthLoginCreate = <TError = unknown, TContext = unknown>(
       { data: CustomTokenObtainPairRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -3389,14 +3240,8 @@ export const useV1AuthLoginCreate = <TError = unknown, TContext = unknown>(
 /**
  * Logout view.
  */
-export const v1AuthLogoutCreate = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/auth/logout/`, method: 'POST', signal },
-    options
-  );
+export const v1AuthLogoutCreate = (signal?: AbortSignal) => {
+  return fetcher<void>({ url: `/api/v1/auth/logout/`, method: 'POST', signal });
 };
 
 export const getV1AuthLogoutCreateMutationOptions = <
@@ -3409,7 +3254,6 @@ export const getV1AuthLogoutCreateMutationOptions = <
     void,
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthLogoutCreate>>,
   TError,
@@ -3417,19 +3261,19 @@ export const getV1AuthLogoutCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthLogoutCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthLogoutCreate>>,
     void
   > = () => {
-    return v1AuthLogoutCreate(requestOptions);
+    return v1AuthLogoutCreate();
   };
 
   return { mutationFn, ...mutationOptions };
@@ -3449,7 +3293,6 @@ export const useV1AuthLogoutCreate = <TError = unknown, TContext = unknown>(
       void,
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -3466,14 +3309,12 @@ export const useV1AuthLogoutCreate = <TError = unknown, TContext = unknown>(
 /**
  * Return the user's current notification preferences.
  */
-export const v1AuthPreferencesRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/auth/preferences/notifications/`, method: 'GET', signal },
-    options
-  );
+export const v1AuthPreferencesRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/auth/preferences/notifications/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1AuthPreferencesRetrieveQueryKey = () => {
@@ -3491,16 +3332,15 @@ export const getV1AuthPreferencesRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1AuthPreferencesRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1AuthPreferencesRetrieve>>
-  > = ({ signal }) => v1AuthPreferencesRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1AuthPreferencesRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1AuthPreferencesRetrieve>>,
@@ -3534,7 +3374,6 @@ export function useV1AuthPreferencesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -3560,7 +3399,6 @@ export function useV1AuthPreferencesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -3576,7 +3414,6 @@ export function useV1AuthPreferencesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -3593,7 +3430,6 @@ export function useV1AuthPreferencesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -3614,14 +3450,12 @@ export function useV1AuthPreferencesRetrieve<
 Merges incoming data with existing preferences, validates the combined result,
 and saves if valid. Returns the updated preferences.
  */
-export const v1AuthPreferencesCreate = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/auth/preferences/notifications/`, method: 'POST', signal },
-    options
-  );
+export const v1AuthPreferencesCreate = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/auth/preferences/notifications/`,
+    method: 'POST',
+    signal,
+  });
 };
 
 export const getV1AuthPreferencesCreateMutationOptions = <
@@ -3634,7 +3468,6 @@ export const getV1AuthPreferencesCreateMutationOptions = <
     void,
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthPreferencesCreate>>,
   TError,
@@ -3642,19 +3475,19 @@ export const getV1AuthPreferencesCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthPreferencesCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthPreferencesCreate>>,
     void
   > = () => {
-    return v1AuthPreferencesCreate(requestOptions);
+    return v1AuthPreferencesCreate();
   };
 
   return { mutationFn, ...mutationOptions };
@@ -3677,7 +3510,6 @@ export const useV1AuthPreferencesCreate = <
       void,
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -3696,19 +3528,15 @@ export const useV1AuthPreferencesCreate = <
  */
 export const v1AuthRegisterCreate = (
   userRegistrationRequest: UserRegistrationRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<UserRegistration>(
-    {
-      url: `/api/v1/auth/register/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: userRegistrationRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<UserRegistration>({
+    url: `/api/v1/auth/register/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: userRegistrationRequest,
+    signal,
+  });
 };
 
 export const getV1AuthRegisterCreateMutationOptions = <
@@ -3721,7 +3549,6 @@ export const getV1AuthRegisterCreateMutationOptions = <
     { data: UserRegistrationRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthRegisterCreate>>,
   TError,
@@ -3729,13 +3556,13 @@ export const getV1AuthRegisterCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthRegisterCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthRegisterCreate>>,
@@ -3743,7 +3570,7 @@ export const getV1AuthRegisterCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1AuthRegisterCreate(data, requestOptions);
+    return v1AuthRegisterCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -3763,7 +3590,6 @@ export const useV1AuthRegisterCreate = <TError = unknown, TContext = unknown>(
       { data: UserRegistrationRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -3782,19 +3608,15 @@ export const useV1AuthRegisterCreate = <TError = unknown, TContext = unknown>(
  */
 export const v1AuthResetPasswordCreate = (
   passwordResetRequestRequest: PasswordResetRequestRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PasswordResetRequest>(
-    {
-      url: `/api/v1/auth/reset-password/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: passwordResetRequestRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<PasswordResetRequest>({
+    url: `/api/v1/auth/reset-password/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: passwordResetRequestRequest,
+    signal,
+  });
 };
 
 export const getV1AuthResetPasswordCreateMutationOptions = <
@@ -3807,7 +3629,6 @@ export const getV1AuthResetPasswordCreateMutationOptions = <
     { data: PasswordResetRequestRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthResetPasswordCreate>>,
   TError,
@@ -3815,13 +3636,13 @@ export const getV1AuthResetPasswordCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthResetPasswordCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthResetPasswordCreate>>,
@@ -3829,7 +3650,7 @@ export const getV1AuthResetPasswordCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1AuthResetPasswordCreate(data, requestOptions);
+    return v1AuthResetPasswordCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -3852,7 +3673,6 @@ export const useV1AuthResetPasswordCreate = <
       { data: PasswordResetRequestRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -3871,19 +3691,15 @@ export const useV1AuthResetPasswordCreate = <
  */
 export const v1AuthResetPasswordConfirmCreate = (
   passwordResetConfirmRequest: PasswordResetConfirmRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PasswordResetConfirm>(
-    {
-      url: `/api/v1/auth/reset-password/confirm/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: passwordResetConfirmRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<PasswordResetConfirm>({
+    url: `/api/v1/auth/reset-password/confirm/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: passwordResetConfirmRequest,
+    signal,
+  });
 };
 
 export const getV1AuthResetPasswordConfirmCreateMutationOptions = <
@@ -3896,7 +3712,6 @@ export const getV1AuthResetPasswordConfirmCreateMutationOptions = <
     { data: PasswordResetConfirmRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthResetPasswordConfirmCreate>>,
   TError,
@@ -3904,13 +3719,13 @@ export const getV1AuthResetPasswordConfirmCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthResetPasswordConfirmCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthResetPasswordConfirmCreate>>,
@@ -3918,7 +3733,7 @@ export const getV1AuthResetPasswordConfirmCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1AuthResetPasswordConfirmCreate(data, requestOptions);
+    return v1AuthResetPasswordConfirmCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -3942,7 +3757,6 @@ export const useV1AuthResetPasswordConfirmCreate = <
       { data: PasswordResetConfirmRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -3962,13 +3776,14 @@ export const useV1AuthResetPasswordConfirmCreate = <
  */
 export const v1AuthSessionsList = (
   params?: V1AuthSessionsListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedUserSessionList>(
-    { url: `/api/v1/auth/sessions/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedUserSessionList>({
+    url: `/api/v1/auth/sessions/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1AuthSessionsListQueryKey = (
@@ -3990,17 +3805,16 @@ export const getV1AuthSessionsListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1AuthSessionsListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1AuthSessionsList>>
-  > = ({ signal }) => v1AuthSessionsList(params, requestOptions, signal);
+  > = ({ signal }) => v1AuthSessionsList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1AuthSessionsList>>,
@@ -4035,7 +3849,6 @@ export function useV1AuthSessionsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -4062,7 +3875,6 @@ export function useV1AuthSessionsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -4079,7 +3891,6 @@ export function useV1AuthSessionsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -4097,7 +3908,6 @@ export function useV1AuthSessionsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -4116,15 +3926,12 @@ export function useV1AuthSessionsList<
 /**
  * Retrieve a session
  */
-export const v1AuthSessionsRetrieve = (
-  id: number,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<UserSession>(
-    { url: `/api/v1/auth/sessions/${id}/`, method: 'GET', signal },
-    options
-  );
+export const v1AuthSessionsRetrieve = (id: number, signal?: AbortSignal) => {
+  return fetcher<UserSession>({
+    url: `/api/v1/auth/sessions/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1AuthSessionsRetrieveQueryKey = (id?: number) => {
@@ -4144,17 +3951,16 @@ export const getV1AuthSessionsRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1AuthSessionsRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1AuthSessionsRetrieve>>
-  > = ({ signal }) => v1AuthSessionsRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1AuthSessionsRetrieve(id, signal);
 
   return {
     queryKey,
@@ -4194,7 +4000,6 @@ export function useV1AuthSessionsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -4221,7 +4026,6 @@ export function useV1AuthSessionsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -4238,7 +4042,6 @@ export function useV1AuthSessionsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -4256,7 +4059,6 @@ export function useV1AuthSessionsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -4277,13 +4079,13 @@ export function useV1AuthSessionsRetrieve<
  */
 export const v1AuthSessionsRevokeCreate = (
   id: number,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<UserSession>(
-    { url: `/api/v1/auth/sessions/${id}/revoke/`, method: 'POST', signal },
-    options
-  );
+  return fetcher<UserSession>({
+    url: `/api/v1/auth/sessions/${id}/revoke/`,
+    method: 'POST',
+    signal,
+  });
 };
 
 export const getV1AuthSessionsRevokeCreateMutationOptions = <
@@ -4296,7 +4098,6 @@ export const getV1AuthSessionsRevokeCreateMutationOptions = <
     { id: number },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthSessionsRevokeCreate>>,
   TError,
@@ -4304,13 +4105,13 @@ export const getV1AuthSessionsRevokeCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthSessionsRevokeCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthSessionsRevokeCreate>>,
@@ -4318,7 +4119,7 @@ export const getV1AuthSessionsRevokeCreateMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1AuthSessionsRevokeCreate(id, requestOptions);
+    return v1AuthSessionsRevokeCreate(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -4341,7 +4142,6 @@ export const useV1AuthSessionsRevokeCreate = <
       { id: number },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -4360,19 +4160,15 @@ export const useV1AuthSessionsRevokeCreate = <
  */
 export const v1AuthTokenRefreshCreate = (
   tokenRefreshRequest: TokenRefreshRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<TokenRefresh>(
-    {
-      url: `/api/v1/auth/token/refresh/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: tokenRefreshRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<TokenRefresh>({
+    url: `/api/v1/auth/token/refresh/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: tokenRefreshRequest,
+    signal,
+  });
 };
 
 export const getV1AuthTokenRefreshCreateMutationOptions = <
@@ -4385,7 +4181,6 @@ export const getV1AuthTokenRefreshCreateMutationOptions = <
     { data: TokenRefreshRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthTokenRefreshCreate>>,
   TError,
@@ -4393,13 +4188,13 @@ export const getV1AuthTokenRefreshCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthTokenRefreshCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthTokenRefreshCreate>>,
@@ -4407,7 +4202,7 @@ export const getV1AuthTokenRefreshCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1AuthTokenRefreshCreate(data, requestOptions);
+    return v1AuthTokenRefreshCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -4430,7 +4225,6 @@ export const useV1AuthTokenRefreshCreate = <
       { data: TokenRefreshRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -4450,19 +4244,15 @@ information about a token's fitness for a particular use.
  */
 export const v1AuthTokenVerifyCreate = (
   tokenVerifyRequest: TokenVerifyRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<void>(
-    {
-      url: `/api/v1/auth/token/verify/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: tokenVerifyRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<void>({
+    url: `/api/v1/auth/token/verify/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: tokenVerifyRequest,
+    signal,
+  });
 };
 
 export const getV1AuthTokenVerifyCreateMutationOptions = <
@@ -4475,7 +4265,6 @@ export const getV1AuthTokenVerifyCreateMutationOptions = <
     { data: TokenVerifyRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthTokenVerifyCreate>>,
   TError,
@@ -4483,13 +4272,13 @@ export const getV1AuthTokenVerifyCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthTokenVerifyCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthTokenVerifyCreate>>,
@@ -4497,7 +4286,7 @@ export const getV1AuthTokenVerifyCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1AuthTokenVerifyCreate(data, requestOptions);
+    return v1AuthTokenVerifyCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -4520,7 +4309,6 @@ export const useV1AuthTokenVerifyCreate = <
       { data: TokenVerifyRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -4540,14 +4328,12 @@ The token is generated by the `get_unsubscribe_token` method on the User model
 and is expected as a single combined 'token' parameter containing uid and token
 separated by a slash.
  */
-export const v1AuthUnsubscribeCreate = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/auth/unsubscribe/`, method: 'POST', signal },
-    options
-  );
+export const v1AuthUnsubscribeCreate = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/auth/unsubscribe/`,
+    method: 'POST',
+    signal,
+  });
 };
 
 export const getV1AuthUnsubscribeCreateMutationOptions = <
@@ -4560,7 +4346,6 @@ export const getV1AuthUnsubscribeCreateMutationOptions = <
     void,
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthUnsubscribeCreate>>,
   TError,
@@ -4568,19 +4353,19 @@ export const getV1AuthUnsubscribeCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthUnsubscribeCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthUnsubscribeCreate>>,
     void
   > = () => {
-    return v1AuthUnsubscribeCreate(requestOptions);
+    return v1AuthUnsubscribeCreate();
   };
 
   return { mutationFn, ...mutationOptions };
@@ -4603,7 +4388,6 @@ export const useV1AuthUnsubscribeCreate = <
       void,
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -4622,13 +4406,14 @@ export const useV1AuthUnsubscribeCreate = <
  */
 export const v1AuthUsersList = (
   params?: V1AuthUsersListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedUserList>(
-    { url: `/api/v1/auth/users/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedUserList>({
+    url: `/api/v1/auth/users/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1AuthUsersListQueryKey = (params?: V1AuthUsersListParams) => {
@@ -4648,16 +4433,15 @@ export const getV1AuthUsersListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1AuthUsersListQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof v1AuthUsersList>>> = ({
     signal,
-  }) => v1AuthUsersList(params, requestOptions, signal);
+  }) => v1AuthUsersList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1AuthUsersList>>,
@@ -4692,7 +4476,6 @@ export function useV1AuthUsersList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -4719,7 +4502,6 @@ export function useV1AuthUsersList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -4736,7 +4518,6 @@ export function useV1AuthUsersList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -4754,7 +4535,6 @@ export function useV1AuthUsersList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -4775,19 +4555,15 @@ export function useV1AuthUsersList<
  */
 export const v1AuthUsersCreate = (
   userRequest: UserRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<User>(
-    {
-      url: `/api/v1/auth/users/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: userRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<User>({
+    url: `/api/v1/auth/users/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: userRequest,
+    signal,
+  });
 };
 
 export const getV1AuthUsersCreateMutationOptions = <
@@ -4800,7 +4576,6 @@ export const getV1AuthUsersCreateMutationOptions = <
     { data: UserRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthUsersCreate>>,
   TError,
@@ -4808,13 +4583,13 @@ export const getV1AuthUsersCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthUsersCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthUsersCreate>>,
@@ -4822,7 +4597,7 @@ export const getV1AuthUsersCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1AuthUsersCreate(data, requestOptions);
+    return v1AuthUsersCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -4842,7 +4617,6 @@ export const useV1AuthUsersCreate = <TError = unknown, TContext = unknown>(
       { data: UserRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -4859,15 +4633,12 @@ export const useV1AuthUsersCreate = <TError = unknown, TContext = unknown>(
 /**
  * Retrieve a specific user
  */
-export const v1AuthUsersRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<User>(
-    { url: `/api/v1/auth/users/${id}/`, method: 'GET', signal },
-    options
-  );
+export const v1AuthUsersRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<User>({
+    url: `/api/v1/auth/users/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1AuthUsersRetrieveQueryKey = (id?: string) => {
@@ -4887,16 +4658,15 @@ export const getV1AuthUsersRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1AuthUsersRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1AuthUsersRetrieve>>
-  > = ({ signal }) => v1AuthUsersRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1AuthUsersRetrieve(id, signal);
 
   return {
     queryKey,
@@ -4936,7 +4706,6 @@ export function useV1AuthUsersRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -4963,7 +4732,6 @@ export function useV1AuthUsersRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -4980,7 +4748,6 @@ export function useV1AuthUsersRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -4998,7 +4765,6 @@ export function useV1AuthUsersRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -5017,20 +4783,13 @@ export function useV1AuthUsersRetrieve<
 /**
  * Update a user
  */
-export const v1AuthUsersUpdate = (
-  id: string,
-  userRequest: UserRequest,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<User>(
-    {
-      url: `/api/v1/auth/users/${id}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: userRequest,
-    },
-    options
-  );
+export const v1AuthUsersUpdate = (id: string, userRequest: UserRequest) => {
+  return fetcher<User>({
+    url: `/api/v1/auth/users/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: userRequest,
+  });
 };
 
 export const getV1AuthUsersUpdateMutationOptions = <
@@ -5043,7 +4802,6 @@ export const getV1AuthUsersUpdateMutationOptions = <
     { id: string; data: UserRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthUsersUpdate>>,
   TError,
@@ -5051,13 +4809,13 @@ export const getV1AuthUsersUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthUsersUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthUsersUpdate>>,
@@ -5065,7 +4823,7 @@ export const getV1AuthUsersUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1AuthUsersUpdate(id, data, requestOptions);
+    return v1AuthUsersUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -5085,7 +4843,6 @@ export const useV1AuthUsersUpdate = <TError = unknown, TContext = unknown>(
       { id: string; data: UserRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -5104,18 +4861,14 @@ export const useV1AuthUsersUpdate = <TError = unknown, TContext = unknown>(
  */
 export const v1AuthUsersPartialUpdate = (
   id: string,
-  patchedUserRequest: PatchedUserRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedUserRequest: PatchedUserRequest
 ) => {
-  return fetcher<User>(
-    {
-      url: `/api/v1/auth/users/${id}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedUserRequest,
-    },
-    options
-  );
+  return fetcher<User>({
+    url: `/api/v1/auth/users/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedUserRequest,
+  });
 };
 
 export const getV1AuthUsersPartialUpdateMutationOptions = <
@@ -5128,7 +4881,6 @@ export const getV1AuthUsersPartialUpdateMutationOptions = <
     { id: string; data: PatchedUserRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthUsersPartialUpdate>>,
   TError,
@@ -5136,13 +4888,13 @@ export const getV1AuthUsersPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthUsersPartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthUsersPartialUpdate>>,
@@ -5150,7 +4902,7 @@ export const getV1AuthUsersPartialUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1AuthUsersPartialUpdate(id, data, requestOptions);
+    return v1AuthUsersPartialUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -5173,7 +4925,6 @@ export const useV1AuthUsersPartialUpdate = <
       { id: string; data: PatchedUserRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -5190,14 +4941,8 @@ export const useV1AuthUsersPartialUpdate = <
 /**
  * Delete a user
  */
-export const v1AuthUsersDestroy = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/auth/users/${id}/`, method: 'DELETE' },
-    options
-  );
+export const v1AuthUsersDestroy = (id: string) => {
+  return fetcher<void>({ url: `/api/v1/auth/users/${id}/`, method: 'DELETE' });
 };
 
 export const getV1AuthUsersDestroyMutationOptions = <
@@ -5210,7 +4955,6 @@ export const getV1AuthUsersDestroyMutationOptions = <
     { id: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1AuthUsersDestroy>>,
   TError,
@@ -5218,13 +4962,13 @@ export const getV1AuthUsersDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1AuthUsersDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1AuthUsersDestroy>>,
@@ -5232,7 +4976,7 @@ export const getV1AuthUsersDestroyMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1AuthUsersDestroy(id, requestOptions);
+    return v1AuthUsersDestroy(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -5252,7 +4996,6 @@ export const useV1AuthUsersDestroy = <TError = unknown, TContext = unknown>(
       { id: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -5274,14 +5017,12 @@ for a user with primary key "me" (which causes errors because the PK
 is a UUID). Non-disruptive: simply returns the same representation
 as retrieving the user's own object.
  */
-export const v1AuthUsersMeRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<User>(
-    { url: `/api/v1/auth/users/me/`, method: 'GET', signal },
-    options
-  );
+export const v1AuthUsersMeRetrieve = (signal?: AbortSignal) => {
+  return fetcher<User>({
+    url: `/api/v1/auth/users/me/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1AuthUsersMeRetrieveQueryKey = () => {
@@ -5299,15 +5040,14 @@ export const getV1AuthUsersMeRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1AuthUsersMeRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>
-  > = ({ signal }) => v1AuthUsersMeRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1AuthUsersMeRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1AuthUsersMeRetrieve>>,
@@ -5341,7 +5081,6 @@ export function useV1AuthUsersMeRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -5367,7 +5106,6 @@ export function useV1AuthUsersMeRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -5383,7 +5121,6 @@ export function useV1AuthUsersMeRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -5400,7 +5137,6 @@ export function useV1AuthUsersMeRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -5421,13 +5157,13 @@ export function useV1AuthUsersMeRetrieve<
  */
 export const v1AuthVerifyEmailRetrieve = (
   token: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<void>(
-    { url: `/api/v1/auth/verify-email/${token}/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<void>({
+    url: `/api/v1/auth/verify-email/${token}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1AuthVerifyEmailRetrieveQueryKey = (token?: string) => {
@@ -5447,17 +5183,16 @@ export const getV1AuthVerifyEmailRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1AuthVerifyEmailRetrieveQueryKey(token);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1AuthVerifyEmailRetrieve>>
-  > = ({ signal }) => v1AuthVerifyEmailRetrieve(token, requestOptions, signal);
+  > = ({ signal }) => v1AuthVerifyEmailRetrieve(token, signal);
 
   return {
     queryKey,
@@ -5497,7 +5232,6 @@ export function useV1AuthVerifyEmailRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -5524,7 +5258,6 @@ export function useV1AuthVerifyEmailRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -5541,7 +5274,6 @@ export function useV1AuthVerifyEmailRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -5559,7 +5291,6 @@ export function useV1AuthVerifyEmailRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -5579,14 +5310,8 @@ export function useV1AuthVerifyEmailRetrieve<
  * Public endpoint listing all active software with basic info.
 Cached for 5 minutes to reduce database load.
  */
-export const v1CatalogRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/catalog/`, method: 'GET', signal },
-    options
-  );
+export const v1CatalogRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({ url: `/api/v1/catalog/`, method: 'GET', signal });
 };
 
 export const getV1CatalogRetrieveQueryKey = () => {
@@ -5604,15 +5329,14 @@ export const getV1CatalogRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1CatalogRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1CatalogRetrieve>>
-  > = ({ signal }) => v1CatalogRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1CatalogRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1CatalogRetrieve>>,
@@ -5646,7 +5370,6 @@ export function useV1CatalogRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -5672,7 +5395,6 @@ export function useV1CatalogRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -5688,7 +5410,6 @@ export function useV1CatalogRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -5705,7 +5426,6 @@ export function useV1CatalogRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -5721,17 +5441,1433 @@ export function useV1CatalogRetrieve<
   return query;
 }
 
+export const v1ChatBansList = (
+  params?: V1ChatBansListParams,
+  signal?: AbortSignal
+) => {
+  return fetcher<PaginatedChatBanList>({
+    url: `/api/v1/chat/bans/`,
+    method: 'GET',
+    params,
+    signal,
+  });
+};
+
+export const getV1ChatBansListQueryKey = (params?: V1ChatBansListParams) => {
+  return [`/api/v1/chat/bans/`, ...(params ? [params] : [])] as const;
+};
+
+export const getV1ChatBansListQueryOptions = <
+  TData = Awaited<ReturnType<typeof v1ChatBansList>>,
+  TError = unknown,
+>(
+  params?: V1ChatBansListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof v1ChatBansList>>, TError, TData>
+    >;
+  }
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getV1ChatBansListQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof v1ChatBansList>>> = ({
+    signal,
+  }) => v1ChatBansList(params, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof v1ChatBansList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type V1ChatBansListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof v1ChatBansList>>
+>;
+export type V1ChatBansListQueryError = unknown;
+
+export function useV1ChatBansList<
+  TData = Awaited<ReturnType<typeof v1ChatBansList>>,
+  TError = unknown,
+>(
+  params: undefined | V1ChatBansListParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof v1ChatBansList>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1ChatBansList>>,
+          TError,
+          Awaited<ReturnType<typeof v1ChatBansList>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData>;
+};
+export function useV1ChatBansList<
+  TData = Awaited<ReturnType<typeof v1ChatBansList>>,
+  TError = unknown,
+>(
+  params?: V1ChatBansListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof v1ChatBansList>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1ChatBansList>>,
+          TError,
+          Awaited<ReturnType<typeof v1ChatBansList>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useV1ChatBansList<
+  TData = Awaited<ReturnType<typeof v1ChatBansList>>,
+  TError = unknown,
+>(
+  params?: V1ChatBansListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof v1ChatBansList>>, TError, TData>
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+
+export function useV1ChatBansList<
+  TData = Awaited<ReturnType<typeof v1ChatBansList>>,
+  TError = unknown,
+>(
+  params?: V1ChatBansListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof v1ChatBansList>>, TError, TData>
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+  const queryOptions = getV1ChatBansListQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const v1ChatBansCreate = (
+  chatBanCreateRequest: ChatBanCreateRequest,
+  signal?: AbortSignal
+) => {
+  return fetcher<ChatBanCreate>({
+    url: `/api/v1/chat/bans/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: chatBanCreateRequest,
+    signal,
+  });
+};
+
+export const getV1ChatBansCreateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1ChatBansCreate>>,
+    TError,
+    { data: ChatBanCreateRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1ChatBansCreate>>,
+  TError,
+  { data: ChatBanCreateRequest },
+  TContext
+> => {
+  const mutationKey = ['v1ChatBansCreate'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1ChatBansCreate>>,
+    { data: ChatBanCreateRequest }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return v1ChatBansCreate(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1ChatBansCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1ChatBansCreate>>
+>;
+export type V1ChatBansCreateMutationBody = ChatBanCreateRequest;
+export type V1ChatBansCreateMutationError = unknown;
+
+export const useV1ChatBansCreate = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1ChatBansCreate>>,
+      TError,
+      { data: ChatBanCreateRequest },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1ChatBansCreate>>,
+  TError,
+  { data: ChatBanCreateRequest },
+  TContext
+> => {
+  const mutationOptions = getV1ChatBansCreateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1ChatBansRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<ChatBan>({
+    url: `/api/v1/chat/bans/${id}/`,
+    method: 'GET',
+    signal,
+  });
+};
+
+export const getV1ChatBansRetrieveQueryKey = (id?: string) => {
+  return [`/api/v1/chat/bans/${id}/`] as const;
+};
+
+export const getV1ChatBansRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof v1ChatBansRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1ChatBansRetrieve>>,
+        TError,
+        TData
+      >
+    >;
+  }
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getV1ChatBansRetrieveQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof v1ChatBansRetrieve>>
+  > = ({ signal }) => v1ChatBansRetrieve(id, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof v1ChatBansRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type V1ChatBansRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof v1ChatBansRetrieve>>
+>;
+export type V1ChatBansRetrieveQueryError = unknown;
+
+export function useV1ChatBansRetrieve<
+  TData = Awaited<ReturnType<typeof v1ChatBansRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1ChatBansRetrieve>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1ChatBansRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof v1ChatBansRetrieve>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData>;
+};
+export function useV1ChatBansRetrieve<
+  TData = Awaited<ReturnType<typeof v1ChatBansRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1ChatBansRetrieve>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1ChatBansRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof v1ChatBansRetrieve>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useV1ChatBansRetrieve<
+  TData = Awaited<ReturnType<typeof v1ChatBansRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1ChatBansRetrieve>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+
+export function useV1ChatBansRetrieve<
+  TData = Awaited<ReturnType<typeof v1ChatBansRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1ChatBansRetrieve>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+  const queryOptions = getV1ChatBansRetrieveQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const v1ChatBansUpdate = (
+  id: string,
+  chatBanRequest: ChatBanRequest
+) => {
+  return fetcher<ChatBan>({
+    url: `/api/v1/chat/bans/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: chatBanRequest,
+  });
+};
+
+export const getV1ChatBansUpdateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1ChatBansUpdate>>,
+    TError,
+    { id: string; data: ChatBanRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1ChatBansUpdate>>,
+  TError,
+  { id: string; data: ChatBanRequest },
+  TContext
+> => {
+  const mutationKey = ['v1ChatBansUpdate'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1ChatBansUpdate>>,
+    { id: string; data: ChatBanRequest }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return v1ChatBansUpdate(id, data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1ChatBansUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1ChatBansUpdate>>
+>;
+export type V1ChatBansUpdateMutationBody = ChatBanRequest;
+export type V1ChatBansUpdateMutationError = unknown;
+
+export const useV1ChatBansUpdate = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1ChatBansUpdate>>,
+      TError,
+      { id: string; data: ChatBanRequest },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1ChatBansUpdate>>,
+  TError,
+  { id: string; data: ChatBanRequest },
+  TContext
+> => {
+  const mutationOptions = getV1ChatBansUpdateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1ChatBansPartialUpdate = (
+  id: string,
+  patchedChatBanRequest: PatchedChatBanRequest
+) => {
+  return fetcher<ChatBan>({
+    url: `/api/v1/chat/bans/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedChatBanRequest,
+  });
+};
+
+export const getV1ChatBansPartialUpdateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1ChatBansPartialUpdate>>,
+    TError,
+    { id: string; data: PatchedChatBanRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1ChatBansPartialUpdate>>,
+  TError,
+  { id: string; data: PatchedChatBanRequest },
+  TContext
+> => {
+  const mutationKey = ['v1ChatBansPartialUpdate'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1ChatBansPartialUpdate>>,
+    { id: string; data: PatchedChatBanRequest }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return v1ChatBansPartialUpdate(id, data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1ChatBansPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1ChatBansPartialUpdate>>
+>;
+export type V1ChatBansPartialUpdateMutationBody = PatchedChatBanRequest;
+export type V1ChatBansPartialUpdateMutationError = unknown;
+
+export const useV1ChatBansPartialUpdate = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1ChatBansPartialUpdate>>,
+      TError,
+      { id: string; data: PatchedChatBanRequest },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1ChatBansPartialUpdate>>,
+  TError,
+  { id: string; data: PatchedChatBanRequest },
+  TContext
+> => {
+  const mutationOptions = getV1ChatBansPartialUpdateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1ChatBansDestroy = (id: string) => {
+  return fetcher<void>({ url: `/api/v1/chat/bans/${id}/`, method: 'DELETE' });
+};
+
+export const getV1ChatBansDestroyMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1ChatBansDestroy>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1ChatBansDestroy>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ['v1ChatBansDestroy'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1ChatBansDestroy>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return v1ChatBansDestroy(id);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1ChatBansDestroyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1ChatBansDestroy>>
+>;
+
+export type V1ChatBansDestroyMutationError = unknown;
+
+export const useV1ChatBansDestroy = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1ChatBansDestroy>>,
+      TError,
+      { id: string },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1ChatBansDestroy>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationOptions = getV1ChatBansDestroyMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1ChatSessionsList = (
+  params?: V1ChatSessionsListParams,
+  signal?: AbortSignal
+) => {
+  return fetcher<PaginatedChatSessionList>({
+    url: `/api/v1/chat/sessions/`,
+    method: 'GET',
+    params,
+    signal,
+  });
+};
+
+export const getV1ChatSessionsListQueryKey = (
+  params?: V1ChatSessionsListParams
+) => {
+  return [`/api/v1/chat/sessions/`, ...(params ? [params] : [])] as const;
+};
+
+export const getV1ChatSessionsListQueryOptions = <
+  TData = Awaited<ReturnType<typeof v1ChatSessionsList>>,
+  TError = unknown,
+>(
+  params?: V1ChatSessionsListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1ChatSessionsList>>,
+        TError,
+        TData
+      >
+    >;
+  }
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getV1ChatSessionsListQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof v1ChatSessionsList>>
+  > = ({ signal }) => v1ChatSessionsList(params, signal);
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof v1ChatSessionsList>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type V1ChatSessionsListQueryResult = NonNullable<
+  Awaited<ReturnType<typeof v1ChatSessionsList>>
+>;
+export type V1ChatSessionsListQueryError = unknown;
+
+export function useV1ChatSessionsList<
+  TData = Awaited<ReturnType<typeof v1ChatSessionsList>>,
+  TError = unknown,
+>(
+  params: undefined | V1ChatSessionsListParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1ChatSessionsList>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1ChatSessionsList>>,
+          TError,
+          Awaited<ReturnType<typeof v1ChatSessionsList>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData>;
+};
+export function useV1ChatSessionsList<
+  TData = Awaited<ReturnType<typeof v1ChatSessionsList>>,
+  TError = unknown,
+>(
+  params?: V1ChatSessionsListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1ChatSessionsList>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1ChatSessionsList>>,
+          TError,
+          Awaited<ReturnType<typeof v1ChatSessionsList>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useV1ChatSessionsList<
+  TData = Awaited<ReturnType<typeof v1ChatSessionsList>>,
+  TError = unknown,
+>(
+  params?: V1ChatSessionsListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1ChatSessionsList>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+
+export function useV1ChatSessionsList<
+  TData = Awaited<ReturnType<typeof v1ChatSessionsList>>,
+  TError = unknown,
+>(
+  params?: V1ChatSessionsListParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1ChatSessionsList>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+  const queryOptions = getV1ChatSessionsListQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const v1ChatSessionsCreate = (
+  chatSessionRequest: ChatSessionRequest,
+  signal?: AbortSignal
+) => {
+  return fetcher<ChatSession>({
+    url: `/api/v1/chat/sessions/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: chatSessionRequest,
+    signal,
+  });
+};
+
+export const getV1ChatSessionsCreateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1ChatSessionsCreate>>,
+    TError,
+    { data: ChatSessionRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1ChatSessionsCreate>>,
+  TError,
+  { data: ChatSessionRequest },
+  TContext
+> => {
+  const mutationKey = ['v1ChatSessionsCreate'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1ChatSessionsCreate>>,
+    { data: ChatSessionRequest }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return v1ChatSessionsCreate(data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1ChatSessionsCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1ChatSessionsCreate>>
+>;
+export type V1ChatSessionsCreateMutationBody = ChatSessionRequest;
+export type V1ChatSessionsCreateMutationError = unknown;
+
+export const useV1ChatSessionsCreate = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1ChatSessionsCreate>>,
+      TError,
+      { data: ChatSessionRequest },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1ChatSessionsCreate>>,
+  TError,
+  { data: ChatSessionRequest },
+  TContext
+> => {
+  const mutationOptions = getV1ChatSessionsCreateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1ChatSessionsRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<ChatSession>({
+    url: `/api/v1/chat/sessions/${id}/`,
+    method: 'GET',
+    signal,
+  });
+};
+
+export const getV1ChatSessionsRetrieveQueryKey = (id?: string) => {
+  return [`/api/v1/chat/sessions/${id}/`] as const;
+};
+
+export const getV1ChatSessionsRetrieveQueryOptions = <
+  TData = Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>,
+        TError,
+        TData
+      >
+    >;
+  }
+) => {
+  const { query: queryOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getV1ChatSessionsRetrieveQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>
+  > = ({ signal }) => v1ChatSessionsRetrieve(id, signal);
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData> };
+};
+
+export type V1ChatSessionsRetrieveQueryResult = NonNullable<
+  Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>
+>;
+export type V1ChatSessionsRetrieveQueryError = unknown;
+
+export function useV1ChatSessionsRetrieve<
+  TData = Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData>;
+};
+export function useV1ChatSessionsRetrieve<
+  TData = Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>,
+          TError,
+          Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>
+        >,
+        'initialData'
+      >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+export function useV1ChatSessionsRetrieve<
+  TData = Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
+
+export function useV1ChatSessionsRetrieve<
+  TData = Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>,
+  TError = unknown,
+>(
+  id: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof v1ChatSessionsRetrieve>>,
+        TError,
+        TData
+      >
+    >;
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
+  const queryOptions = getV1ChatSessionsRetrieveQueryOptions(id, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData> };
+
+  query.queryKey = queryOptions.queryKey;
+
+  return query;
+}
+
+export const v1ChatSessionsUpdate = (
+  id: string,
+  chatSessionRequest: ChatSessionRequest
+) => {
+  return fetcher<ChatSession>({
+    url: `/api/v1/chat/sessions/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: chatSessionRequest,
+  });
+};
+
+export const getV1ChatSessionsUpdateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1ChatSessionsUpdate>>,
+    TError,
+    { id: string; data: ChatSessionRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1ChatSessionsUpdate>>,
+  TError,
+  { id: string; data: ChatSessionRequest },
+  TContext
+> => {
+  const mutationKey = ['v1ChatSessionsUpdate'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1ChatSessionsUpdate>>,
+    { id: string; data: ChatSessionRequest }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return v1ChatSessionsUpdate(id, data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1ChatSessionsUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1ChatSessionsUpdate>>
+>;
+export type V1ChatSessionsUpdateMutationBody = ChatSessionRequest;
+export type V1ChatSessionsUpdateMutationError = unknown;
+
+export const useV1ChatSessionsUpdate = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1ChatSessionsUpdate>>,
+      TError,
+      { id: string; data: ChatSessionRequest },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1ChatSessionsUpdate>>,
+  TError,
+  { id: string; data: ChatSessionRequest },
+  TContext
+> => {
+  const mutationOptions = getV1ChatSessionsUpdateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1ChatSessionsPartialUpdate = (
+  id: string,
+  patchedChatSessionRequest: PatchedChatSessionRequest
+) => {
+  return fetcher<ChatSession>({
+    url: `/api/v1/chat/sessions/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedChatSessionRequest,
+  });
+};
+
+export const getV1ChatSessionsPartialUpdateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1ChatSessionsPartialUpdate>>,
+    TError,
+    { id: string; data: PatchedChatSessionRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1ChatSessionsPartialUpdate>>,
+  TError,
+  { id: string; data: PatchedChatSessionRequest },
+  TContext
+> => {
+  const mutationKey = ['v1ChatSessionsPartialUpdate'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1ChatSessionsPartialUpdate>>,
+    { id: string; data: PatchedChatSessionRequest }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return v1ChatSessionsPartialUpdate(id, data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1ChatSessionsPartialUpdateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1ChatSessionsPartialUpdate>>
+>;
+export type V1ChatSessionsPartialUpdateMutationBody = PatchedChatSessionRequest;
+export type V1ChatSessionsPartialUpdateMutationError = unknown;
+
+export const useV1ChatSessionsPartialUpdate = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1ChatSessionsPartialUpdate>>,
+      TError,
+      { id: string; data: PatchedChatSessionRequest },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1ChatSessionsPartialUpdate>>,
+  TError,
+  { id: string; data: PatchedChatSessionRequest },
+  TContext
+> => {
+  const mutationOptions =
+    getV1ChatSessionsPartialUpdateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1ChatSessionsDestroy = (id: string) => {
+  return fetcher<void>({
+    url: `/api/v1/chat/sessions/${id}/`,
+    method: 'DELETE',
+  });
+};
+
+export const getV1ChatSessionsDestroyMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1ChatSessionsDestroy>>,
+    TError,
+    { id: string },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1ChatSessionsDestroy>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationKey = ['v1ChatSessionsDestroy'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1ChatSessionsDestroy>>,
+    { id: string }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return v1ChatSessionsDestroy(id);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1ChatSessionsDestroyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1ChatSessionsDestroy>>
+>;
+
+export type V1ChatSessionsDestroyMutationError = unknown;
+
+export const useV1ChatSessionsDestroy = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1ChatSessionsDestroy>>,
+      TError,
+      { id: string },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1ChatSessionsDestroy>>,
+  TError,
+  { id: string },
+  TContext
+> => {
+  const mutationOptions = getV1ChatSessionsDestroyMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1ChatSessionsAssignCreate = (
+  id: string,
+  chatSessionRequest: ChatSessionRequest,
+  signal?: AbortSignal
+) => {
+  return fetcher<ChatSession>({
+    url: `/api/v1/chat/sessions/${id}/assign/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: chatSessionRequest,
+    signal,
+  });
+};
+
+export const getV1ChatSessionsAssignCreateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1ChatSessionsAssignCreate>>,
+    TError,
+    { id: string; data: ChatSessionRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1ChatSessionsAssignCreate>>,
+  TError,
+  { id: string; data: ChatSessionRequest },
+  TContext
+> => {
+  const mutationKey = ['v1ChatSessionsAssignCreate'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1ChatSessionsAssignCreate>>,
+    { id: string; data: ChatSessionRequest }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return v1ChatSessionsAssignCreate(id, data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1ChatSessionsAssignCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1ChatSessionsAssignCreate>>
+>;
+export type V1ChatSessionsAssignCreateMutationBody = ChatSessionRequest;
+export type V1ChatSessionsAssignCreateMutationError = unknown;
+
+export const useV1ChatSessionsAssignCreate = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1ChatSessionsAssignCreate>>,
+      TError,
+      { id: string; data: ChatSessionRequest },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1ChatSessionsAssignCreate>>,
+  TError,
+  { id: string; data: ChatSessionRequest },
+  TContext
+> => {
+  const mutationOptions = getV1ChatSessionsAssignCreateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1ChatSessionsCloseCreate = (
+  id: string,
+  chatSessionRequest: ChatSessionRequest,
+  signal?: AbortSignal
+) => {
+  return fetcher<ChatSession>({
+    url: `/api/v1/chat/sessions/${id}/close/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: chatSessionRequest,
+    signal,
+  });
+};
+
+export const getV1ChatSessionsCloseCreateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1ChatSessionsCloseCreate>>,
+    TError,
+    { id: string; data: ChatSessionRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1ChatSessionsCloseCreate>>,
+  TError,
+  { id: string; data: ChatSessionRequest },
+  TContext
+> => {
+  const mutationKey = ['v1ChatSessionsCloseCreate'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1ChatSessionsCloseCreate>>,
+    { id: string; data: ChatSessionRequest }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return v1ChatSessionsCloseCreate(id, data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1ChatSessionsCloseCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1ChatSessionsCloseCreate>>
+>;
+export type V1ChatSessionsCloseCreateMutationBody = ChatSessionRequest;
+export type V1ChatSessionsCloseCreateMutationError = unknown;
+
+export const useV1ChatSessionsCloseCreate = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1ChatSessionsCloseCreate>>,
+      TError,
+      { id: string; data: ChatSessionRequest },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1ChatSessionsCloseCreate>>,
+  TError,
+  { id: string; data: ChatSessionRequest },
+  TContext
+> => {
+  const mutationOptions = getV1ChatSessionsCloseCreateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
+export const v1ChatSessionsMessagesCreate = (
+  id: string,
+  chatSessionRequest: ChatSessionRequest,
+  signal?: AbortSignal
+) => {
+  return fetcher<ChatSession>({
+    url: `/api/v1/chat/sessions/${id}/messages/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: chatSessionRequest,
+    signal,
+  });
+};
+
+export const getV1ChatSessionsMessagesCreateMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof v1ChatSessionsMessagesCreate>>,
+    TError,
+    { id: string; data: ChatSessionRequest },
+    TContext
+  >;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof v1ChatSessionsMessagesCreate>>,
+  TError,
+  { id: string; data: ChatSessionRequest },
+  TContext
+> => {
+  const mutationKey = ['v1ChatSessionsMessagesCreate'];
+  const { mutation: mutationOptions } = options
+    ? options.mutation &&
+      'mutationKey' in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey } };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof v1ChatSessionsMessagesCreate>>,
+    { id: string; data: ChatSessionRequest }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return v1ChatSessionsMessagesCreate(id, data);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type V1ChatSessionsMessagesCreateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof v1ChatSessionsMessagesCreate>>
+>;
+export type V1ChatSessionsMessagesCreateMutationBody = ChatSessionRequest;
+export type V1ChatSessionsMessagesCreateMutationError = unknown;
+
+export const useV1ChatSessionsMessagesCreate = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof v1ChatSessionsMessagesCreate>>,
+      TError,
+      { id: string; data: ChatSessionRequest },
+      TContext
+    >;
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof v1ChatSessionsMessagesCreate>>,
+  TError,
+  { id: string; data: ChatSessionRequest },
+  TContext
+> => {
+  const mutationOptions =
+    getV1ChatSessionsMessagesCreateMutationOptions(options);
+
+  return useMutation(mutationOptions, queryClient);
+};
+
 /**
  * Detailed analytics including user growth, revenue trends, and cohort retention.
  */
-export const v1analyticsRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/dashboard/analytics/`, method: 'GET', signal },
-    options
-  );
+export const v1analyticsRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/dashboard/analytics/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1analyticsRetrieveQueryKey = () => {
@@ -5749,15 +6885,14 @@ export const getV1analyticsRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1analyticsRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1analyticsRetrieve>>
-  > = ({ signal }) => v1analyticsRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1analyticsRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1analyticsRetrieve>>,
@@ -5791,7 +6926,6 @@ export function useV1analyticsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -5817,7 +6951,6 @@ export function useV1analyticsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -5833,7 +6966,6 @@ export function useV1analyticsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -5850,7 +6982,6 @@ export function useV1analyticsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -5869,14 +7000,12 @@ export function useV1analyticsRetrieve<
 /**
  * License usage statistics: activations, usage events, popular features, etc.
  */
-export const v1licenseUsageRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/dashboard/license-usage/`, method: 'GET', signal },
-    options
-  );
+export const v1licenseUsageRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/dashboard/license-usage/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1licenseUsageRetrieveQueryKey = () => {
@@ -5894,16 +7023,15 @@ export const getV1licenseUsageRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1licenseUsageRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1licenseUsageRetrieve>>
-  > = ({ signal }) => v1licenseUsageRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1licenseUsageRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1licenseUsageRetrieve>>,
@@ -5937,7 +7065,6 @@ export function useV1licenseUsageRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -5963,7 +7090,6 @@ export function useV1licenseUsageRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -5979,7 +7105,6 @@ export function useV1licenseUsageRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -5996,7 +7121,6 @@ export function useV1licenseUsageRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -6015,14 +7139,12 @@ export function useV1licenseUsageRetrieve<
 /**
  * High‑level dashboard overview with key metrics and recent trends.
  */
-export const v1overviewRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/dashboard/overview/`, method: 'GET', signal },
-    options
-  );
+export const v1overviewRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/dashboard/overview/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1overviewRetrieveQueryKey = () => {
@@ -6040,15 +7162,14 @@ export const getV1overviewRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1overviewRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1overviewRetrieve>>
-  > = ({ signal }) => v1overviewRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1overviewRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1overviewRetrieve>>,
@@ -6082,7 +7203,6 @@ export function useV1overviewRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -6108,7 +7228,6 @@ export function useV1overviewRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -6124,7 +7243,6 @@ export function useV1overviewRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -6141,7 +7259,6 @@ export function useV1overviewRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -6161,14 +7278,12 @@ export function useV1overviewRetrieve<
  * Generate aggregated reports based on query parameters.
 Supports type=sales|users|licenses and date range from=YYYY-MM-DD to=YYYY-MM-DD.
  */
-export const v1reportsRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/dashboard/reports/`, method: 'GET', signal },
-    options
-  );
+export const v1reportsRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/dashboard/reports/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1reportsRetrieveQueryKey = () => {
@@ -6186,15 +7301,14 @@ export const getV1reportsRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1reportsRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1reportsRetrieve>>
-  > = ({ signal }) => v1reportsRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1reportsRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1reportsRetrieve>>,
@@ -6228,7 +7342,6 @@ export function useV1reportsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -6254,7 +7367,6 @@ export function useV1reportsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -6270,7 +7382,6 @@ export function useV1reportsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -6287,7 +7398,6 @@ export function useV1reportsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -6306,14 +7416,12 @@ export function useV1reportsRetrieve<
 /**
  * Sales‑focused metrics: revenue, MRR, ARPU, top customers, etc.
  */
-export const v1salesRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/dashboard/sales/`, method: 'GET', signal },
-    options
-  );
+export const v1salesRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/dashboard/sales/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1salesRetrieveQueryKey = () => {
@@ -6327,15 +7435,14 @@ export const getV1salesRetrieveQueryOptions = <
   query?: Partial<
     UseQueryOptions<Awaited<ReturnType<typeof v1salesRetrieve>>, TError, TData>
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1salesRetrieveQueryKey();
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof v1salesRetrieve>>> = ({
     signal,
-  }) => v1salesRetrieve(requestOptions, signal);
+  }) => v1salesRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1salesRetrieve>>,
@@ -6369,7 +7476,6 @@ export function useV1salesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -6395,7 +7501,6 @@ export function useV1salesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -6411,7 +7516,6 @@ export function useV1salesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -6428,7 +7532,6 @@ export function useV1salesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -6451,14 +7554,12 @@ Data is precomputed in a snapshot and cached for 5 minutes.
 Cache is managed manually to avoid cross‑user contamination and to
 align with the snapshot update schedule.
  */
-export const v1statsRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/dashboard/stats/`, method: 'GET', signal },
-    options
-  );
+export const v1statsRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/dashboard/stats/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1statsRetrieveQueryKey = () => {
@@ -6472,15 +7573,14 @@ export const getV1statsRetrieveQueryOptions = <
   query?: Partial<
     UseQueryOptions<Awaited<ReturnType<typeof v1statsRetrieve>>, TError, TData>
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1statsRetrieveQueryKey();
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof v1statsRetrieve>>> = ({
     signal,
-  }) => v1statsRetrieve(requestOptions, signal);
+  }) => v1statsRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1statsRetrieve>>,
@@ -6514,7 +7614,6 @@ export function useV1statsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -6540,7 +7639,6 @@ export function useV1statsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -6556,7 +7654,6 @@ export function useV1statsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -6573,7 +7670,6 @@ export function useV1statsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -6593,14 +7689,12 @@ export function useV1statsRetrieve<
  * System health metrics: Celery queue sizes, cache stats, error logs, etc.
 For now returns placeholder data; can be extended with real monitoring integrations.
  */
-export const v1systemMonitoringRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/dashboard/system-monitoring/`, method: 'GET', signal },
-    options
-  );
+export const v1systemMonitoringRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/dashboard/system-monitoring/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1systemMonitoringRetrieveQueryKey = () => {
@@ -6618,16 +7712,15 @@ export const getV1systemMonitoringRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1systemMonitoringRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1systemMonitoringRetrieve>>
-  > = ({ signal }) => v1systemMonitoringRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1systemMonitoringRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1systemMonitoringRetrieve>>,
@@ -6661,7 +7754,6 @@ export function useV1systemMonitoringRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -6687,7 +7779,6 @@ export function useV1systemMonitoringRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -6703,7 +7794,6 @@ export function useV1systemMonitoringRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -6720,7 +7810,6 @@ export function useV1systemMonitoringRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -6739,14 +7828,12 @@ export function useV1systemMonitoringRetrieve<
 /**
  * Recent user activity: logins, license activations, deactivations, revocations.
  */
-export const v1userActivityRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/dashboard/user-activity/`, method: 'GET', signal },
-    options
-  );
+export const v1userActivityRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/dashboard/user-activity/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1userActivityRetrieveQueryKey = () => {
@@ -6764,16 +7851,15 @@ export const getV1userActivityRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1userActivityRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1userActivityRetrieve>>
-  > = ({ signal }) => v1userActivityRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1userActivityRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1userActivityRetrieve>>,
@@ -6807,7 +7893,6 @@ export function useV1userActivityRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -6833,7 +7918,6 @@ export function useV1userActivityRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -6849,7 +7933,6 @@ export function useV1userActivityRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -6866,7 +7949,6 @@ export function useV1userActivityRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -6887,19 +7969,15 @@ export function useV1userActivityRetrieve<
  */
 export const v1LicensesActivateCreate = (
   activationRequestRequest: ActivationRequestRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<ActivationRequest>(
-    {
-      url: `/api/v1/licenses/activate/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: activationRequestRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<ActivationRequest>({
+    url: `/api/v1/licenses/activate/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: activationRequestRequest,
+    signal,
+  });
 };
 
 export const getV1LicensesActivateCreateMutationOptions = <
@@ -6912,7 +7990,6 @@ export const getV1LicensesActivateCreateMutationOptions = <
     { data: ActivationRequestRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesActivateCreate>>,
   TError,
@@ -6920,13 +7997,13 @@ export const getV1LicensesActivateCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesActivateCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesActivateCreate>>,
@@ -6934,7 +8011,7 @@ export const getV1LicensesActivateCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1LicensesActivateCreate(data, requestOptions);
+    return v1LicensesActivateCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -6957,7 +8034,6 @@ export const useV1LicensesActivateCreate = <
       { data: ActivationRequestRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -6977,18 +8053,14 @@ Users can view their own codes; admins can manage all.
  */
 export const v1LicensesActivationCodesList = (
   params?: V1LicensesActivationCodesListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedActivationCodeList>(
-    {
-      url: `/api/v1/licenses/activation-codes/`,
-      method: 'GET',
-      params,
-      signal,
-    },
-    options
-  );
+  return fetcher<PaginatedActivationCodeList>({
+    url: `/api/v1/licenses/activation-codes/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1LicensesActivationCodesListQueryKey = (
@@ -7013,18 +8085,16 @@ export const getV1LicensesActivationCodesListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1LicensesActivationCodesListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1LicensesActivationCodesList>>
-  > = ({ signal }) =>
-    v1LicensesActivationCodesList(params, requestOptions, signal);
+  > = ({ signal }) => v1LicensesActivationCodesList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1LicensesActivationCodesList>>,
@@ -7059,7 +8129,6 @@ export function useV1LicensesActivationCodesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -7086,7 +8155,6 @@ export function useV1LicensesActivationCodesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -7103,7 +8171,6 @@ export function useV1LicensesActivationCodesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -7121,7 +8188,6 @@ export function useV1LicensesActivationCodesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -7146,19 +8212,15 @@ Users can view their own codes; admins can manage all.
  */
 export const v1LicensesActivationCodesCreate = (
   activationCodeRequest: ActivationCodeRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<ActivationCode>(
-    {
-      url: `/api/v1/licenses/activation-codes/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: activationCodeRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<ActivationCode>({
+    url: `/api/v1/licenses/activation-codes/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: activationCodeRequest,
+    signal,
+  });
 };
 
 export const getV1LicensesActivationCodesCreateMutationOptions = <
@@ -7171,7 +8233,6 @@ export const getV1LicensesActivationCodesCreateMutationOptions = <
     { data: ActivationCodeRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesActivationCodesCreate>>,
   TError,
@@ -7179,13 +8240,13 @@ export const getV1LicensesActivationCodesCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesActivationCodesCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesActivationCodesCreate>>,
@@ -7193,7 +8254,7 @@ export const getV1LicensesActivationCodesCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1LicensesActivationCodesCreate(data, requestOptions);
+    return v1LicensesActivationCodesCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -7216,7 +8277,6 @@ export const useV1LicensesActivationCodesCreate = <
       { data: ActivationCodeRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -7237,13 +8297,13 @@ Users can view their own codes; admins can manage all.
  */
 export const v1LicensesActivationCodesRetrieve = (
   id: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<ActivationCode>(
-    { url: `/api/v1/licenses/activation-codes/${id}/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<ActivationCode>({
+    url: `/api/v1/licenses/activation-codes/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1LicensesActivationCodesRetrieveQueryKey = (id?: string) => {
@@ -7263,18 +8323,16 @@ export const getV1LicensesActivationCodesRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1LicensesActivationCodesRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1LicensesActivationCodesRetrieve>>
-  > = ({ signal }) =>
-    v1LicensesActivationCodesRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1LicensesActivationCodesRetrieve(id, signal);
 
   return {
     queryKey,
@@ -7314,7 +8372,6 @@ export function useV1LicensesActivationCodesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -7341,7 +8398,6 @@ export function useV1LicensesActivationCodesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -7358,7 +8414,6 @@ export function useV1LicensesActivationCodesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -7376,7 +8431,6 @@ export function useV1LicensesActivationCodesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -7401,18 +8455,14 @@ Users can view their own codes; admins can manage all.
  */
 export const v1LicensesActivationCodesUpdate = (
   id: string,
-  activationCodeRequest: ActivationCodeRequest,
-  options?: SecondParameter<typeof fetcher>
+  activationCodeRequest: ActivationCodeRequest
 ) => {
-  return fetcher<ActivationCode>(
-    {
-      url: `/api/v1/licenses/activation-codes/${id}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: activationCodeRequest,
-    },
-    options
-  );
+  return fetcher<ActivationCode>({
+    url: `/api/v1/licenses/activation-codes/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: activationCodeRequest,
+  });
 };
 
 export const getV1LicensesActivationCodesUpdateMutationOptions = <
@@ -7425,7 +8475,6 @@ export const getV1LicensesActivationCodesUpdateMutationOptions = <
     { id: string; data: ActivationCodeRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesActivationCodesUpdate>>,
   TError,
@@ -7433,13 +8482,13 @@ export const getV1LicensesActivationCodesUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesActivationCodesUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesActivationCodesUpdate>>,
@@ -7447,7 +8496,7 @@ export const getV1LicensesActivationCodesUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1LicensesActivationCodesUpdate(id, data, requestOptions);
+    return v1LicensesActivationCodesUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -7470,7 +8519,6 @@ export const useV1LicensesActivationCodesUpdate = <
       { id: string; data: ActivationCodeRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -7491,18 +8539,14 @@ Users can view their own codes; admins can manage all.
  */
 export const v1LicensesActivationCodesPartialUpdate = (
   id: string,
-  patchedActivationCodeRequest: PatchedActivationCodeRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedActivationCodeRequest: PatchedActivationCodeRequest
 ) => {
-  return fetcher<ActivationCode>(
-    {
-      url: `/api/v1/licenses/activation-codes/${id}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedActivationCodeRequest,
-    },
-    options
-  );
+  return fetcher<ActivationCode>({
+    url: `/api/v1/licenses/activation-codes/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedActivationCodeRequest,
+  });
 };
 
 export const getV1LicensesActivationCodesPartialUpdateMutationOptions = <
@@ -7515,7 +8559,6 @@ export const getV1LicensesActivationCodesPartialUpdateMutationOptions = <
     { id: string; data: PatchedActivationCodeRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesActivationCodesPartialUpdate>>,
   TError,
@@ -7523,13 +8566,13 @@ export const getV1LicensesActivationCodesPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesActivationCodesPartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesActivationCodesPartialUpdate>>,
@@ -7537,7 +8580,7 @@ export const getV1LicensesActivationCodesPartialUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1LicensesActivationCodesPartialUpdate(id, data, requestOptions);
+    return v1LicensesActivationCodesPartialUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -7561,7 +8604,6 @@ export const useV1LicensesActivationCodesPartialUpdate = <
       { id: string; data: PatchedActivationCodeRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -7580,14 +8622,11 @@ export const useV1LicensesActivationCodesPartialUpdate = <
  * ViewSet for activation codes.
 Users can view their own codes; admins can manage all.
  */
-export const v1LicensesActivationCodesDestroy = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/licenses/activation-codes/${id}/`, method: 'DELETE' },
-    options
-  );
+export const v1LicensesActivationCodesDestroy = (id: string) => {
+  return fetcher<void>({
+    url: `/api/v1/licenses/activation-codes/${id}/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1LicensesActivationCodesDestroyMutationOptions = <
@@ -7600,7 +8639,6 @@ export const getV1LicensesActivationCodesDestroyMutationOptions = <
     { id: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesActivationCodesDestroy>>,
   TError,
@@ -7608,13 +8646,13 @@ export const getV1LicensesActivationCodesDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesActivationCodesDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesActivationCodesDestroy>>,
@@ -7622,7 +8660,7 @@ export const getV1LicensesActivationCodesDestroyMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1LicensesActivationCodesDestroy(id, requestOptions);
+    return v1LicensesActivationCodesDestroy(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -7645,7 +8683,6 @@ export const useV1LicensesActivationCodesDestroy = <
       { id: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -7666,19 +8703,15 @@ export const useV1LicensesActivationCodesDestroy = <
 export const v1LicensesActivationCodesActivateDeviceCreate = (
   id: string,
   activationCodeRequest: ActivationCodeRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<ActivationCode>(
-    {
-      url: `/api/v1/licenses/activation-codes/${id}/activate_device/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: activationCodeRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<ActivationCode>({
+    url: `/api/v1/licenses/activation-codes/${id}/activate_device/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: activationCodeRequest,
+    signal,
+  });
 };
 
 export const getV1LicensesActivationCodesActivateDeviceCreateMutationOptions = <
@@ -7691,7 +8724,6 @@ export const getV1LicensesActivationCodesActivateDeviceCreateMutationOptions = <
     { id: string; data: ActivationCodeRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesActivationCodesActivateDeviceCreate>>,
   TError,
@@ -7699,13 +8731,13 @@ export const getV1LicensesActivationCodesActivateDeviceCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesActivationCodesActivateDeviceCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesActivationCodesActivateDeviceCreate>>,
@@ -7713,11 +8745,7 @@ export const getV1LicensesActivationCodesActivateDeviceCreateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1LicensesActivationCodesActivateDeviceCreate(
-      id,
-      data,
-      requestOptions
-    );
+    return v1LicensesActivationCodesActivateDeviceCreate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -7743,7 +8771,6 @@ export const useV1LicensesActivationCodesActivateDeviceCreate = <
       { id: string; data: ActivationCodeRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -7764,19 +8791,15 @@ export const useV1LicensesActivationCodesActivateDeviceCreate = <
 export const v1LicensesActivationCodesDeactivateDeviceCreate = (
   id: string,
   activationCodeRequest: ActivationCodeRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<ActivationCode>(
-    {
-      url: `/api/v1/licenses/activation-codes/${id}/deactivate_device/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: activationCodeRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<ActivationCode>({
+    url: `/api/v1/licenses/activation-codes/${id}/deactivate_device/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: activationCodeRequest,
+    signal,
+  });
 };
 
 export const getV1LicensesActivationCodesDeactivateDeviceCreateMutationOptions =
@@ -7789,7 +8812,6 @@ export const getV1LicensesActivationCodesDeactivateDeviceCreateMutationOptions =
       { id: string; data: ActivationCodeRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   }): UseMutationOptions<
     Awaited<ReturnType<typeof v1LicensesActivationCodesDeactivateDeviceCreate>>,
     TError,
@@ -7797,13 +8819,13 @@ export const getV1LicensesActivationCodesDeactivateDeviceCreateMutationOptions =
     TContext
   > => {
     const mutationKey = ['v1LicensesActivationCodesDeactivateDeviceCreate'];
-    const { mutation: mutationOptions, request: requestOptions } = options
+    const { mutation: mutationOptions } = options
       ? options.mutation &&
         'mutationKey' in options.mutation &&
         options.mutation.mutationKey
         ? options
         : { ...options, mutation: { ...options.mutation, mutationKey } }
-      : { mutation: { mutationKey }, request: undefined };
+      : { mutation: { mutationKey } };
 
     const mutationFn: MutationFunction<
       Awaited<
@@ -7813,11 +8835,7 @@ export const getV1LicensesActivationCodesDeactivateDeviceCreateMutationOptions =
     > = (props) => {
       const { id, data } = props ?? {};
 
-      return v1LicensesActivationCodesDeactivateDeviceCreate(
-        id,
-        data,
-        requestOptions
-      );
+      return v1LicensesActivationCodesDeactivateDeviceCreate(id, data);
     };
 
     return { mutationFn, ...mutationOptions };
@@ -7845,7 +8863,6 @@ export const useV1LicensesActivationCodesDeactivateDeviceCreate = <
       { id: string; data: ActivationCodeRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -7865,17 +8882,13 @@ export const useV1LicensesActivationCodesDeactivateDeviceCreate = <
  */
 export const v1LicensesActivationCodesLicenseFileRetrieve = (
   id: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<ActivationCode>(
-    {
-      url: `/api/v1/licenses/activation-codes/${id}/license_file/`,
-      method: 'GET',
-      signal,
-    },
-    options
-  );
+  return fetcher<ActivationCode>({
+    url: `/api/v1/licenses/activation-codes/${id}/license_file/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1LicensesActivationCodesLicenseFileRetrieveQueryKey = (
@@ -7901,10 +8914,9 @@ export const getV1LicensesActivationCodesLicenseFileRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ??
@@ -7912,8 +8924,7 @@ export const getV1LicensesActivationCodesLicenseFileRetrieveQueryOptions = <
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1LicensesActivationCodesLicenseFileRetrieve>>
-  > = ({ signal }) =>
-    v1LicensesActivationCodesLicenseFileRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1LicensesActivationCodesLicenseFileRetrieve(id, signal);
 
   return {
     queryKey,
@@ -7962,7 +8973,6 @@ export function useV1LicensesActivationCodesLicenseFileRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -7997,7 +9007,6 @@ export function useV1LicensesActivationCodesLicenseFileRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -8018,7 +9027,6 @@ export function useV1LicensesActivationCodesLicenseFileRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -8040,7 +9048,6 @@ export function useV1LicensesActivationCodesLicenseFileRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -8061,17 +9068,13 @@ export function useV1LicensesActivationCodesLicenseFileRetrieve<
  * Get current user's licenses with software details.
  */
 export const v1LicensesActivationCodesMyLicensesRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<ActivationCode>(
-    {
-      url: `/api/v1/licenses/activation-codes/my_licenses/`,
-      method: 'GET',
-      signal,
-    },
-    options
-  );
+  return fetcher<ActivationCode>({
+    url: `/api/v1/licenses/activation-codes/my_licenses/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1LicensesActivationCodesMyLicensesRetrieveQueryKey = () => {
@@ -8091,9 +9094,8 @@ export const getV1LicensesActivationCodesMyLicensesRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ??
@@ -8101,8 +9103,7 @@ export const getV1LicensesActivationCodesMyLicensesRetrieveQueryOptions = <
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1LicensesActivationCodesMyLicensesRetrieve>>
-  > = ({ signal }) =>
-    v1LicensesActivationCodesMyLicensesRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1LicensesActivationCodesMyLicensesRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1LicensesActivationCodesMyLicensesRetrieve>>,
@@ -8143,7 +9144,6 @@ export function useV1LicensesActivationCodesMyLicensesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -8175,7 +9175,6 @@ export function useV1LicensesActivationCodesMyLicensesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -8193,7 +9192,6 @@ export function useV1LicensesActivationCodesMyLicensesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -8212,7 +9210,6 @@ export function useV1LicensesActivationCodesMyLicensesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -8234,13 +9231,14 @@ export function useV1LicensesActivationCodesMyLicensesRetrieve<
  */
 export const v1LicensesBatchesList = (
   params?: V1LicensesBatchesListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedCodeBatchList>(
-    { url: `/api/v1/licenses/batches/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedCodeBatchList>({
+    url: `/api/v1/licenses/batches/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1LicensesBatchesListQueryKey = (
@@ -8262,17 +9260,16 @@ export const getV1LicensesBatchesListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1LicensesBatchesListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1LicensesBatchesList>>
-  > = ({ signal }) => v1LicensesBatchesList(params, requestOptions, signal);
+  > = ({ signal }) => v1LicensesBatchesList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1LicensesBatchesList>>,
@@ -8307,7 +9304,6 @@ export function useV1LicensesBatchesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -8334,7 +9330,6 @@ export function useV1LicensesBatchesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -8351,7 +9346,6 @@ export function useV1LicensesBatchesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -8369,7 +9363,6 @@ export function useV1LicensesBatchesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -8390,19 +9383,15 @@ export function useV1LicensesBatchesList<
  */
 export const v1LicensesBatchesCreate = (
   codeBatchRequest: CodeBatchRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<CodeBatch>(
-    {
-      url: `/api/v1/licenses/batches/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: codeBatchRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<CodeBatch>({
+    url: `/api/v1/licenses/batches/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: codeBatchRequest,
+    signal,
+  });
 };
 
 export const getV1LicensesBatchesCreateMutationOptions = <
@@ -8415,7 +9404,6 @@ export const getV1LicensesBatchesCreateMutationOptions = <
     { data: CodeBatchRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesBatchesCreate>>,
   TError,
@@ -8423,13 +9411,13 @@ export const getV1LicensesBatchesCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesBatchesCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesBatchesCreate>>,
@@ -8437,7 +9425,7 @@ export const getV1LicensesBatchesCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1LicensesBatchesCreate(data, requestOptions);
+    return v1LicensesBatchesCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -8460,7 +9448,6 @@ export const useV1LicensesBatchesCreate = <
       { data: CodeBatchRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -8477,15 +9464,12 @@ export const useV1LicensesBatchesCreate = <
 /**
  * ViewSet for code batches (admin only).
  */
-export const v1LicensesBatchesRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<CodeBatch>(
-    { url: `/api/v1/licenses/batches/${id}/`, method: 'GET', signal },
-    options
-  );
+export const v1LicensesBatchesRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<CodeBatch>({
+    url: `/api/v1/licenses/batches/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1LicensesBatchesRetrieveQueryKey = (id?: string) => {
@@ -8505,17 +9489,16 @@ export const getV1LicensesBatchesRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1LicensesBatchesRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1LicensesBatchesRetrieve>>
-  > = ({ signal }) => v1LicensesBatchesRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1LicensesBatchesRetrieve(id, signal);
 
   return {
     queryKey,
@@ -8555,7 +9538,6 @@ export function useV1LicensesBatchesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -8582,7 +9564,6 @@ export function useV1LicensesBatchesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -8599,7 +9580,6 @@ export function useV1LicensesBatchesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -8617,7 +9597,6 @@ export function useV1LicensesBatchesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -8638,18 +9617,14 @@ export function useV1LicensesBatchesRetrieve<
  */
 export const v1LicensesBatchesUpdate = (
   id: string,
-  codeBatchRequest: CodeBatchRequest,
-  options?: SecondParameter<typeof fetcher>
+  codeBatchRequest: CodeBatchRequest
 ) => {
-  return fetcher<CodeBatch>(
-    {
-      url: `/api/v1/licenses/batches/${id}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: codeBatchRequest,
-    },
-    options
-  );
+  return fetcher<CodeBatch>({
+    url: `/api/v1/licenses/batches/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: codeBatchRequest,
+  });
 };
 
 export const getV1LicensesBatchesUpdateMutationOptions = <
@@ -8662,7 +9637,6 @@ export const getV1LicensesBatchesUpdateMutationOptions = <
     { id: string; data: CodeBatchRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesBatchesUpdate>>,
   TError,
@@ -8670,13 +9644,13 @@ export const getV1LicensesBatchesUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesBatchesUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesBatchesUpdate>>,
@@ -8684,7 +9658,7 @@ export const getV1LicensesBatchesUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1LicensesBatchesUpdate(id, data, requestOptions);
+    return v1LicensesBatchesUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -8707,7 +9681,6 @@ export const useV1LicensesBatchesUpdate = <
       { id: string; data: CodeBatchRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -8726,18 +9699,14 @@ export const useV1LicensesBatchesUpdate = <
  */
 export const v1LicensesBatchesPartialUpdate = (
   id: string,
-  patchedCodeBatchRequest: PatchedCodeBatchRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedCodeBatchRequest: PatchedCodeBatchRequest
 ) => {
-  return fetcher<CodeBatch>(
-    {
-      url: `/api/v1/licenses/batches/${id}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedCodeBatchRequest,
-    },
-    options
-  );
+  return fetcher<CodeBatch>({
+    url: `/api/v1/licenses/batches/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedCodeBatchRequest,
+  });
 };
 
 export const getV1LicensesBatchesPartialUpdateMutationOptions = <
@@ -8750,7 +9719,6 @@ export const getV1LicensesBatchesPartialUpdateMutationOptions = <
     { id: string; data: PatchedCodeBatchRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesBatchesPartialUpdate>>,
   TError,
@@ -8758,13 +9726,13 @@ export const getV1LicensesBatchesPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesBatchesPartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesBatchesPartialUpdate>>,
@@ -8772,7 +9740,7 @@ export const getV1LicensesBatchesPartialUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1LicensesBatchesPartialUpdate(id, data, requestOptions);
+    return v1LicensesBatchesPartialUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -8796,7 +9764,6 @@ export const useV1LicensesBatchesPartialUpdate = <
       { id: string; data: PatchedCodeBatchRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -8814,14 +9781,11 @@ export const useV1LicensesBatchesPartialUpdate = <
 /**
  * ViewSet for code batches (admin only).
  */
-export const v1LicensesBatchesDestroy = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/licenses/batches/${id}/`, method: 'DELETE' },
-    options
-  );
+export const v1LicensesBatchesDestroy = (id: string) => {
+  return fetcher<void>({
+    url: `/api/v1/licenses/batches/${id}/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1LicensesBatchesDestroyMutationOptions = <
@@ -8834,7 +9798,6 @@ export const getV1LicensesBatchesDestroyMutationOptions = <
     { id: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesBatchesDestroy>>,
   TError,
@@ -8842,13 +9805,13 @@ export const getV1LicensesBatchesDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesBatchesDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesBatchesDestroy>>,
@@ -8856,7 +9819,7 @@ export const getV1LicensesBatchesDestroyMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1LicensesBatchesDestroy(id, requestOptions);
+    return v1LicensesBatchesDestroy(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -8879,7 +9842,6 @@ export const useV1LicensesBatchesDestroy = <
       { id: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -8898,13 +9860,13 @@ export const useV1LicensesBatchesDestroy = <
  */
 export const v1LicensesBatchesCodesRetrieve = (
   id: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<CodeBatch>(
-    { url: `/api/v1/licenses/batches/${id}/codes/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<CodeBatch>({
+    url: `/api/v1/licenses/batches/${id}/codes/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1LicensesBatchesCodesRetrieveQueryKey = (id?: string) => {
@@ -8924,18 +9886,16 @@ export const getV1LicensesBatchesCodesRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1LicensesBatchesCodesRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1LicensesBatchesCodesRetrieve>>
-  > = ({ signal }) =>
-    v1LicensesBatchesCodesRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1LicensesBatchesCodesRetrieve(id, signal);
 
   return {
     queryKey,
@@ -8975,7 +9935,6 @@ export function useV1LicensesBatchesCodesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -9002,7 +9961,6 @@ export function useV1LicensesBatchesCodesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -9019,7 +9977,6 @@ export function useV1LicensesBatchesCodesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -9037,7 +9994,6 @@ export function useV1LicensesBatchesCodesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -9061,17 +10017,13 @@ export function useV1LicensesBatchesCodesRetrieve<
  */
 export const v1LicensesCheckUpdatesRetrieve = (
   softwareSlug: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<void>(
-    {
-      url: `/api/v1/licenses/check-updates/${softwareSlug}/`,
-      method: 'GET',
-      signal,
-    },
-    options
-  );
+  return fetcher<void>({
+    url: `/api/v1/licenses/check-updates/${softwareSlug}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1LicensesCheckUpdatesRetrieveQueryKey = (
@@ -9093,10 +10045,9 @@ export const getV1LicensesCheckUpdatesRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ??
@@ -9104,8 +10055,7 @@ export const getV1LicensesCheckUpdatesRetrieveQueryOptions = <
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1LicensesCheckUpdatesRetrieve>>
-  > = ({ signal }) =>
-    v1LicensesCheckUpdatesRetrieve(softwareSlug, requestOptions, signal);
+  > = ({ signal }) => v1LicensesCheckUpdatesRetrieve(softwareSlug, signal);
 
   return {
     queryKey,
@@ -9145,7 +10095,6 @@ export function useV1LicensesCheckUpdatesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -9172,7 +10121,6 @@ export function useV1LicensesCheckUpdatesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -9189,7 +10137,6 @@ export function useV1LicensesCheckUpdatesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -9207,7 +10154,6 @@ export function useV1LicensesCheckUpdatesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -9231,19 +10177,15 @@ export function useV1LicensesCheckUpdatesRetrieve<
  */
 export const v1LicensesDeactivateCreate = (
   deactivationRequestRequest: DeactivationRequestRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<DeactivationRequest>(
-    {
-      url: `/api/v1/licenses/deactivate/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: deactivationRequestRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<DeactivationRequest>({
+    url: `/api/v1/licenses/deactivate/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: deactivationRequestRequest,
+    signal,
+  });
 };
 
 export const getV1LicensesDeactivateCreateMutationOptions = <
@@ -9256,7 +10198,6 @@ export const getV1LicensesDeactivateCreateMutationOptions = <
     { data: DeactivationRequestRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesDeactivateCreate>>,
   TError,
@@ -9264,13 +10205,13 @@ export const getV1LicensesDeactivateCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesDeactivateCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesDeactivateCreate>>,
@@ -9278,7 +10219,7 @@ export const getV1LicensesDeactivateCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1LicensesDeactivateCreate(data, requestOptions);
+    return v1LicensesDeactivateCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -9301,7 +10242,6 @@ export const useV1LicensesDeactivateCreate = <
       { data: DeactivationRequestRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -9320,13 +10260,14 @@ export const useV1LicensesDeactivateCreate = <
  */
 export const v1LicensesFeaturesList = (
   params?: V1LicensesFeaturesListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedLicenseFeatureList>(
-    { url: `/api/v1/licenses/features/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedLicenseFeatureList>({
+    url: `/api/v1/licenses/features/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1LicensesFeaturesListQueryKey = (
@@ -9348,17 +10289,16 @@ export const getV1LicensesFeaturesListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1LicensesFeaturesListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1LicensesFeaturesList>>
-  > = ({ signal }) => v1LicensesFeaturesList(params, requestOptions, signal);
+  > = ({ signal }) => v1LicensesFeaturesList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1LicensesFeaturesList>>,
@@ -9393,7 +10333,6 @@ export function useV1LicensesFeaturesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -9420,7 +10359,6 @@ export function useV1LicensesFeaturesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -9437,7 +10375,6 @@ export function useV1LicensesFeaturesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -9455,7 +10392,6 @@ export function useV1LicensesFeaturesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -9476,19 +10412,15 @@ export function useV1LicensesFeaturesList<
  */
 export const v1LicensesFeaturesCreate = (
   licenseFeatureRequest: LicenseFeatureRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<LicenseFeature>(
-    {
-      url: `/api/v1/licenses/features/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: licenseFeatureRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<LicenseFeature>({
+    url: `/api/v1/licenses/features/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: licenseFeatureRequest,
+    signal,
+  });
 };
 
 export const getV1LicensesFeaturesCreateMutationOptions = <
@@ -9501,7 +10433,6 @@ export const getV1LicensesFeaturesCreateMutationOptions = <
     { data: LicenseFeatureRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesFeaturesCreate>>,
   TError,
@@ -9509,13 +10440,13 @@ export const getV1LicensesFeaturesCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesFeaturesCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesFeaturesCreate>>,
@@ -9523,7 +10454,7 @@ export const getV1LicensesFeaturesCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1LicensesFeaturesCreate(data, requestOptions);
+    return v1LicensesFeaturesCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -9546,7 +10477,6 @@ export const useV1LicensesFeaturesCreate = <
       { data: LicenseFeatureRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -9565,13 +10495,13 @@ export const useV1LicensesFeaturesCreate = <
  */
 export const v1LicensesFeaturesRetrieve = (
   id: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<LicenseFeature>(
-    { url: `/api/v1/licenses/features/${id}/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<LicenseFeature>({
+    url: `/api/v1/licenses/features/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1LicensesFeaturesRetrieveQueryKey = (id?: string) => {
@@ -9591,17 +10521,16 @@ export const getV1LicensesFeaturesRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1LicensesFeaturesRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1LicensesFeaturesRetrieve>>
-  > = ({ signal }) => v1LicensesFeaturesRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1LicensesFeaturesRetrieve(id, signal);
 
   return {
     queryKey,
@@ -9641,7 +10570,6 @@ export function useV1LicensesFeaturesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -9668,7 +10596,6 @@ export function useV1LicensesFeaturesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -9685,7 +10612,6 @@ export function useV1LicensesFeaturesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -9703,7 +10629,6 @@ export function useV1LicensesFeaturesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -9724,18 +10649,14 @@ export function useV1LicensesFeaturesRetrieve<
  */
 export const v1LicensesFeaturesUpdate = (
   id: string,
-  licenseFeatureRequest: LicenseFeatureRequest,
-  options?: SecondParameter<typeof fetcher>
+  licenseFeatureRequest: LicenseFeatureRequest
 ) => {
-  return fetcher<LicenseFeature>(
-    {
-      url: `/api/v1/licenses/features/${id}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: licenseFeatureRequest,
-    },
-    options
-  );
+  return fetcher<LicenseFeature>({
+    url: `/api/v1/licenses/features/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: licenseFeatureRequest,
+  });
 };
 
 export const getV1LicensesFeaturesUpdateMutationOptions = <
@@ -9748,7 +10669,6 @@ export const getV1LicensesFeaturesUpdateMutationOptions = <
     { id: string; data: LicenseFeatureRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesFeaturesUpdate>>,
   TError,
@@ -9756,13 +10676,13 @@ export const getV1LicensesFeaturesUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesFeaturesUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesFeaturesUpdate>>,
@@ -9770,7 +10690,7 @@ export const getV1LicensesFeaturesUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1LicensesFeaturesUpdate(id, data, requestOptions);
+    return v1LicensesFeaturesUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -9793,7 +10713,6 @@ export const useV1LicensesFeaturesUpdate = <
       { id: string; data: LicenseFeatureRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -9812,18 +10731,14 @@ export const useV1LicensesFeaturesUpdate = <
  */
 export const v1LicensesFeaturesPartialUpdate = (
   id: string,
-  patchedLicenseFeatureRequest: PatchedLicenseFeatureRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedLicenseFeatureRequest: PatchedLicenseFeatureRequest
 ) => {
-  return fetcher<LicenseFeature>(
-    {
-      url: `/api/v1/licenses/features/${id}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedLicenseFeatureRequest,
-    },
-    options
-  );
+  return fetcher<LicenseFeature>({
+    url: `/api/v1/licenses/features/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedLicenseFeatureRequest,
+  });
 };
 
 export const getV1LicensesFeaturesPartialUpdateMutationOptions = <
@@ -9836,7 +10751,6 @@ export const getV1LicensesFeaturesPartialUpdateMutationOptions = <
     { id: string; data: PatchedLicenseFeatureRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesFeaturesPartialUpdate>>,
   TError,
@@ -9844,13 +10758,13 @@ export const getV1LicensesFeaturesPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesFeaturesPartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesFeaturesPartialUpdate>>,
@@ -9858,7 +10772,7 @@ export const getV1LicensesFeaturesPartialUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1LicensesFeaturesPartialUpdate(id, data, requestOptions);
+    return v1LicensesFeaturesPartialUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -9882,7 +10796,6 @@ export const useV1LicensesFeaturesPartialUpdate = <
       { id: string; data: PatchedLicenseFeatureRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -9900,14 +10813,11 @@ export const useV1LicensesFeaturesPartialUpdate = <
 /**
  * ViewSet for license features (read‑only for users).
  */
-export const v1LicensesFeaturesDestroy = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/licenses/features/${id}/`, method: 'DELETE' },
-    options
-  );
+export const v1LicensesFeaturesDestroy = (id: string) => {
+  return fetcher<void>({
+    url: `/api/v1/licenses/features/${id}/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1LicensesFeaturesDestroyMutationOptions = <
@@ -9920,7 +10830,6 @@ export const getV1LicensesFeaturesDestroyMutationOptions = <
     { id: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesFeaturesDestroy>>,
   TError,
@@ -9928,13 +10837,13 @@ export const getV1LicensesFeaturesDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesFeaturesDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesFeaturesDestroy>>,
@@ -9942,7 +10851,7 @@ export const getV1LicensesFeaturesDestroyMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1LicensesFeaturesDestroy(id, requestOptions);
+    return v1LicensesFeaturesDestroy(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -9965,7 +10874,6 @@ export const useV1LicensesFeaturesDestroy = <
       { id: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -9984,19 +10892,15 @@ export const useV1LicensesFeaturesDestroy = <
  */
 export const v1LicensesGenerateCreate = (
   activationCodeRequest: ActivationCodeRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<ActivationCode>(
-    {
-      url: `/api/v1/licenses/generate/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: activationCodeRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<ActivationCode>({
+    url: `/api/v1/licenses/generate/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: activationCodeRequest,
+    signal,
+  });
 };
 
 export const getV1LicensesGenerateCreateMutationOptions = <
@@ -10009,7 +10913,6 @@ export const getV1LicensesGenerateCreateMutationOptions = <
     { data: ActivationCodeRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesGenerateCreate>>,
   TError,
@@ -10017,13 +10920,13 @@ export const getV1LicensesGenerateCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesGenerateCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesGenerateCreate>>,
@@ -10031,7 +10934,7 @@ export const getV1LicensesGenerateCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1LicensesGenerateCreate(data, requestOptions);
+    return v1LicensesGenerateCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -10054,7 +10957,6 @@ export const useV1LicensesGenerateCreate = <
       { data: ActivationCodeRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -10073,13 +10975,14 @@ export const useV1LicensesGenerateCreate = <
  */
 export const v1LicensesLogsList = (
   params?: V1LicensesLogsListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedActivationLogList>(
-    { url: `/api/v1/licenses/logs/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedActivationLogList>({
+    url: `/api/v1/licenses/logs/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1LicensesLogsListQueryKey = (
@@ -10101,17 +11004,16 @@ export const getV1LicensesLogsListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1LicensesLogsListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1LicensesLogsList>>
-  > = ({ signal }) => v1LicensesLogsList(params, requestOptions, signal);
+  > = ({ signal }) => v1LicensesLogsList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1LicensesLogsList>>,
@@ -10146,7 +11048,6 @@ export function useV1LicensesLogsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -10173,7 +11074,6 @@ export function useV1LicensesLogsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -10190,7 +11090,6 @@ export function useV1LicensesLogsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -10208,7 +11107,6 @@ export function useV1LicensesLogsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -10227,15 +11125,12 @@ export function useV1LicensesLogsList<
 /**
  * ViewSet for activation logs (users see own, admins see all).
  */
-export const v1LicensesLogsRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<ActivationLog>(
-    { url: `/api/v1/licenses/logs/${id}/`, method: 'GET', signal },
-    options
-  );
+export const v1LicensesLogsRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<ActivationLog>({
+    url: `/api/v1/licenses/logs/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1LicensesLogsRetrieveQueryKey = (id?: string) => {
@@ -10255,17 +11150,16 @@ export const getV1LicensesLogsRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1LicensesLogsRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1LicensesLogsRetrieve>>
-  > = ({ signal }) => v1LicensesLogsRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1LicensesLogsRetrieve(id, signal);
 
   return {
     queryKey,
@@ -10305,7 +11199,6 @@ export function useV1LicensesLogsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -10332,7 +11225,6 @@ export function useV1LicensesLogsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -10349,7 +11241,6 @@ export function useV1LicensesLogsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -10367,7 +11258,6 @@ export function useV1LicensesLogsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -10388,13 +11278,14 @@ export function useV1LicensesLogsRetrieve<
  */
 export const v1LicensesMyLicensesList = (
   params?: V1LicensesMyLicensesListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedActivationCodeList>(
-    { url: `/api/v1/licenses/my-licenses/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedActivationCodeList>({
+    url: `/api/v1/licenses/my-licenses/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1LicensesMyLicensesListQueryKey = (
@@ -10419,17 +11310,16 @@ export const getV1LicensesMyLicensesListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1LicensesMyLicensesListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1LicensesMyLicensesList>>
-  > = ({ signal }) => v1LicensesMyLicensesList(params, requestOptions, signal);
+  > = ({ signal }) => v1LicensesMyLicensesList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1LicensesMyLicensesList>>,
@@ -10464,7 +11354,6 @@ export function useV1LicensesMyLicensesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -10491,7 +11380,6 @@ export function useV1LicensesMyLicensesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -10508,7 +11396,6 @@ export function useV1LicensesMyLicensesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -10526,7 +11413,6 @@ export function useV1LicensesMyLicensesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -10547,19 +11433,15 @@ export function useV1LicensesMyLicensesList<
  */
 export const v1LicensesRevokeCreate = (
   revocationRequestRequest: RevocationRequestRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<RevocationRequest>(
-    {
-      url: `/api/v1/licenses/revoke/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: revocationRequestRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<RevocationRequest>({
+    url: `/api/v1/licenses/revoke/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: revocationRequestRequest,
+    signal,
+  });
 };
 
 export const getV1LicensesRevokeCreateMutationOptions = <
@@ -10572,7 +11454,6 @@ export const getV1LicensesRevokeCreateMutationOptions = <
     { data: RevocationRequestRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesRevokeCreate>>,
   TError,
@@ -10580,13 +11461,13 @@ export const getV1LicensesRevokeCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesRevokeCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesRevokeCreate>>,
@@ -10594,7 +11475,7 @@ export const getV1LicensesRevokeCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1LicensesRevokeCreate(data, requestOptions);
+    return v1LicensesRevokeCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -10614,7 +11495,6 @@ export const useV1LicensesRevokeCreate = <TError = unknown, TContext = unknown>(
       { data: RevocationRequestRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -10634,19 +11514,15 @@ export const useV1LicensesRevokeCreate = <TError = unknown, TContext = unknown>(
 export const v1LicensesRevokeCreate2 = (
   codeId: string,
   revocationRequestRequest: RevocationRequestRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<RevocationRequest>(
-    {
-      url: `/api/v1/licenses/revoke/${codeId}/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: revocationRequestRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<RevocationRequest>({
+    url: `/api/v1/licenses/revoke/${codeId}/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: revocationRequestRequest,
+    signal,
+  });
 };
 
 export const getV1LicensesRevokeCreate2MutationOptions = <
@@ -10659,7 +11535,6 @@ export const getV1LicensesRevokeCreate2MutationOptions = <
     { codeId: string; data: RevocationRequestRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesRevokeCreate2>>,
   TError,
@@ -10667,13 +11542,13 @@ export const getV1LicensesRevokeCreate2MutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesRevokeCreate2'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesRevokeCreate2>>,
@@ -10681,7 +11556,7 @@ export const getV1LicensesRevokeCreate2MutationOptions = <
   > = (props) => {
     const { codeId, data } = props ?? {};
 
-    return v1LicensesRevokeCreate2(codeId, data, requestOptions);
+    return v1LicensesRevokeCreate2(codeId, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -10704,7 +11579,6 @@ export const useV1LicensesRevokeCreate2 = <
       { codeId: string; data: RevocationRequestRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -10723,13 +11597,14 @@ export const useV1LicensesRevokeCreate2 = <
  */
 export const v1LicensesUsageList = (
   params?: V1LicensesUsageListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedLicenseUsageList>(
-    { url: `/api/v1/licenses/usage/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedLicenseUsageList>({
+    url: `/api/v1/licenses/usage/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1LicensesUsageListQueryKey = (
@@ -10751,17 +11626,16 @@ export const getV1LicensesUsageListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1LicensesUsageListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1LicensesUsageList>>
-  > = ({ signal }) => v1LicensesUsageList(params, requestOptions, signal);
+  > = ({ signal }) => v1LicensesUsageList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1LicensesUsageList>>,
@@ -10796,7 +11670,6 @@ export function useV1LicensesUsageList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -10823,7 +11696,6 @@ export function useV1LicensesUsageList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -10840,7 +11712,6 @@ export function useV1LicensesUsageList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -10858,7 +11729,6 @@ export function useV1LicensesUsageList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -10879,19 +11749,15 @@ export function useV1LicensesUsageList<
  */
 export const v1LicensesUsageCreate = (
   licenseUsageRequest: LicenseUsageRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<LicenseUsage>(
-    {
-      url: `/api/v1/licenses/usage/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: licenseUsageRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<LicenseUsage>({
+    url: `/api/v1/licenses/usage/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: licenseUsageRequest,
+    signal,
+  });
 };
 
 export const getV1LicensesUsageCreateMutationOptions = <
@@ -10904,7 +11770,6 @@ export const getV1LicensesUsageCreateMutationOptions = <
     { data: LicenseUsageRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesUsageCreate>>,
   TError,
@@ -10912,13 +11777,13 @@ export const getV1LicensesUsageCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesUsageCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesUsageCreate>>,
@@ -10926,7 +11791,7 @@ export const getV1LicensesUsageCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1LicensesUsageCreate(data, requestOptions);
+    return v1LicensesUsageCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -10946,7 +11811,6 @@ export const useV1LicensesUsageCreate = <TError = unknown, TContext = unknown>(
       { data: LicenseUsageRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -10963,15 +11827,12 @@ export const useV1LicensesUsageCreate = <TError = unknown, TContext = unknown>(
 /**
  * ViewSet for license usage tracking.
  */
-export const v1LicensesUsageRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<LicenseUsage>(
-    { url: `/api/v1/licenses/usage/${id}/`, method: 'GET', signal },
-    options
-  );
+export const v1LicensesUsageRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<LicenseUsage>({
+    url: `/api/v1/licenses/usage/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1LicensesUsageRetrieveQueryKey = (id?: string) => {
@@ -10991,17 +11852,16 @@ export const getV1LicensesUsageRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1LicensesUsageRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1LicensesUsageRetrieve>>
-  > = ({ signal }) => v1LicensesUsageRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1LicensesUsageRetrieve(id, signal);
 
   return {
     queryKey,
@@ -11041,7 +11901,6 @@ export function useV1LicensesUsageRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -11068,7 +11927,6 @@ export function useV1LicensesUsageRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -11085,7 +11943,6 @@ export function useV1LicensesUsageRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -11103,7 +11960,6 @@ export function useV1LicensesUsageRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -11124,18 +11980,14 @@ export function useV1LicensesUsageRetrieve<
  */
 export const v1LicensesUsageUpdate = (
   id: string,
-  licenseUsageRequest: LicenseUsageRequest,
-  options?: SecondParameter<typeof fetcher>
+  licenseUsageRequest: LicenseUsageRequest
 ) => {
-  return fetcher<LicenseUsage>(
-    {
-      url: `/api/v1/licenses/usage/${id}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: licenseUsageRequest,
-    },
-    options
-  );
+  return fetcher<LicenseUsage>({
+    url: `/api/v1/licenses/usage/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: licenseUsageRequest,
+  });
 };
 
 export const getV1LicensesUsageUpdateMutationOptions = <
@@ -11148,7 +12000,6 @@ export const getV1LicensesUsageUpdateMutationOptions = <
     { id: string; data: LicenseUsageRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesUsageUpdate>>,
   TError,
@@ -11156,13 +12007,13 @@ export const getV1LicensesUsageUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesUsageUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesUsageUpdate>>,
@@ -11170,7 +12021,7 @@ export const getV1LicensesUsageUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1LicensesUsageUpdate(id, data, requestOptions);
+    return v1LicensesUsageUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -11190,7 +12041,6 @@ export const useV1LicensesUsageUpdate = <TError = unknown, TContext = unknown>(
       { id: string; data: LicenseUsageRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -11209,18 +12059,14 @@ export const useV1LicensesUsageUpdate = <TError = unknown, TContext = unknown>(
  */
 export const v1LicensesUsagePartialUpdate = (
   id: string,
-  patchedLicenseUsageRequest: PatchedLicenseUsageRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedLicenseUsageRequest: PatchedLicenseUsageRequest
 ) => {
-  return fetcher<LicenseUsage>(
-    {
-      url: `/api/v1/licenses/usage/${id}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedLicenseUsageRequest,
-    },
-    options
-  );
+  return fetcher<LicenseUsage>({
+    url: `/api/v1/licenses/usage/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedLicenseUsageRequest,
+  });
 };
 
 export const getV1LicensesUsagePartialUpdateMutationOptions = <
@@ -11233,7 +12079,6 @@ export const getV1LicensesUsagePartialUpdateMutationOptions = <
     { id: string; data: PatchedLicenseUsageRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesUsagePartialUpdate>>,
   TError,
@@ -11241,13 +12086,13 @@ export const getV1LicensesUsagePartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesUsagePartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesUsagePartialUpdate>>,
@@ -11255,7 +12100,7 @@ export const getV1LicensesUsagePartialUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1LicensesUsagePartialUpdate(id, data, requestOptions);
+    return v1LicensesUsagePartialUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -11279,7 +12124,6 @@ export const useV1LicensesUsagePartialUpdate = <
       { id: string; data: PatchedLicenseUsageRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -11297,14 +12141,11 @@ export const useV1LicensesUsagePartialUpdate = <
 /**
  * ViewSet for license usage tracking.
  */
-export const v1LicensesUsageDestroy = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/licenses/usage/${id}/`, method: 'DELETE' },
-    options
-  );
+export const v1LicensesUsageDestroy = (id: string) => {
+  return fetcher<void>({
+    url: `/api/v1/licenses/usage/${id}/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1LicensesUsageDestroyMutationOptions = <
@@ -11317,7 +12158,6 @@ export const getV1LicensesUsageDestroyMutationOptions = <
     { id: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesUsageDestroy>>,
   TError,
@@ -11325,13 +12165,13 @@ export const getV1LicensesUsageDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesUsageDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesUsageDestroy>>,
@@ -11339,7 +12179,7 @@ export const getV1LicensesUsageDestroyMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1LicensesUsageDestroy(id, requestOptions);
+    return v1LicensesUsageDestroy(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -11359,7 +12199,6 @@ export const useV1LicensesUsageDestroy = <TError = unknown, TContext = unknown>(
       { id: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -11378,19 +12217,15 @@ export const useV1LicensesUsageDestroy = <TError = unknown, TContext = unknown>(
  */
 export const v1LicensesUsageLogUsageCreate = (
   licenseUsageRequest: LicenseUsageRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<LicenseUsage>(
-    {
-      url: `/api/v1/licenses/usage/log_usage/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: licenseUsageRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<LicenseUsage>({
+    url: `/api/v1/licenses/usage/log_usage/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: licenseUsageRequest,
+    signal,
+  });
 };
 
 export const getV1LicensesUsageLogUsageCreateMutationOptions = <
@@ -11403,7 +12238,6 @@ export const getV1LicensesUsageLogUsageCreateMutationOptions = <
     { data: LicenseUsageRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesUsageLogUsageCreate>>,
   TError,
@@ -11411,13 +12245,13 @@ export const getV1LicensesUsageLogUsageCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesUsageLogUsageCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesUsageLogUsageCreate>>,
@@ -11425,7 +12259,7 @@ export const getV1LicensesUsageLogUsageCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1LicensesUsageLogUsageCreate(data, requestOptions);
+    return v1LicensesUsageLogUsageCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -11448,7 +12282,6 @@ export const useV1LicensesUsageLogUsageCreate = <
       { data: LicenseUsageRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -11468,19 +12301,15 @@ export const useV1LicensesUsageLogUsageCreate = <
  */
 export const v1LicensesValidateCreate = (
   validateActivationRequest: ValidateActivationRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<ValidateActivation>(
-    {
-      url: `/api/v1/licenses/validate/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: validateActivationRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<ValidateActivation>({
+    url: `/api/v1/licenses/validate/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: validateActivationRequest,
+    signal,
+  });
 };
 
 export const getV1LicensesValidateCreateMutationOptions = <
@@ -11493,7 +12322,6 @@ export const getV1LicensesValidateCreateMutationOptions = <
     { data: ValidateActivationRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesValidateCreate>>,
   TError,
@@ -11501,13 +12329,13 @@ export const getV1LicensesValidateCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesValidateCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesValidateCreate>>,
@@ -11515,7 +12343,7 @@ export const getV1LicensesValidateCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1LicensesValidateCreate(data, requestOptions);
+    return v1LicensesValidateCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -11538,7 +12366,6 @@ export const useV1LicensesValidateCreate = <
       { data: ValidateActivationRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -11555,14 +12382,12 @@ export const useV1LicensesValidateCreate = <
 /**
  * Validate offline license file.
  */
-export const v1LicensesValidateOfflineCreate = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/licenses/validate-offline/`, method: 'POST', signal },
-    options
-  );
+export const v1LicensesValidateOfflineCreate = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/licenses/validate-offline/`,
+    method: 'POST',
+    signal,
+  });
 };
 
 export const getV1LicensesValidateOfflineCreateMutationOptions = <
@@ -11575,7 +12400,6 @@ export const getV1LicensesValidateOfflineCreateMutationOptions = <
     void,
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1LicensesValidateOfflineCreate>>,
   TError,
@@ -11583,19 +12407,19 @@ export const getV1LicensesValidateOfflineCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1LicensesValidateOfflineCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1LicensesValidateOfflineCreate>>,
     void
   > = () => {
-    return v1LicensesValidateOfflineCreate(requestOptions);
+    return v1LicensesValidateOfflineCreate();
   };
 
   return { mutationFn, ...mutationOptions };
@@ -11618,7 +12442,6 @@ export const useV1LicensesValidateOfflineCreate = <
       void,
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -11638,13 +12461,14 @@ export const useV1LicensesValidateOfflineCreate = <
  */
 export const v1PaymentsCouponsList = (
   params?: V1PaymentsCouponsListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedCouponList>(
-    { url: `/api/v1/payments/coupons/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedCouponList>({
+    url: `/api/v1/payments/coupons/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1PaymentsCouponsListQueryKey = (
@@ -11666,17 +12490,16 @@ export const getV1PaymentsCouponsListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1PaymentsCouponsListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1PaymentsCouponsList>>
-  > = ({ signal }) => v1PaymentsCouponsList(params, requestOptions, signal);
+  > = ({ signal }) => v1PaymentsCouponsList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1PaymentsCouponsList>>,
@@ -11711,7 +12534,6 @@ export function useV1PaymentsCouponsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -11738,7 +12560,6 @@ export function useV1PaymentsCouponsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -11755,7 +12576,6 @@ export function useV1PaymentsCouponsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -11773,7 +12593,6 @@ export function useV1PaymentsCouponsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -11794,19 +12613,15 @@ export function useV1PaymentsCouponsList<
  */
 export const v1PaymentsCouponsCreate = (
   couponRequest: CouponRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Coupon>(
-    {
-      url: `/api/v1/payments/coupons/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: couponRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<Coupon>({
+    url: `/api/v1/payments/coupons/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: couponRequest,
+    signal,
+  });
 };
 
 export const getV1PaymentsCouponsCreateMutationOptions = <
@@ -11819,7 +12634,6 @@ export const getV1PaymentsCouponsCreateMutationOptions = <
     { data: CouponRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1PaymentsCouponsCreate>>,
   TError,
@@ -11827,13 +12641,13 @@ export const getV1PaymentsCouponsCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1PaymentsCouponsCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1PaymentsCouponsCreate>>,
@@ -11841,7 +12655,7 @@ export const getV1PaymentsCouponsCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1PaymentsCouponsCreate(data, requestOptions);
+    return v1PaymentsCouponsCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -11864,7 +12678,6 @@ export const useV1PaymentsCouponsCreate = <
       { data: CouponRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -11881,15 +12694,12 @@ export const useV1PaymentsCouponsCreate = <
 /**
  * CRUD for coupons. Admin only.
  */
-export const v1PaymentsCouponsRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<Coupon>(
-    { url: `/api/v1/payments/coupons/${id}/`, method: 'GET', signal },
-    options
-  );
+export const v1PaymentsCouponsRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<Coupon>({
+    url: `/api/v1/payments/coupons/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1PaymentsCouponsRetrieveQueryKey = (id?: string) => {
@@ -11909,17 +12719,16 @@ export const getV1PaymentsCouponsRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1PaymentsCouponsRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1PaymentsCouponsRetrieve>>
-  > = ({ signal }) => v1PaymentsCouponsRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1PaymentsCouponsRetrieve(id, signal);
 
   return {
     queryKey,
@@ -11959,7 +12768,6 @@ export function useV1PaymentsCouponsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -11986,7 +12794,6 @@ export function useV1PaymentsCouponsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -12003,7 +12810,6 @@ export function useV1PaymentsCouponsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -12021,7 +12827,6 @@ export function useV1PaymentsCouponsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -12042,18 +12847,14 @@ export function useV1PaymentsCouponsRetrieve<
  */
 export const v1PaymentsCouponsUpdate = (
   id: string,
-  couponRequest: CouponRequest,
-  options?: SecondParameter<typeof fetcher>
+  couponRequest: CouponRequest
 ) => {
-  return fetcher<Coupon>(
-    {
-      url: `/api/v1/payments/coupons/${id}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: couponRequest,
-    },
-    options
-  );
+  return fetcher<Coupon>({
+    url: `/api/v1/payments/coupons/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: couponRequest,
+  });
 };
 
 export const getV1PaymentsCouponsUpdateMutationOptions = <
@@ -12066,7 +12867,6 @@ export const getV1PaymentsCouponsUpdateMutationOptions = <
     { id: string; data: CouponRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1PaymentsCouponsUpdate>>,
   TError,
@@ -12074,13 +12874,13 @@ export const getV1PaymentsCouponsUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1PaymentsCouponsUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1PaymentsCouponsUpdate>>,
@@ -12088,7 +12888,7 @@ export const getV1PaymentsCouponsUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1PaymentsCouponsUpdate(id, data, requestOptions);
+    return v1PaymentsCouponsUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -12111,7 +12911,6 @@ export const useV1PaymentsCouponsUpdate = <
       { id: string; data: CouponRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -12130,18 +12929,14 @@ export const useV1PaymentsCouponsUpdate = <
  */
 export const v1PaymentsCouponsPartialUpdate = (
   id: string,
-  patchedCouponRequest: PatchedCouponRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedCouponRequest: PatchedCouponRequest
 ) => {
-  return fetcher<Coupon>(
-    {
-      url: `/api/v1/payments/coupons/${id}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedCouponRequest,
-    },
-    options
-  );
+  return fetcher<Coupon>({
+    url: `/api/v1/payments/coupons/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedCouponRequest,
+  });
 };
 
 export const getV1PaymentsCouponsPartialUpdateMutationOptions = <
@@ -12154,7 +12949,6 @@ export const getV1PaymentsCouponsPartialUpdateMutationOptions = <
     { id: string; data: PatchedCouponRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1PaymentsCouponsPartialUpdate>>,
   TError,
@@ -12162,13 +12956,13 @@ export const getV1PaymentsCouponsPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1PaymentsCouponsPartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1PaymentsCouponsPartialUpdate>>,
@@ -12176,7 +12970,7 @@ export const getV1PaymentsCouponsPartialUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1PaymentsCouponsPartialUpdate(id, data, requestOptions);
+    return v1PaymentsCouponsPartialUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -12199,7 +12993,6 @@ export const useV1PaymentsCouponsPartialUpdate = <
       { id: string; data: PatchedCouponRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -12217,14 +13010,11 @@ export const useV1PaymentsCouponsPartialUpdate = <
 /**
  * CRUD for coupons. Admin only.
  */
-export const v1PaymentsCouponsDestroy = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/payments/coupons/${id}/`, method: 'DELETE' },
-    options
-  );
+export const v1PaymentsCouponsDestroy = (id: string) => {
+  return fetcher<void>({
+    url: `/api/v1/payments/coupons/${id}/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1PaymentsCouponsDestroyMutationOptions = <
@@ -12237,7 +13027,6 @@ export const getV1PaymentsCouponsDestroyMutationOptions = <
     { id: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1PaymentsCouponsDestroy>>,
   TError,
@@ -12245,13 +13034,13 @@ export const getV1PaymentsCouponsDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1PaymentsCouponsDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1PaymentsCouponsDestroy>>,
@@ -12259,7 +13048,7 @@ export const getV1PaymentsCouponsDestroyMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1PaymentsCouponsDestroy(id, requestOptions);
+    return v1PaymentsCouponsDestroy(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -12282,7 +13071,6 @@ export const useV1PaymentsCouponsDestroy = <
       { id: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -12302,19 +13090,15 @@ Will be replaced with actual gateway integration.
  */
 export const v1PaymentsCreatePaymentCreate = (
   genericResponseRequest: GenericResponseRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<GenericResponse>(
-    {
-      url: `/api/v1/payments/create-payment/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: genericResponseRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<GenericResponse>({
+    url: `/api/v1/payments/create-payment/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: genericResponseRequest,
+    signal,
+  });
 };
 
 export const getV1PaymentsCreatePaymentCreateMutationOptions = <
@@ -12327,7 +13111,6 @@ export const getV1PaymentsCreatePaymentCreateMutationOptions = <
     { data: GenericResponseRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1PaymentsCreatePaymentCreate>>,
   TError,
@@ -12335,13 +13118,13 @@ export const getV1PaymentsCreatePaymentCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1PaymentsCreatePaymentCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1PaymentsCreatePaymentCreate>>,
@@ -12349,7 +13132,7 @@ export const getV1PaymentsCreatePaymentCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1PaymentsCreatePaymentCreate(data, requestOptions);
+    return v1PaymentsCreatePaymentCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -12372,7 +13155,6 @@ export const useV1PaymentsCreatePaymentCreate = <
       { data: GenericResponseRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -12393,13 +13175,14 @@ PDF download added as a custom action.
  */
 export const v1PaymentsInvoicesList = (
   params?: V1PaymentsInvoicesListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedInvoiceList>(
-    { url: `/api/v1/payments/invoices/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedInvoiceList>({
+    url: `/api/v1/payments/invoices/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1PaymentsInvoicesListQueryKey = (
@@ -12421,17 +13204,16 @@ export const getV1PaymentsInvoicesListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1PaymentsInvoicesListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1PaymentsInvoicesList>>
-  > = ({ signal }) => v1PaymentsInvoicesList(params, requestOptions, signal);
+  > = ({ signal }) => v1PaymentsInvoicesList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1PaymentsInvoicesList>>,
@@ -12466,7 +13248,6 @@ export function useV1PaymentsInvoicesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -12493,7 +13274,6 @@ export function useV1PaymentsInvoicesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -12510,7 +13290,6 @@ export function useV1PaymentsInvoicesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -12528,7 +13307,6 @@ export function useV1PaymentsInvoicesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -12550,13 +13328,13 @@ PDF download added as a custom action.
  */
 export const v1PaymentsInvoicesRetrieve = (
   id: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Invoice>(
-    { url: `/api/v1/payments/invoices/${id}/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<Invoice>({
+    url: `/api/v1/payments/invoices/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1PaymentsInvoicesRetrieveQueryKey = (id?: string) => {
@@ -12576,17 +13354,16 @@ export const getV1PaymentsInvoicesRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1PaymentsInvoicesRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1PaymentsInvoicesRetrieve>>
-  > = ({ signal }) => v1PaymentsInvoicesRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1PaymentsInvoicesRetrieve(id, signal);
 
   return {
     queryKey,
@@ -12626,7 +13403,6 @@ export function useV1PaymentsInvoicesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -12653,7 +13429,6 @@ export function useV1PaymentsInvoicesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -12670,7 +13445,6 @@ export function useV1PaymentsInvoicesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -12688,7 +13462,6 @@ export function useV1PaymentsInvoicesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -12709,13 +13482,13 @@ export function useV1PaymentsInvoicesRetrieve<
  */
 export const v1PaymentsInvoicesDownloadRetrieve = (
   id: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Invoice>(
-    { url: `/api/v1/payments/invoices/${id}/download/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<Invoice>({
+    url: `/api/v1/payments/invoices/${id}/download/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1PaymentsInvoicesDownloadRetrieveQueryKey = (id?: string) => {
@@ -12735,18 +13508,16 @@ export const getV1PaymentsInvoicesDownloadRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1PaymentsInvoicesDownloadRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1PaymentsInvoicesDownloadRetrieve>>
-  > = ({ signal }) =>
-    v1PaymentsInvoicesDownloadRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1PaymentsInvoicesDownloadRetrieve(id, signal);
 
   return {
     queryKey,
@@ -12786,7 +13557,6 @@ export function useV1PaymentsInvoicesDownloadRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -12813,7 +13583,6 @@ export function useV1PaymentsInvoicesDownloadRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -12830,7 +13599,6 @@ export function useV1PaymentsInvoicesDownloadRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -12848,7 +13616,6 @@ export function useV1PaymentsInvoicesDownloadRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -12873,13 +13640,14 @@ Pagination is handled automatically via DRF settings.
  */
 export const v1PaymentsMyTransactionsList = (
   params?: V1PaymentsMyTransactionsListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedTransactionList>(
-    { url: `/api/v1/payments/my-transactions/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedTransactionList>({
+    url: `/api/v1/payments/my-transactions/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1PaymentsMyTransactionsListQueryKey = (
@@ -12904,18 +13672,16 @@ export const getV1PaymentsMyTransactionsListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1PaymentsMyTransactionsListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1PaymentsMyTransactionsList>>
-  > = ({ signal }) =>
-    v1PaymentsMyTransactionsList(params, requestOptions, signal);
+  > = ({ signal }) => v1PaymentsMyTransactionsList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1PaymentsMyTransactionsList>>,
@@ -12950,7 +13716,6 @@ export function useV1PaymentsMyTransactionsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -12977,7 +13742,6 @@ export function useV1PaymentsMyTransactionsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -12994,7 +13758,6 @@ export function useV1PaymentsMyTransactionsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -13012,7 +13775,6 @@ export function useV1PaymentsMyTransactionsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -13035,14 +13797,12 @@ export function useV1PaymentsMyTransactionsList<
  * Placeholder for Payment CRUD operations.
 Replace with actual implementation when ready.
  */
-export const v1PaymentsPaymentsList = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<PaymentPlaceholder[]>(
-    { url: `/api/v1/payments/payments/`, method: 'GET', signal },
-    options
-  );
+export const v1PaymentsPaymentsList = (signal?: AbortSignal) => {
+  return fetcher<PaymentPlaceholder[]>({
+    url: `/api/v1/payments/payments/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1PaymentsPaymentsListQueryKey = () => {
@@ -13060,16 +13820,15 @@ export const getV1PaymentsPaymentsListQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1PaymentsPaymentsListQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1PaymentsPaymentsList>>
-  > = ({ signal }) => v1PaymentsPaymentsList(requestOptions, signal);
+  > = ({ signal }) => v1PaymentsPaymentsList(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1PaymentsPaymentsList>>,
@@ -13103,7 +13862,6 @@ export function useV1PaymentsPaymentsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -13129,7 +13887,6 @@ export function useV1PaymentsPaymentsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -13145,7 +13902,6 @@ export function useV1PaymentsPaymentsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -13162,7 +13918,6 @@ export function useV1PaymentsPaymentsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -13184,13 +13939,14 @@ export function useV1PaymentsPaymentsList<
  */
 export const v1PaymentsPlansList = (
   params?: V1PaymentsPlansListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedPlanList>(
-    { url: `/api/v1/payments/plans/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedPlanList>({
+    url: `/api/v1/payments/plans/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1PaymentsPlansListQueryKey = (
@@ -13212,17 +13968,16 @@ export const getV1PaymentsPlansListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1PaymentsPlansListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1PaymentsPlansList>>
-  > = ({ signal }) => v1PaymentsPlansList(params, requestOptions, signal);
+  > = ({ signal }) => v1PaymentsPlansList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1PaymentsPlansList>>,
@@ -13257,7 +14012,6 @@ export function useV1PaymentsPlansList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -13284,7 +14038,6 @@ export function useV1PaymentsPlansList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -13301,7 +14054,6 @@ export function useV1PaymentsPlansList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -13319,7 +14071,6 @@ export function useV1PaymentsPlansList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -13339,15 +14090,12 @@ export function useV1PaymentsPlansList<
  * List and retrieve available subscription plans.
 (New view, added without disruption)
  */
-export const v1PaymentsPlansRetrieve = (
-  code: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<Plan>(
-    { url: `/api/v1/payments/plans/${code}/`, method: 'GET', signal },
-    options
-  );
+export const v1PaymentsPlansRetrieve = (code: string, signal?: AbortSignal) => {
+  return fetcher<Plan>({
+    url: `/api/v1/payments/plans/${code}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1PaymentsPlansRetrieveQueryKey = (code?: string) => {
@@ -13367,17 +14115,16 @@ export const getV1PaymentsPlansRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1PaymentsPlansRetrieveQueryKey(code);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1PaymentsPlansRetrieve>>
-  > = ({ signal }) => v1PaymentsPlansRetrieve(code, requestOptions, signal);
+  > = ({ signal }) => v1PaymentsPlansRetrieve(code, signal);
 
   return {
     queryKey,
@@ -13417,7 +14164,6 @@ export function useV1PaymentsPlansRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -13444,7 +14190,6 @@ export function useV1PaymentsPlansRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -13461,7 +14206,6 @@ export function useV1PaymentsPlansRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -13479,7 +14223,6 @@ export function useV1PaymentsPlansRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -13501,13 +14244,14 @@ Creation is disabled via serializer validation; use webhooks.
  */
 export const v1PaymentsSubscriptionsList = (
   params?: V1PaymentsSubscriptionsListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedSubscriptionList>(
-    { url: `/api/v1/payments/subscriptions/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedSubscriptionList>({
+    url: `/api/v1/payments/subscriptions/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1PaymentsSubscriptionsListQueryKey = (
@@ -13532,18 +14276,16 @@ export const getV1PaymentsSubscriptionsListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1PaymentsSubscriptionsListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1PaymentsSubscriptionsList>>
-  > = ({ signal }) =>
-    v1PaymentsSubscriptionsList(params, requestOptions, signal);
+  > = ({ signal }) => v1PaymentsSubscriptionsList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1PaymentsSubscriptionsList>>,
@@ -13578,7 +14320,6 @@ export function useV1PaymentsSubscriptionsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -13605,7 +14346,6 @@ export function useV1PaymentsSubscriptionsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -13622,7 +14362,6 @@ export function useV1PaymentsSubscriptionsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -13640,7 +14379,6 @@ export function useV1PaymentsSubscriptionsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -13665,19 +14403,15 @@ Creation is disabled via serializer validation; use webhooks.
  */
 export const v1PaymentsSubscriptionsCreate = (
   subscriptionRequest: SubscriptionRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Subscription>(
-    {
-      url: `/api/v1/payments/subscriptions/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: subscriptionRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<Subscription>({
+    url: `/api/v1/payments/subscriptions/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: subscriptionRequest,
+    signal,
+  });
 };
 
 export const getV1PaymentsSubscriptionsCreateMutationOptions = <
@@ -13690,7 +14424,6 @@ export const getV1PaymentsSubscriptionsCreateMutationOptions = <
     { data: SubscriptionRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1PaymentsSubscriptionsCreate>>,
   TError,
@@ -13698,13 +14431,13 @@ export const getV1PaymentsSubscriptionsCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1PaymentsSubscriptionsCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1PaymentsSubscriptionsCreate>>,
@@ -13712,7 +14445,7 @@ export const getV1PaymentsSubscriptionsCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1PaymentsSubscriptionsCreate(data, requestOptions);
+    return v1PaymentsSubscriptionsCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -13735,7 +14468,6 @@ export const useV1PaymentsSubscriptionsCreate = <
       { data: SubscriptionRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -13756,13 +14488,13 @@ Creation is disabled via serializer validation; use webhooks.
  */
 export const v1PaymentsSubscriptionsRetrieve = (
   id: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Subscription>(
-    { url: `/api/v1/payments/subscriptions/${id}/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<Subscription>({
+    url: `/api/v1/payments/subscriptions/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1PaymentsSubscriptionsRetrieveQueryKey = (id?: string) => {
@@ -13782,18 +14514,16 @@ export const getV1PaymentsSubscriptionsRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1PaymentsSubscriptionsRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1PaymentsSubscriptionsRetrieve>>
-  > = ({ signal }) =>
-    v1PaymentsSubscriptionsRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1PaymentsSubscriptionsRetrieve(id, signal);
 
   return {
     queryKey,
@@ -13833,7 +14563,6 @@ export function useV1PaymentsSubscriptionsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -13860,7 +14589,6 @@ export function useV1PaymentsSubscriptionsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -13877,7 +14605,6 @@ export function useV1PaymentsSubscriptionsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -13895,7 +14622,6 @@ export function useV1PaymentsSubscriptionsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -13920,18 +14646,14 @@ Creation is disabled via serializer validation; use webhooks.
  */
 export const v1PaymentsSubscriptionsUpdate = (
   id: string,
-  subscriptionRequest: SubscriptionRequest,
-  options?: SecondParameter<typeof fetcher>
+  subscriptionRequest: SubscriptionRequest
 ) => {
-  return fetcher<Subscription>(
-    {
-      url: `/api/v1/payments/subscriptions/${id}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: subscriptionRequest,
-    },
-    options
-  );
+  return fetcher<Subscription>({
+    url: `/api/v1/payments/subscriptions/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: subscriptionRequest,
+  });
 };
 
 export const getV1PaymentsSubscriptionsUpdateMutationOptions = <
@@ -13944,7 +14666,6 @@ export const getV1PaymentsSubscriptionsUpdateMutationOptions = <
     { id: string; data: SubscriptionRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1PaymentsSubscriptionsUpdate>>,
   TError,
@@ -13952,13 +14673,13 @@ export const getV1PaymentsSubscriptionsUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1PaymentsSubscriptionsUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1PaymentsSubscriptionsUpdate>>,
@@ -13966,7 +14687,7 @@ export const getV1PaymentsSubscriptionsUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1PaymentsSubscriptionsUpdate(id, data, requestOptions);
+    return v1PaymentsSubscriptionsUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -13989,7 +14710,6 @@ export const useV1PaymentsSubscriptionsUpdate = <
       { id: string; data: SubscriptionRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -14010,18 +14730,14 @@ Creation is disabled via serializer validation; use webhooks.
  */
 export const v1PaymentsSubscriptionsPartialUpdate = (
   id: string,
-  patchedSubscriptionRequest: PatchedSubscriptionRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedSubscriptionRequest: PatchedSubscriptionRequest
 ) => {
-  return fetcher<Subscription>(
-    {
-      url: `/api/v1/payments/subscriptions/${id}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedSubscriptionRequest,
-    },
-    options
-  );
+  return fetcher<Subscription>({
+    url: `/api/v1/payments/subscriptions/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedSubscriptionRequest,
+  });
 };
 
 export const getV1PaymentsSubscriptionsPartialUpdateMutationOptions = <
@@ -14034,7 +14750,6 @@ export const getV1PaymentsSubscriptionsPartialUpdateMutationOptions = <
     { id: string; data: PatchedSubscriptionRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1PaymentsSubscriptionsPartialUpdate>>,
   TError,
@@ -14042,13 +14757,13 @@ export const getV1PaymentsSubscriptionsPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1PaymentsSubscriptionsPartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1PaymentsSubscriptionsPartialUpdate>>,
@@ -14056,7 +14771,7 @@ export const getV1PaymentsSubscriptionsPartialUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1PaymentsSubscriptionsPartialUpdate(id, data, requestOptions);
+    return v1PaymentsSubscriptionsPartialUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -14080,7 +14795,6 @@ export const useV1PaymentsSubscriptionsPartialUpdate = <
       { id: string; data: PatchedSubscriptionRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -14099,14 +14813,11 @@ export const useV1PaymentsSubscriptionsPartialUpdate = <
  * CRUD for subscriptions. Only admins can list all; users can view their own.
 Creation is disabled via serializer validation; use webhooks.
  */
-export const v1PaymentsSubscriptionsDestroy = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/payments/subscriptions/${id}/`, method: 'DELETE' },
-    options
-  );
+export const v1PaymentsSubscriptionsDestroy = (id: string) => {
+  return fetcher<void>({
+    url: `/api/v1/payments/subscriptions/${id}/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1PaymentsSubscriptionsDestroyMutationOptions = <
@@ -14119,7 +14830,6 @@ export const getV1PaymentsSubscriptionsDestroyMutationOptions = <
     { id: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1PaymentsSubscriptionsDestroy>>,
   TError,
@@ -14127,13 +14837,13 @@ export const getV1PaymentsSubscriptionsDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1PaymentsSubscriptionsDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1PaymentsSubscriptionsDestroy>>,
@@ -14141,7 +14851,7 @@ export const getV1PaymentsSubscriptionsDestroyMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1PaymentsSubscriptionsDestroy(id, requestOptions);
+    return v1PaymentsSubscriptionsDestroy(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -14164,7 +14874,6 @@ export const useV1PaymentsSubscriptionsDestroy = <
       { id: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -14188,19 +14897,15 @@ Only the subscription owner or an admin can cancel.
 export const v1PaymentsSubscriptionsCancelCreate = (
   id: string,
   subscriptionRequest: SubscriptionRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Subscription>(
-    {
-      url: `/api/v1/payments/subscriptions/${id}/cancel/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: subscriptionRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<Subscription>({
+    url: `/api/v1/payments/subscriptions/${id}/cancel/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: subscriptionRequest,
+    signal,
+  });
 };
 
 export const getV1PaymentsSubscriptionsCancelCreateMutationOptions = <
@@ -14213,7 +14918,6 @@ export const getV1PaymentsSubscriptionsCancelCreateMutationOptions = <
     { id: string; data: SubscriptionRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1PaymentsSubscriptionsCancelCreate>>,
   TError,
@@ -14221,13 +14925,13 @@ export const getV1PaymentsSubscriptionsCancelCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1PaymentsSubscriptionsCancelCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1PaymentsSubscriptionsCancelCreate>>,
@@ -14235,7 +14939,7 @@ export const getV1PaymentsSubscriptionsCancelCreateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1PaymentsSubscriptionsCancelCreate(id, data, requestOptions);
+    return v1PaymentsSubscriptionsCancelCreate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -14259,7 +14963,6 @@ export const useV1PaymentsSubscriptionsCancelCreate = <
       { id: string; data: SubscriptionRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -14280,19 +14983,15 @@ Implement idempotency key handling and signature verification.
  */
 export const v1PaymentsSubscriptionsWebhookCreate = (
   subscriptionRequest: SubscriptionRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Subscription>(
-    {
-      url: `/api/v1/payments/subscriptions/webhook/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: subscriptionRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<Subscription>({
+    url: `/api/v1/payments/subscriptions/webhook/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: subscriptionRequest,
+    signal,
+  });
 };
 
 export const getV1PaymentsSubscriptionsWebhookCreateMutationOptions = <
@@ -14305,7 +15004,6 @@ export const getV1PaymentsSubscriptionsWebhookCreateMutationOptions = <
     { data: SubscriptionRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1PaymentsSubscriptionsWebhookCreate>>,
   TError,
@@ -14313,13 +15011,13 @@ export const getV1PaymentsSubscriptionsWebhookCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1PaymentsSubscriptionsWebhookCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1PaymentsSubscriptionsWebhookCreate>>,
@@ -14327,7 +15025,7 @@ export const getV1PaymentsSubscriptionsWebhookCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1PaymentsSubscriptionsWebhookCreate(data, requestOptions);
+    return v1PaymentsSubscriptionsWebhookCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -14351,7 +15049,6 @@ export const useV1PaymentsSubscriptionsWebhookCreate = <
       { data: SubscriptionRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -14373,13 +15070,13 @@ to the legacy hash‑based token for backward compatibility.
  */
 export const v1ProductsDownloadRetrieve = (
   slug: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<void>(
-    { url: `/api/v1/products/${slug}/download/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<void>({
+    url: `/api/v1/products/${slug}/download/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1ProductsDownloadRetrieveQueryKey = (slug?: string) => {
@@ -14399,17 +15096,16 @@ export const getV1ProductsDownloadRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ProductsDownloadRetrieveQueryKey(slug);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsDownloadRetrieve>>
-  > = ({ signal }) => v1ProductsDownloadRetrieve(slug, requestOptions, signal);
+  > = ({ signal }) => v1ProductsDownloadRetrieve(slug, signal);
 
   return {
     queryKey,
@@ -14449,7 +15145,6 @@ export function useV1ProductsDownloadRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -14476,7 +15171,6 @@ export function useV1ProductsDownloadRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -14493,7 +15187,6 @@ export function useV1ProductsDownloadRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -14511,7 +15204,6 @@ export function useV1ProductsDownloadRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -14535,17 +15227,13 @@ to the legacy hash‑based token for backward compatibility.
 export const v1ProductsDownloadRetrieve2 = (
   slug: string,
   versionId: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<void>(
-    {
-      url: `/api/v1/products/${slug}/download/${versionId}/`,
-      method: 'GET',
-      signal,
-    },
-    options
-  );
+  return fetcher<void>({
+    url: `/api/v1/products/${slug}/download/${versionId}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1ProductsDownloadRetrieve2QueryKey = (
@@ -14569,10 +15257,9 @@ export const getV1ProductsDownloadRetrieve2QueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ??
@@ -14580,8 +15267,7 @@ export const getV1ProductsDownloadRetrieve2QueryOptions = <
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsDownloadRetrieve2>>
-  > = ({ signal }) =>
-    v1ProductsDownloadRetrieve2(slug, versionId, requestOptions, signal);
+  > = ({ signal }) => v1ProductsDownloadRetrieve2(slug, versionId, signal);
 
   return {
     queryKey,
@@ -14622,7 +15308,6 @@ export function useV1ProductsDownloadRetrieve2<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -14650,7 +15335,6 @@ export function useV1ProductsDownloadRetrieve2<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -14668,7 +15352,6 @@ export function useV1ProductsDownloadRetrieve2<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -14687,7 +15370,6 @@ export function useV1ProductsDownloadRetrieve2<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -14713,18 +15395,14 @@ export function useV1ProductsDownloadRetrieve2<
 export const v1ProductsVersionsList2 = (
   slug: string,
   params?: V1ProductsVersionsList2Params,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedSoftwareVersionList>(
-    {
-      url: `/api/v1/products/${slug}/versions/`,
-      method: 'GET',
-      params,
-      signal,
-    },
-    options
-  );
+  return fetcher<PaginatedSoftwareVersionList>({
+    url: `/api/v1/products/${slug}/versions/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1ProductsVersionsList2QueryKey = (
@@ -14751,18 +15429,16 @@ export const getV1ProductsVersionsList2QueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ProductsVersionsList2QueryKey(slug, params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsVersionsList2>>
-  > = ({ signal }) =>
-    v1ProductsVersionsList2(slug, params, requestOptions, signal);
+  > = ({ signal }) => v1ProductsVersionsList2(slug, params, signal);
 
   return {
     queryKey,
@@ -14803,7 +15479,6 @@ export function useV1ProductsVersionsList2<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -14831,7 +15506,6 @@ export function useV1ProductsVersionsList2<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -14849,7 +15523,6 @@ export function useV1ProductsVersionsList2<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -14868,7 +15541,6 @@ export function useV1ProductsVersionsList2<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -14893,13 +15565,14 @@ export function useV1ProductsVersionsList2<
  */
 export const v1ProductsCategoriesList = (
   params?: V1ProductsCategoriesListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedCategoryList>(
-    { url: `/api/v1/products/categories/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedCategoryList>({
+    url: `/api/v1/products/categories/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1ProductsCategoriesListQueryKey = (
@@ -14921,17 +15594,16 @@ export const getV1ProductsCategoriesListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ProductsCategoriesListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsCategoriesList>>
-  > = ({ signal }) => v1ProductsCategoriesList(params, requestOptions, signal);
+  > = ({ signal }) => v1ProductsCategoriesList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1ProductsCategoriesList>>,
@@ -14966,7 +15638,6 @@ export function useV1ProductsCategoriesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -14993,7 +15664,6 @@ export function useV1ProductsCategoriesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -15010,7 +15680,6 @@ export function useV1ProductsCategoriesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -15028,7 +15697,6 @@ export function useV1ProductsCategoriesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -15049,19 +15717,15 @@ export function useV1ProductsCategoriesList<
  */
 export const v1ProductsCategoriesCreate = (
   categoryRequest: CategoryRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Category>(
-    {
-      url: `/api/v1/products/categories/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: categoryRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<Category>({
+    url: `/api/v1/products/categories/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: categoryRequest,
+    signal,
+  });
 };
 
 export const getV1ProductsCategoriesCreateMutationOptions = <
@@ -15074,7 +15738,6 @@ export const getV1ProductsCategoriesCreateMutationOptions = <
     { data: CategoryRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsCategoriesCreate>>,
   TError,
@@ -15082,13 +15745,13 @@ export const getV1ProductsCategoriesCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsCategoriesCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsCategoriesCreate>>,
@@ -15096,7 +15759,7 @@ export const getV1ProductsCategoriesCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1ProductsCategoriesCreate(data, requestOptions);
+    return v1ProductsCategoriesCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -15119,7 +15782,6 @@ export const useV1ProductsCategoriesCreate = <
       { data: CategoryRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -15138,13 +15800,13 @@ export const useV1ProductsCategoriesCreate = <
  */
 export const v1ProductsCategoriesRetrieve = (
   id: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Category>(
-    { url: `/api/v1/products/categories/${id}/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<Category>({
+    url: `/api/v1/products/categories/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1ProductsCategoriesRetrieveQueryKey = (id?: string) => {
@@ -15164,17 +15826,16 @@ export const getV1ProductsCategoriesRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ProductsCategoriesRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsCategoriesRetrieve>>
-  > = ({ signal }) => v1ProductsCategoriesRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1ProductsCategoriesRetrieve(id, signal);
 
   return {
     queryKey,
@@ -15214,7 +15875,6 @@ export function useV1ProductsCategoriesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -15241,7 +15901,6 @@ export function useV1ProductsCategoriesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -15258,7 +15917,6 @@ export function useV1ProductsCategoriesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -15276,7 +15934,6 @@ export function useV1ProductsCategoriesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -15297,18 +15954,14 @@ export function useV1ProductsCategoriesRetrieve<
  */
 export const v1ProductsCategoriesUpdate = (
   id: string,
-  categoryRequest: CategoryRequest,
-  options?: SecondParameter<typeof fetcher>
+  categoryRequest: CategoryRequest
 ) => {
-  return fetcher<Category>(
-    {
-      url: `/api/v1/products/categories/${id}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: categoryRequest,
-    },
-    options
-  );
+  return fetcher<Category>({
+    url: `/api/v1/products/categories/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: categoryRequest,
+  });
 };
 
 export const getV1ProductsCategoriesUpdateMutationOptions = <
@@ -15321,7 +15974,6 @@ export const getV1ProductsCategoriesUpdateMutationOptions = <
     { id: string; data: CategoryRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsCategoriesUpdate>>,
   TError,
@@ -15329,13 +15981,13 @@ export const getV1ProductsCategoriesUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsCategoriesUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsCategoriesUpdate>>,
@@ -15343,7 +15995,7 @@ export const getV1ProductsCategoriesUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1ProductsCategoriesUpdate(id, data, requestOptions);
+    return v1ProductsCategoriesUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -15366,7 +16018,6 @@ export const useV1ProductsCategoriesUpdate = <
       { id: string; data: CategoryRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -15385,18 +16036,14 @@ export const useV1ProductsCategoriesUpdate = <
  */
 export const v1ProductsCategoriesPartialUpdate = (
   id: string,
-  patchedCategoryRequest: PatchedCategoryRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedCategoryRequest: PatchedCategoryRequest
 ) => {
-  return fetcher<Category>(
-    {
-      url: `/api/v1/products/categories/${id}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedCategoryRequest,
-    },
-    options
-  );
+  return fetcher<Category>({
+    url: `/api/v1/products/categories/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedCategoryRequest,
+  });
 };
 
 export const getV1ProductsCategoriesPartialUpdateMutationOptions = <
@@ -15409,7 +16056,6 @@ export const getV1ProductsCategoriesPartialUpdateMutationOptions = <
     { id: string; data: PatchedCategoryRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsCategoriesPartialUpdate>>,
   TError,
@@ -15417,13 +16063,13 @@ export const getV1ProductsCategoriesPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsCategoriesPartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsCategoriesPartialUpdate>>,
@@ -15431,7 +16077,7 @@ export const getV1ProductsCategoriesPartialUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1ProductsCategoriesPartialUpdate(id, data, requestOptions);
+    return v1ProductsCategoriesPartialUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -15455,7 +16101,6 @@ export const useV1ProductsCategoriesPartialUpdate = <
       { id: string; data: PatchedCategoryRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -15473,14 +16118,11 @@ export const useV1ProductsCategoriesPartialUpdate = <
 /**
  * ViewSet for software categories.
  */
-export const v1ProductsCategoriesDestroy = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/products/categories/${id}/`, method: 'DELETE' },
-    options
-  );
+export const v1ProductsCategoriesDestroy = (id: string) => {
+  return fetcher<void>({
+    url: `/api/v1/products/categories/${id}/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1ProductsCategoriesDestroyMutationOptions = <
@@ -15493,7 +16135,6 @@ export const getV1ProductsCategoriesDestroyMutationOptions = <
     { id: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsCategoriesDestroy>>,
   TError,
@@ -15501,13 +16142,13 @@ export const getV1ProductsCategoriesDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsCategoriesDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsCategoriesDestroy>>,
@@ -15515,7 +16156,7 @@ export const getV1ProductsCategoriesDestroyMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1ProductsCategoriesDestroy(id, requestOptions);
+    return v1ProductsCategoriesDestroy(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -15538,7 +16179,6 @@ export const useV1ProductsCategoriesDestroy = <
       { id: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -15558,13 +16198,14 @@ export const useV1ProductsCategoriesDestroy = <
  */
 export const v1ProductsDocumentsList = (
   params?: V1ProductsDocumentsListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedSoftwareDocumentList>(
-    { url: `/api/v1/products/documents/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedSoftwareDocumentList>({
+    url: `/api/v1/products/documents/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1ProductsDocumentsListQueryKey = (
@@ -15586,17 +16227,16 @@ export const getV1ProductsDocumentsListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ProductsDocumentsListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsDocumentsList>>
-  > = ({ signal }) => v1ProductsDocumentsList(params, requestOptions, signal);
+  > = ({ signal }) => v1ProductsDocumentsList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1ProductsDocumentsList>>,
@@ -15631,7 +16271,6 @@ export function useV1ProductsDocumentsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -15658,7 +16297,6 @@ export function useV1ProductsDocumentsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -15675,7 +16313,6 @@ export function useV1ProductsDocumentsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -15693,7 +16330,6 @@ export function useV1ProductsDocumentsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -15714,19 +16350,15 @@ export function useV1ProductsDocumentsList<
  */
 export const v1ProductsDocumentsCreate = (
   softwareDocumentRequest: SoftwareDocumentRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<SoftwareDocument>(
-    {
-      url: `/api/v1/products/documents/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: softwareDocumentRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<SoftwareDocument>({
+    url: `/api/v1/products/documents/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: softwareDocumentRequest,
+    signal,
+  });
 };
 
 export const getV1ProductsDocumentsCreateMutationOptions = <
@@ -15739,7 +16371,6 @@ export const getV1ProductsDocumentsCreateMutationOptions = <
     { data: SoftwareDocumentRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsDocumentsCreate>>,
   TError,
@@ -15747,13 +16378,13 @@ export const getV1ProductsDocumentsCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsDocumentsCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsDocumentsCreate>>,
@@ -15761,7 +16392,7 @@ export const getV1ProductsDocumentsCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1ProductsDocumentsCreate(data, requestOptions);
+    return v1ProductsDocumentsCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -15784,7 +16415,6 @@ export const useV1ProductsDocumentsCreate = <
       { data: SoftwareDocumentRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -15803,13 +16433,13 @@ export const useV1ProductsDocumentsCreate = <
  */
 export const v1ProductsDocumentsRetrieve = (
   id: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<SoftwareDocument>(
-    { url: `/api/v1/products/documents/${id}/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<SoftwareDocument>({
+    url: `/api/v1/products/documents/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1ProductsDocumentsRetrieveQueryKey = (id?: string) => {
@@ -15829,17 +16459,16 @@ export const getV1ProductsDocumentsRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ProductsDocumentsRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsDocumentsRetrieve>>
-  > = ({ signal }) => v1ProductsDocumentsRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1ProductsDocumentsRetrieve(id, signal);
 
   return {
     queryKey,
@@ -15879,7 +16508,6 @@ export function useV1ProductsDocumentsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -15906,7 +16534,6 @@ export function useV1ProductsDocumentsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -15923,7 +16550,6 @@ export function useV1ProductsDocumentsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -15941,7 +16567,6 @@ export function useV1ProductsDocumentsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -15962,18 +16587,14 @@ export function useV1ProductsDocumentsRetrieve<
  */
 export const v1ProductsDocumentsUpdate = (
   id: string,
-  softwareDocumentRequest: SoftwareDocumentRequest,
-  options?: SecondParameter<typeof fetcher>
+  softwareDocumentRequest: SoftwareDocumentRequest
 ) => {
-  return fetcher<SoftwareDocument>(
-    {
-      url: `/api/v1/products/documents/${id}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: softwareDocumentRequest,
-    },
-    options
-  );
+  return fetcher<SoftwareDocument>({
+    url: `/api/v1/products/documents/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: softwareDocumentRequest,
+  });
 };
 
 export const getV1ProductsDocumentsUpdateMutationOptions = <
@@ -15986,7 +16607,6 @@ export const getV1ProductsDocumentsUpdateMutationOptions = <
     { id: string; data: SoftwareDocumentRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsDocumentsUpdate>>,
   TError,
@@ -15994,13 +16614,13 @@ export const getV1ProductsDocumentsUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsDocumentsUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsDocumentsUpdate>>,
@@ -16008,7 +16628,7 @@ export const getV1ProductsDocumentsUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1ProductsDocumentsUpdate(id, data, requestOptions);
+    return v1ProductsDocumentsUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -16031,7 +16651,6 @@ export const useV1ProductsDocumentsUpdate = <
       { id: string; data: SoftwareDocumentRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -16050,18 +16669,14 @@ export const useV1ProductsDocumentsUpdate = <
  */
 export const v1ProductsDocumentsPartialUpdate = (
   id: string,
-  patchedSoftwareDocumentRequest: PatchedSoftwareDocumentRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedSoftwareDocumentRequest: PatchedSoftwareDocumentRequest
 ) => {
-  return fetcher<SoftwareDocument>(
-    {
-      url: `/api/v1/products/documents/${id}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedSoftwareDocumentRequest,
-    },
-    options
-  );
+  return fetcher<SoftwareDocument>({
+    url: `/api/v1/products/documents/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedSoftwareDocumentRequest,
+  });
 };
 
 export const getV1ProductsDocumentsPartialUpdateMutationOptions = <
@@ -16074,7 +16689,6 @@ export const getV1ProductsDocumentsPartialUpdateMutationOptions = <
     { id: string; data: PatchedSoftwareDocumentRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsDocumentsPartialUpdate>>,
   TError,
@@ -16082,13 +16696,13 @@ export const getV1ProductsDocumentsPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsDocumentsPartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsDocumentsPartialUpdate>>,
@@ -16096,7 +16710,7 @@ export const getV1ProductsDocumentsPartialUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1ProductsDocumentsPartialUpdate(id, data, requestOptions);
+    return v1ProductsDocumentsPartialUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -16120,7 +16734,6 @@ export const useV1ProductsDocumentsPartialUpdate = <
       { id: string; data: PatchedSoftwareDocumentRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -16138,14 +16751,11 @@ export const useV1ProductsDocumentsPartialUpdate = <
 /**
  * ViewSet for software documents.
  */
-export const v1ProductsDocumentsDestroy = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/products/documents/${id}/`, method: 'DELETE' },
-    options
-  );
+export const v1ProductsDocumentsDestroy = (id: string) => {
+  return fetcher<void>({
+    url: `/api/v1/products/documents/${id}/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1ProductsDocumentsDestroyMutationOptions = <
@@ -16158,7 +16768,6 @@ export const getV1ProductsDocumentsDestroyMutationOptions = <
     { id: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsDocumentsDestroy>>,
   TError,
@@ -16166,13 +16775,13 @@ export const getV1ProductsDocumentsDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsDocumentsDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsDocumentsDestroy>>,
@@ -16180,7 +16789,7 @@ export const getV1ProductsDocumentsDestroyMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1ProductsDocumentsDestroy(id, requestOptions);
+    return v1ProductsDocumentsDestroy(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -16203,7 +16812,6 @@ export const useV1ProductsDocumentsDestroy = <
       { id: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -16222,17 +16830,13 @@ export const useV1ProductsDocumentsDestroy = <
  */
 export const v1ProductsDocumentsDownloadRetrieve = (
   id: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<SoftwareDocument>(
-    {
-      url: `/api/v1/products/documents/${id}/download/`,
-      method: 'GET',
-      signal,
-    },
-    options
-  );
+  return fetcher<SoftwareDocument>({
+    url: `/api/v1/products/documents/${id}/download/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1ProductsDocumentsDownloadRetrieveQueryKey = (id?: string) => {
@@ -16252,10 +16856,9 @@ export const getV1ProductsDocumentsDownloadRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ??
@@ -16263,8 +16866,7 @@ export const getV1ProductsDocumentsDownloadRetrieveQueryOptions = <
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsDocumentsDownloadRetrieve>>
-  > = ({ signal }) =>
-    v1ProductsDocumentsDownloadRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1ProductsDocumentsDownloadRetrieve(id, signal);
 
   return {
     queryKey,
@@ -16304,7 +16906,6 @@ export function useV1ProductsDocumentsDownloadRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -16331,7 +16932,6 @@ export function useV1ProductsDocumentsDownloadRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -16348,7 +16948,6 @@ export function useV1ProductsDocumentsDownloadRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -16366,7 +16965,6 @@ export function useV1ProductsDocumentsDownloadRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -16390,13 +16988,14 @@ export function useV1ProductsDocumentsDownloadRetrieve<
  */
 export const v1ProductsFeaturedList = (
   params?: V1ProductsFeaturedListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Software[]>(
-    { url: `/api/v1/products/featured/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<Software[]>({
+    url: `/api/v1/products/featured/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1ProductsFeaturedListQueryKey = (
@@ -16418,17 +17017,16 @@ export const getV1ProductsFeaturedListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ProductsFeaturedListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsFeaturedList>>
-  > = ({ signal }) => v1ProductsFeaturedList(params, requestOptions, signal);
+  > = ({ signal }) => v1ProductsFeaturedList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1ProductsFeaturedList>>,
@@ -16463,7 +17061,6 @@ export function useV1ProductsFeaturedList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -16490,7 +17087,6 @@ export function useV1ProductsFeaturedList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -16507,7 +17103,6 @@ export function useV1ProductsFeaturedList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -16525,7 +17120,6 @@ export function useV1ProductsFeaturedList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -16546,13 +17140,14 @@ export function useV1ProductsFeaturedList<
  */
 export const v1ProductsImagesList = (
   params?: V1ProductsImagesListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedSoftwareImageList>(
-    { url: `/api/v1/products/images/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedSoftwareImageList>({
+    url: `/api/v1/products/images/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1ProductsImagesListQueryKey = (
@@ -16574,17 +17169,16 @@ export const getV1ProductsImagesListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ProductsImagesListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsImagesList>>
-  > = ({ signal }) => v1ProductsImagesList(params, requestOptions, signal);
+  > = ({ signal }) => v1ProductsImagesList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1ProductsImagesList>>,
@@ -16619,7 +17213,6 @@ export function useV1ProductsImagesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -16646,7 +17239,6 @@ export function useV1ProductsImagesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -16663,7 +17255,6 @@ export function useV1ProductsImagesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -16681,7 +17272,6 @@ export function useV1ProductsImagesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -16702,19 +17292,15 @@ export function useV1ProductsImagesList<
  */
 export const v1ProductsImagesCreate = (
   softwareImageRequest: SoftwareImageRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<SoftwareImage>(
-    {
-      url: `/api/v1/products/images/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: softwareImageRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<SoftwareImage>({
+    url: `/api/v1/products/images/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: softwareImageRequest,
+    signal,
+  });
 };
 
 export const getV1ProductsImagesCreateMutationOptions = <
@@ -16727,7 +17313,6 @@ export const getV1ProductsImagesCreateMutationOptions = <
     { data: SoftwareImageRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsImagesCreate>>,
   TError,
@@ -16735,13 +17320,13 @@ export const getV1ProductsImagesCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsImagesCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsImagesCreate>>,
@@ -16749,7 +17334,7 @@ export const getV1ProductsImagesCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1ProductsImagesCreate(data, requestOptions);
+    return v1ProductsImagesCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -16769,7 +17354,6 @@ export const useV1ProductsImagesCreate = <TError = unknown, TContext = unknown>(
       { data: SoftwareImageRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -16786,15 +17370,12 @@ export const useV1ProductsImagesCreate = <TError = unknown, TContext = unknown>(
 /**
  * ViewSet for software images.
  */
-export const v1ProductsImagesRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<SoftwareImage>(
-    { url: `/api/v1/products/images/${id}/`, method: 'GET', signal },
-    options
-  );
+export const v1ProductsImagesRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<SoftwareImage>({
+    url: `/api/v1/products/images/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1ProductsImagesRetrieveQueryKey = (id?: string) => {
@@ -16814,17 +17395,16 @@ export const getV1ProductsImagesRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ProductsImagesRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsImagesRetrieve>>
-  > = ({ signal }) => v1ProductsImagesRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1ProductsImagesRetrieve(id, signal);
 
   return {
     queryKey,
@@ -16864,7 +17444,6 @@ export function useV1ProductsImagesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -16891,7 +17470,6 @@ export function useV1ProductsImagesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -16908,7 +17486,6 @@ export function useV1ProductsImagesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -16926,7 +17503,6 @@ export function useV1ProductsImagesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -16947,18 +17523,14 @@ export function useV1ProductsImagesRetrieve<
  */
 export const v1ProductsImagesUpdate = (
   id: string,
-  softwareImageRequest: SoftwareImageRequest,
-  options?: SecondParameter<typeof fetcher>
+  softwareImageRequest: SoftwareImageRequest
 ) => {
-  return fetcher<SoftwareImage>(
-    {
-      url: `/api/v1/products/images/${id}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: softwareImageRequest,
-    },
-    options
-  );
+  return fetcher<SoftwareImage>({
+    url: `/api/v1/products/images/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: softwareImageRequest,
+  });
 };
 
 export const getV1ProductsImagesUpdateMutationOptions = <
@@ -16971,7 +17543,6 @@ export const getV1ProductsImagesUpdateMutationOptions = <
     { id: string; data: SoftwareImageRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsImagesUpdate>>,
   TError,
@@ -16979,13 +17550,13 @@ export const getV1ProductsImagesUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsImagesUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsImagesUpdate>>,
@@ -16993,7 +17564,7 @@ export const getV1ProductsImagesUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1ProductsImagesUpdate(id, data, requestOptions);
+    return v1ProductsImagesUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -17013,7 +17584,6 @@ export const useV1ProductsImagesUpdate = <TError = unknown, TContext = unknown>(
       { id: string; data: SoftwareImageRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -17032,18 +17602,14 @@ export const useV1ProductsImagesUpdate = <TError = unknown, TContext = unknown>(
  */
 export const v1ProductsImagesPartialUpdate = (
   id: string,
-  patchedSoftwareImageRequest: PatchedSoftwareImageRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedSoftwareImageRequest: PatchedSoftwareImageRequest
 ) => {
-  return fetcher<SoftwareImage>(
-    {
-      url: `/api/v1/products/images/${id}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedSoftwareImageRequest,
-    },
-    options
-  );
+  return fetcher<SoftwareImage>({
+    url: `/api/v1/products/images/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedSoftwareImageRequest,
+  });
 };
 
 export const getV1ProductsImagesPartialUpdateMutationOptions = <
@@ -17056,7 +17622,6 @@ export const getV1ProductsImagesPartialUpdateMutationOptions = <
     { id: string; data: PatchedSoftwareImageRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsImagesPartialUpdate>>,
   TError,
@@ -17064,13 +17629,13 @@ export const getV1ProductsImagesPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsImagesPartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsImagesPartialUpdate>>,
@@ -17078,7 +17643,7 @@ export const getV1ProductsImagesPartialUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1ProductsImagesPartialUpdate(id, data, requestOptions);
+    return v1ProductsImagesPartialUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -17102,7 +17667,6 @@ export const useV1ProductsImagesPartialUpdate = <
       { id: string; data: PatchedSoftwareImageRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -17120,14 +17684,11 @@ export const useV1ProductsImagesPartialUpdate = <
 /**
  * ViewSet for software images.
  */
-export const v1ProductsImagesDestroy = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/products/images/${id}/`, method: 'DELETE' },
-    options
-  );
+export const v1ProductsImagesDestroy = (id: string) => {
+  return fetcher<void>({
+    url: `/api/v1/products/images/${id}/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1ProductsImagesDestroyMutationOptions = <
@@ -17140,7 +17701,6 @@ export const getV1ProductsImagesDestroyMutationOptions = <
     { id: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsImagesDestroy>>,
   TError,
@@ -17148,13 +17708,13 @@ export const getV1ProductsImagesDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsImagesDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsImagesDestroy>>,
@@ -17162,7 +17722,7 @@ export const getV1ProductsImagesDestroyMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1ProductsImagesDestroy(id, requestOptions);
+    return v1ProductsImagesDestroy(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -17185,7 +17745,6 @@ export const useV1ProductsImagesDestroy = <
       { id: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -17204,13 +17763,14 @@ export const useV1ProductsImagesDestroy = <
  */
 export const v1ProductsNewReleasesList = (
   params?: V1ProductsNewReleasesListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedSoftwareList>(
-    { url: `/api/v1/products/new-releases/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedSoftwareList>({
+    url: `/api/v1/products/new-releases/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1ProductsNewReleasesListQueryKey = (
@@ -17235,17 +17795,16 @@ export const getV1ProductsNewReleasesListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ProductsNewReleasesListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsNewReleasesList>>
-  > = ({ signal }) => v1ProductsNewReleasesList(params, requestOptions, signal);
+  > = ({ signal }) => v1ProductsNewReleasesList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1ProductsNewReleasesList>>,
@@ -17280,7 +17839,6 @@ export function useV1ProductsNewReleasesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -17307,7 +17865,6 @@ export function useV1ProductsNewReleasesList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -17324,7 +17881,6 @@ export function useV1ProductsNewReleasesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -17342,7 +17898,6 @@ export function useV1ProductsNewReleasesList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -17366,13 +17921,14 @@ export function useV1ProductsNewReleasesList<
  */
 export const v1ProductsSoftwareList = (
   params?: V1ProductsSoftwareListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedSoftwareList>(
-    { url: `/api/v1/products/software/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedSoftwareList>({
+    url: `/api/v1/products/software/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1ProductsSoftwareListQueryKey = (
@@ -17394,17 +17950,16 @@ export const getV1ProductsSoftwareListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ProductsSoftwareListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsSoftwareList>>
-  > = ({ signal }) => v1ProductsSoftwareList(params, requestOptions, signal);
+  > = ({ signal }) => v1ProductsSoftwareList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1ProductsSoftwareList>>,
@@ -17439,7 +17994,6 @@ export function useV1ProductsSoftwareList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -17466,7 +18020,6 @@ export function useV1ProductsSoftwareList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -17483,7 +18036,6 @@ export function useV1ProductsSoftwareList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -17501,7 +18053,6 @@ export function useV1ProductsSoftwareList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -17522,19 +18073,15 @@ export function useV1ProductsSoftwareList<
  */
 export const v1ProductsSoftwareCreate = (
   softwareRequest: SoftwareRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Software>(
-    {
-      url: `/api/v1/products/software/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: softwareRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<Software>({
+    url: `/api/v1/products/software/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: softwareRequest,
+    signal,
+  });
 };
 
 export const getV1ProductsSoftwareCreateMutationOptions = <
@@ -17547,7 +18094,6 @@ export const getV1ProductsSoftwareCreateMutationOptions = <
     { data: SoftwareRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsSoftwareCreate>>,
   TError,
@@ -17555,13 +18101,13 @@ export const getV1ProductsSoftwareCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsSoftwareCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsSoftwareCreate>>,
@@ -17569,7 +18115,7 @@ export const getV1ProductsSoftwareCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1ProductsSoftwareCreate(data, requestOptions);
+    return v1ProductsSoftwareCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -17592,7 +18138,6 @@ export const useV1ProductsSoftwareCreate = <
       { data: SoftwareRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -17611,13 +18156,13 @@ export const useV1ProductsSoftwareCreate = <
  */
 export const v1ProductsSoftwareRetrieve = (
   slug: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Software>(
-    { url: `/api/v1/products/software/${slug}/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<Software>({
+    url: `/api/v1/products/software/${slug}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1ProductsSoftwareRetrieveQueryKey = (slug?: string) => {
@@ -17637,17 +18182,16 @@ export const getV1ProductsSoftwareRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ProductsSoftwareRetrieveQueryKey(slug);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsSoftwareRetrieve>>
-  > = ({ signal }) => v1ProductsSoftwareRetrieve(slug, requestOptions, signal);
+  > = ({ signal }) => v1ProductsSoftwareRetrieve(slug, signal);
 
   return {
     queryKey,
@@ -17687,7 +18231,6 @@ export function useV1ProductsSoftwareRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -17714,7 +18257,6 @@ export function useV1ProductsSoftwareRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -17731,7 +18273,6 @@ export function useV1ProductsSoftwareRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -17749,7 +18290,6 @@ export function useV1ProductsSoftwareRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -17770,18 +18310,14 @@ export function useV1ProductsSoftwareRetrieve<
  */
 export const v1ProductsSoftwareUpdate = (
   slug: string,
-  softwareRequest: SoftwareRequest,
-  options?: SecondParameter<typeof fetcher>
+  softwareRequest: SoftwareRequest
 ) => {
-  return fetcher<Software>(
-    {
-      url: `/api/v1/products/software/${slug}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: softwareRequest,
-    },
-    options
-  );
+  return fetcher<Software>({
+    url: `/api/v1/products/software/${slug}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: softwareRequest,
+  });
 };
 
 export const getV1ProductsSoftwareUpdateMutationOptions = <
@@ -17794,7 +18330,6 @@ export const getV1ProductsSoftwareUpdateMutationOptions = <
     { slug: string; data: SoftwareRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsSoftwareUpdate>>,
   TError,
@@ -17802,13 +18337,13 @@ export const getV1ProductsSoftwareUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsSoftwareUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsSoftwareUpdate>>,
@@ -17816,7 +18351,7 @@ export const getV1ProductsSoftwareUpdateMutationOptions = <
   > = (props) => {
     const { slug, data } = props ?? {};
 
-    return v1ProductsSoftwareUpdate(slug, data, requestOptions);
+    return v1ProductsSoftwareUpdate(slug, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -17839,7 +18374,6 @@ export const useV1ProductsSoftwareUpdate = <
       { slug: string; data: SoftwareRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -17858,18 +18392,14 @@ export const useV1ProductsSoftwareUpdate = <
  */
 export const v1ProductsSoftwarePartialUpdate = (
   slug: string,
-  patchedSoftwareRequest: PatchedSoftwareRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedSoftwareRequest: PatchedSoftwareRequest
 ) => {
-  return fetcher<Software>(
-    {
-      url: `/api/v1/products/software/${slug}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedSoftwareRequest,
-    },
-    options
-  );
+  return fetcher<Software>({
+    url: `/api/v1/products/software/${slug}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedSoftwareRequest,
+  });
 };
 
 export const getV1ProductsSoftwarePartialUpdateMutationOptions = <
@@ -17882,7 +18412,6 @@ export const getV1ProductsSoftwarePartialUpdateMutationOptions = <
     { slug: string; data: PatchedSoftwareRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsSoftwarePartialUpdate>>,
   TError,
@@ -17890,13 +18419,13 @@ export const getV1ProductsSoftwarePartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsSoftwarePartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsSoftwarePartialUpdate>>,
@@ -17904,7 +18433,7 @@ export const getV1ProductsSoftwarePartialUpdateMutationOptions = <
   > = (props) => {
     const { slug, data } = props ?? {};
 
-    return v1ProductsSoftwarePartialUpdate(slug, data, requestOptions);
+    return v1ProductsSoftwarePartialUpdate(slug, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -17928,7 +18457,6 @@ export const useV1ProductsSoftwarePartialUpdate = <
       { slug: string; data: PatchedSoftwareRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -17946,14 +18474,11 @@ export const useV1ProductsSoftwarePartialUpdate = <
 /**
  * ViewSet for software products.
  */
-export const v1ProductsSoftwareDestroy = (
-  slug: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/products/software/${slug}/`, method: 'DELETE' },
-    options
-  );
+export const v1ProductsSoftwareDestroy = (slug: string) => {
+  return fetcher<void>({
+    url: `/api/v1/products/software/${slug}/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1ProductsSoftwareDestroyMutationOptions = <
@@ -17966,7 +18491,6 @@ export const getV1ProductsSoftwareDestroyMutationOptions = <
     { slug: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsSoftwareDestroy>>,
   TError,
@@ -17974,13 +18498,13 @@ export const getV1ProductsSoftwareDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsSoftwareDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsSoftwareDestroy>>,
@@ -17988,7 +18512,7 @@ export const getV1ProductsSoftwareDestroyMutationOptions = <
   > = (props) => {
     const { slug } = props ?? {};
 
-    return v1ProductsSoftwareDestroy(slug, requestOptions);
+    return v1ProductsSoftwareDestroy(slug);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -18011,7 +18535,6 @@ export const useV1ProductsSoftwareDestroy = <
       { slug: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -18030,17 +18553,13 @@ export const useV1ProductsSoftwareDestroy = <
  */
 export const v1ProductsSoftwareDocumentsRetrieve = (
   slug: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Software>(
-    {
-      url: `/api/v1/products/software/${slug}/documents/`,
-      method: 'GET',
-      signal,
-    },
-    options
-  );
+  return fetcher<Software>({
+    url: `/api/v1/products/software/${slug}/documents/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1ProductsSoftwareDocumentsRetrieveQueryKey = (
@@ -18062,10 +18581,9 @@ export const getV1ProductsSoftwareDocumentsRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ??
@@ -18073,8 +18591,7 @@ export const getV1ProductsSoftwareDocumentsRetrieveQueryOptions = <
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsSoftwareDocumentsRetrieve>>
-  > = ({ signal }) =>
-    v1ProductsSoftwareDocumentsRetrieve(slug, requestOptions, signal);
+  > = ({ signal }) => v1ProductsSoftwareDocumentsRetrieve(slug, signal);
 
   return {
     queryKey,
@@ -18114,7 +18631,6 @@ export function useV1ProductsSoftwareDocumentsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -18141,7 +18657,6 @@ export function useV1ProductsSoftwareDocumentsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -18158,7 +18673,6 @@ export function useV1ProductsSoftwareDocumentsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -18176,7 +18690,6 @@ export function useV1ProductsSoftwareDocumentsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -18200,13 +18713,13 @@ export function useV1ProductsSoftwareDocumentsRetrieve<
  */
 export const v1ProductsSoftwareImagesRetrieve = (
   slug: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Software>(
-    { url: `/api/v1/products/software/${slug}/images/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<Software>({
+    url: `/api/v1/products/software/${slug}/images/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1ProductsSoftwareImagesRetrieveQueryKey = (slug?: string) => {
@@ -18226,18 +18739,16 @@ export const getV1ProductsSoftwareImagesRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ProductsSoftwareImagesRetrieveQueryKey(slug);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsSoftwareImagesRetrieve>>
-  > = ({ signal }) =>
-    v1ProductsSoftwareImagesRetrieve(slug, requestOptions, signal);
+  > = ({ signal }) => v1ProductsSoftwareImagesRetrieve(slug, signal);
 
   return {
     queryKey,
@@ -18277,7 +18788,6 @@ export function useV1ProductsSoftwareImagesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -18304,7 +18814,6 @@ export function useV1ProductsSoftwareImagesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -18321,7 +18830,6 @@ export function useV1ProductsSoftwareImagesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -18339,7 +18847,6 @@ export function useV1ProductsSoftwareImagesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -18364,19 +18871,15 @@ export function useV1ProductsSoftwareImagesRetrieve<
 export const v1ProductsSoftwareToggleActiveCreate = (
   slug: string,
   softwareRequest: SoftwareRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Software>(
-    {
-      url: `/api/v1/products/software/${slug}/toggle_active/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: softwareRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<Software>({
+    url: `/api/v1/products/software/${slug}/toggle_active/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: softwareRequest,
+    signal,
+  });
 };
 
 export const getV1ProductsSoftwareToggleActiveCreateMutationOptions = <
@@ -18389,7 +18892,6 @@ export const getV1ProductsSoftwareToggleActiveCreateMutationOptions = <
     { slug: string; data: SoftwareRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsSoftwareToggleActiveCreate>>,
   TError,
@@ -18397,13 +18899,13 @@ export const getV1ProductsSoftwareToggleActiveCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsSoftwareToggleActiveCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsSoftwareToggleActiveCreate>>,
@@ -18411,7 +18913,7 @@ export const getV1ProductsSoftwareToggleActiveCreateMutationOptions = <
   > = (props) => {
     const { slug, data } = props ?? {};
 
-    return v1ProductsSoftwareToggleActiveCreate(slug, data, requestOptions);
+    return v1ProductsSoftwareToggleActiveCreate(slug, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -18434,7 +18936,6 @@ export const useV1ProductsSoftwareToggleActiveCreate = <
       { slug: string; data: SoftwareRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -18455,19 +18956,15 @@ export const useV1ProductsSoftwareToggleActiveCreate = <
 export const v1ProductsSoftwareToggleFeaturedCreate = (
   slug: string,
   softwareRequest: SoftwareRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Software>(
-    {
-      url: `/api/v1/products/software/${slug}/toggle_featured/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: softwareRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<Software>({
+    url: `/api/v1/products/software/${slug}/toggle_featured/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: softwareRequest,
+    signal,
+  });
 };
 
 export const getV1ProductsSoftwareToggleFeaturedCreateMutationOptions = <
@@ -18480,7 +18977,6 @@ export const getV1ProductsSoftwareToggleFeaturedCreateMutationOptions = <
     { slug: string; data: SoftwareRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsSoftwareToggleFeaturedCreate>>,
   TError,
@@ -18488,13 +18984,13 @@ export const getV1ProductsSoftwareToggleFeaturedCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsSoftwareToggleFeaturedCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsSoftwareToggleFeaturedCreate>>,
@@ -18502,7 +18998,7 @@ export const getV1ProductsSoftwareToggleFeaturedCreateMutationOptions = <
   > = (props) => {
     const { slug, data } = props ?? {};
 
-    return v1ProductsSoftwareToggleFeaturedCreate(slug, data, requestOptions);
+    return v1ProductsSoftwareToggleFeaturedCreate(slug, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -18526,7 +19022,6 @@ export const useV1ProductsSoftwareToggleFeaturedCreate = <
       { slug: string; data: SoftwareRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -18546,17 +19041,13 @@ export const useV1ProductsSoftwareToggleFeaturedCreate = <
  */
 export const v1ProductsSoftwareVersionsRetrieve = (
   slug: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<Software>(
-    {
-      url: `/api/v1/products/software/${slug}/versions/`,
-      method: 'GET',
-      signal,
-    },
-    options
-  );
+  return fetcher<Software>({
+    url: `/api/v1/products/software/${slug}/versions/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1ProductsSoftwareVersionsRetrieveQueryKey = (
@@ -18578,10 +19069,9 @@ export const getV1ProductsSoftwareVersionsRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ??
@@ -18589,8 +19079,7 @@ export const getV1ProductsSoftwareVersionsRetrieveQueryOptions = <
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsSoftwareVersionsRetrieve>>
-  > = ({ signal }) =>
-    v1ProductsSoftwareVersionsRetrieve(slug, requestOptions, signal);
+  > = ({ signal }) => v1ProductsSoftwareVersionsRetrieve(slug, signal);
 
   return {
     queryKey,
@@ -18630,7 +19119,6 @@ export function useV1ProductsSoftwareVersionsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -18657,7 +19145,6 @@ export function useV1ProductsSoftwareVersionsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -18674,7 +19161,6 @@ export function useV1ProductsSoftwareVersionsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -18692,7 +19178,6 @@ export function useV1ProductsSoftwareVersionsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -18715,14 +19200,12 @@ export function useV1ProductsSoftwareVersionsRetrieve<
  * Record a software usage event.
 Requires authentication and optionally an activation code.
  */
-export const v1ProductsUsageCreate = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/products/usage/`, method: 'POST', signal },
-    options
-  );
+export const v1ProductsUsageCreate = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/products/usage/`,
+    method: 'POST',
+    signal,
+  });
 };
 
 export const getV1ProductsUsageCreateMutationOptions = <
@@ -18735,7 +19218,6 @@ export const getV1ProductsUsageCreateMutationOptions = <
     void,
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsUsageCreate>>,
   TError,
@@ -18743,19 +19225,19 @@ export const getV1ProductsUsageCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsUsageCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsUsageCreate>>,
     void
   > = () => {
-    return v1ProductsUsageCreate(requestOptions);
+    return v1ProductsUsageCreate();
   };
 
   return { mutationFn, ...mutationOptions };
@@ -18775,7 +19257,6 @@ export const useV1ProductsUsageCreate = <TError = unknown, TContext = unknown>(
       void,
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -18794,13 +19275,14 @@ export const useV1ProductsUsageCreate = <TError = unknown, TContext = unknown>(
  */
 export const v1ProductsVersionsList = (
   params?: V1ProductsVersionsListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedSoftwareVersionList>(
-    { url: `/api/v1/products/versions/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedSoftwareVersionList>({
+    url: `/api/v1/products/versions/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1ProductsVersionsListQueryKey = (
@@ -18822,17 +19304,16 @@ export const getV1ProductsVersionsListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ProductsVersionsListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsVersionsList>>
-  > = ({ signal }) => v1ProductsVersionsList(params, requestOptions, signal);
+  > = ({ signal }) => v1ProductsVersionsList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1ProductsVersionsList>>,
@@ -18867,7 +19348,6 @@ export function useV1ProductsVersionsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -18894,7 +19374,6 @@ export function useV1ProductsVersionsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -18911,7 +19390,6 @@ export function useV1ProductsVersionsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -18929,7 +19407,6 @@ export function useV1ProductsVersionsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -18950,19 +19427,15 @@ export function useV1ProductsVersionsList<
  */
 export const v1ProductsVersionsCreate = (
   softwareVersionRequest: SoftwareVersionRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<SoftwareVersion>(
-    {
-      url: `/api/v1/products/versions/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: softwareVersionRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<SoftwareVersion>({
+    url: `/api/v1/products/versions/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: softwareVersionRequest,
+    signal,
+  });
 };
 
 export const getV1ProductsVersionsCreateMutationOptions = <
@@ -18975,7 +19448,6 @@ export const getV1ProductsVersionsCreateMutationOptions = <
     { data: SoftwareVersionRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsVersionsCreate>>,
   TError,
@@ -18983,13 +19455,13 @@ export const getV1ProductsVersionsCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsVersionsCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsVersionsCreate>>,
@@ -18997,7 +19469,7 @@ export const getV1ProductsVersionsCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1ProductsVersionsCreate(data, requestOptions);
+    return v1ProductsVersionsCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -19020,7 +19492,6 @@ export const useV1ProductsVersionsCreate = <
       { data: SoftwareVersionRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -19039,13 +19510,13 @@ export const useV1ProductsVersionsCreate = <
  */
 export const v1ProductsVersionsRetrieve = (
   id: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<SoftwareVersion>(
-    { url: `/api/v1/products/versions/${id}/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<SoftwareVersion>({
+    url: `/api/v1/products/versions/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1ProductsVersionsRetrieveQueryKey = (id?: string) => {
@@ -19065,17 +19536,16 @@ export const getV1ProductsVersionsRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ProductsVersionsRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ProductsVersionsRetrieve>>
-  > = ({ signal }) => v1ProductsVersionsRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1ProductsVersionsRetrieve(id, signal);
 
   return {
     queryKey,
@@ -19115,7 +19585,6 @@ export function useV1ProductsVersionsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -19142,7 +19611,6 @@ export function useV1ProductsVersionsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -19159,7 +19627,6 @@ export function useV1ProductsVersionsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -19177,7 +19644,6 @@ export function useV1ProductsVersionsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -19198,18 +19664,14 @@ export function useV1ProductsVersionsRetrieve<
  */
 export const v1ProductsVersionsUpdate = (
   id: string,
-  softwareVersionRequest: SoftwareVersionRequest,
-  options?: SecondParameter<typeof fetcher>
+  softwareVersionRequest: SoftwareVersionRequest
 ) => {
-  return fetcher<SoftwareVersion>(
-    {
-      url: `/api/v1/products/versions/${id}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: softwareVersionRequest,
-    },
-    options
-  );
+  return fetcher<SoftwareVersion>({
+    url: `/api/v1/products/versions/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: softwareVersionRequest,
+  });
 };
 
 export const getV1ProductsVersionsUpdateMutationOptions = <
@@ -19222,7 +19684,6 @@ export const getV1ProductsVersionsUpdateMutationOptions = <
     { id: string; data: SoftwareVersionRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsVersionsUpdate>>,
   TError,
@@ -19230,13 +19691,13 @@ export const getV1ProductsVersionsUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsVersionsUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsVersionsUpdate>>,
@@ -19244,7 +19705,7 @@ export const getV1ProductsVersionsUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1ProductsVersionsUpdate(id, data, requestOptions);
+    return v1ProductsVersionsUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -19267,7 +19728,6 @@ export const useV1ProductsVersionsUpdate = <
       { id: string; data: SoftwareVersionRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -19286,18 +19746,14 @@ export const useV1ProductsVersionsUpdate = <
  */
 export const v1ProductsVersionsPartialUpdate = (
   id: string,
-  patchedSoftwareVersionRequest: PatchedSoftwareVersionRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedSoftwareVersionRequest: PatchedSoftwareVersionRequest
 ) => {
-  return fetcher<SoftwareVersion>(
-    {
-      url: `/api/v1/products/versions/${id}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedSoftwareVersionRequest,
-    },
-    options
-  );
+  return fetcher<SoftwareVersion>({
+    url: `/api/v1/products/versions/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedSoftwareVersionRequest,
+  });
 };
 
 export const getV1ProductsVersionsPartialUpdateMutationOptions = <
@@ -19310,7 +19766,6 @@ export const getV1ProductsVersionsPartialUpdateMutationOptions = <
     { id: string; data: PatchedSoftwareVersionRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsVersionsPartialUpdate>>,
   TError,
@@ -19318,13 +19773,13 @@ export const getV1ProductsVersionsPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsVersionsPartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsVersionsPartialUpdate>>,
@@ -19332,7 +19787,7 @@ export const getV1ProductsVersionsPartialUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1ProductsVersionsPartialUpdate(id, data, requestOptions);
+    return v1ProductsVersionsPartialUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -19356,7 +19811,6 @@ export const useV1ProductsVersionsPartialUpdate = <
       { id: string; data: PatchedSoftwareVersionRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -19374,14 +19828,11 @@ export const useV1ProductsVersionsPartialUpdate = <
 /**
  * ViewSet for software versions.
  */
-export const v1ProductsVersionsDestroy = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/products/versions/${id}/`, method: 'DELETE' },
-    options
-  );
+export const v1ProductsVersionsDestroy = (id: string) => {
+  return fetcher<void>({
+    url: `/api/v1/products/versions/${id}/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1ProductsVersionsDestroyMutationOptions = <
@@ -19394,7 +19845,6 @@ export const getV1ProductsVersionsDestroyMutationOptions = <
     { id: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsVersionsDestroy>>,
   TError,
@@ -19402,13 +19852,13 @@ export const getV1ProductsVersionsDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsVersionsDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsVersionsDestroy>>,
@@ -19416,7 +19866,7 @@ export const getV1ProductsVersionsDestroyMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1ProductsVersionsDestroy(id, requestOptions);
+    return v1ProductsVersionsDestroy(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -19439,7 +19889,6 @@ export const useV1ProductsVersionsDestroy = <
       { id: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -19459,19 +19908,15 @@ export const useV1ProductsVersionsDestroy = <
 export const v1ProductsVersionsToggleActiveCreate = (
   id: string,
   softwareVersionRequest: SoftwareVersionRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<SoftwareVersion>(
-    {
-      url: `/api/v1/products/versions/${id}/toggle_active/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: softwareVersionRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<SoftwareVersion>({
+    url: `/api/v1/products/versions/${id}/toggle_active/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: softwareVersionRequest,
+    signal,
+  });
 };
 
 export const getV1ProductsVersionsToggleActiveCreateMutationOptions = <
@@ -19484,7 +19929,6 @@ export const getV1ProductsVersionsToggleActiveCreateMutationOptions = <
     { id: string; data: SoftwareVersionRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsVersionsToggleActiveCreate>>,
   TError,
@@ -19492,13 +19936,13 @@ export const getV1ProductsVersionsToggleActiveCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsVersionsToggleActiveCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsVersionsToggleActiveCreate>>,
@@ -19506,7 +19950,7 @@ export const getV1ProductsVersionsToggleActiveCreateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1ProductsVersionsToggleActiveCreate(id, data, requestOptions);
+    return v1ProductsVersionsToggleActiveCreate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -19530,7 +19974,6 @@ export const useV1ProductsVersionsToggleActiveCreate = <
       { id: string; data: SoftwareVersionRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -19551,19 +19994,15 @@ export const useV1ProductsVersionsToggleActiveCreate = <
 export const v1ProductsVersionsToggleBetaCreate = (
   id: string,
   softwareVersionRequest: SoftwareVersionRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<SoftwareVersion>(
-    {
-      url: `/api/v1/products/versions/${id}/toggle_beta/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: softwareVersionRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<SoftwareVersion>({
+    url: `/api/v1/products/versions/${id}/toggle_beta/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: softwareVersionRequest,
+    signal,
+  });
 };
 
 export const getV1ProductsVersionsToggleBetaCreateMutationOptions = <
@@ -19576,7 +20015,6 @@ export const getV1ProductsVersionsToggleBetaCreateMutationOptions = <
     { id: string; data: SoftwareVersionRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ProductsVersionsToggleBetaCreate>>,
   TError,
@@ -19584,13 +20022,13 @@ export const getV1ProductsVersionsToggleBetaCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ProductsVersionsToggleBetaCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ProductsVersionsToggleBetaCreate>>,
@@ -19598,7 +20036,7 @@ export const getV1ProductsVersionsToggleBetaCreateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1ProductsVersionsToggleBetaCreate(id, data, requestOptions);
+    return v1ProductsVersionsToggleBetaCreate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -19622,7 +20060,6 @@ export const useV1ProductsVersionsToggleBetaCreate = <
       { id: string; data: SoftwareVersionRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -19644,13 +20081,14 @@ export const useV1ProductsVersionsToggleBetaCreate = <
  */
 export const v1abuseAttemptsList = (
   params?: V1abuseAttemptsListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedAbuseAttemptList>(
-    { url: `/api/v1/security/abuse-attempts/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedAbuseAttemptList>({
+    url: `/api/v1/security/abuse-attempts/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1abuseAttemptsListQueryKey = (
@@ -19675,17 +20113,16 @@ export const getV1abuseAttemptsListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1abuseAttemptsListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1abuseAttemptsList>>
-  > = ({ signal }) => v1abuseAttemptsList(params, requestOptions, signal);
+  > = ({ signal }) => v1abuseAttemptsList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1abuseAttemptsList>>,
@@ -19720,7 +20157,6 @@ export function useV1abuseAttemptsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -19747,7 +20183,6 @@ export function useV1abuseAttemptsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -19764,7 +20199,6 @@ export function useV1abuseAttemptsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -19782,7 +20216,6 @@ export function useV1abuseAttemptsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -19803,15 +20236,12 @@ export function useV1abuseAttemptsList<
 - Access restricted to staff.
 - Supports filtering by IP and date range.
  */
-export const v1abuseAttemptsRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<AbuseAttempt>(
-    { url: `/api/v1/security/abuse-attempts/${id}/`, method: 'GET', signal },
-    options
-  );
+export const v1abuseAttemptsRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<AbuseAttempt>({
+    url: `/api/v1/security/abuse-attempts/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1abuseAttemptsRetrieveQueryKey = (id?: string) => {
@@ -19831,17 +20261,16 @@ export const getV1abuseAttemptsRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1abuseAttemptsRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1abuseAttemptsRetrieve>>
-  > = ({ signal }) => v1abuseAttemptsRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1abuseAttemptsRetrieve(id, signal);
 
   return {
     queryKey,
@@ -19881,7 +20310,6 @@ export function useV1abuseAttemptsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -19908,7 +20336,6 @@ export function useV1abuseAttemptsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -19925,7 +20352,6 @@ export function useV1abuseAttemptsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -19943,7 +20369,6 @@ export function useV1abuseAttemptsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -19966,13 +20391,14 @@ export function useV1abuseAttemptsRetrieve<
  */
 export const v1alertsList = (
   params?: V1alertsListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedAbuseAlertList>(
-    { url: `/api/v1/security/alerts/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedAbuseAlertList>({
+    url: `/api/v1/security/alerts/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1alertsListQueryKey = (params?: V1alertsListParams) => {
@@ -19988,16 +20414,15 @@ export const getV1alertsListQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof v1alertsList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1alertsListQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof v1alertsList>>> = ({
     signal,
-  }) => v1alertsList(params, requestOptions, signal);
+  }) => v1alertsList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1alertsList>>,
@@ -20028,7 +20453,6 @@ export function useV1alertsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -20051,7 +20475,6 @@ export function useV1alertsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -20064,7 +20487,6 @@ export function useV1alertsList<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof v1alertsList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -20078,7 +20500,6 @@ export function useV1alertsList<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof v1alertsList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -20099,15 +20520,12 @@ export function useV1alertsList<
 - Access restricted to staff.
 - Supports filtering by alert type and acknowledgment status.
  */
-export const v1alertsRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<AbuseAlert>(
-    { url: `/api/v1/security/alerts/${id}/`, method: 'GET', signal },
-    options
-  );
+export const v1alertsRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<AbuseAlert>({
+    url: `/api/v1/security/alerts/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1alertsRetrieveQueryKey = (id?: string) => {
@@ -20127,16 +20545,15 @@ export const getV1alertsRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1alertsRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1alertsRetrieve>>
-  > = ({ signal }) => v1alertsRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1alertsRetrieve(id, signal);
 
   return {
     queryKey,
@@ -20176,7 +20593,6 @@ export function useV1alertsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -20203,7 +20619,6 @@ export function useV1alertsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -20220,7 +20635,6 @@ export function useV1alertsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -20238,7 +20652,6 @@ export function useV1alertsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -20258,14 +20671,12 @@ export function useV1alertsRetrieve<
  * Retrieve audit logs (admin actions). Admin only.
 Returns logs with an actor (non‑system actions), newest first, up to 100 entries.
  */
-export const v1auditLogRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/security/audit-log/`, method: 'GET', signal },
-    options
-  );
+export const v1auditLogRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/security/audit-log/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1auditLogRetrieveQueryKey = () => {
@@ -20283,15 +20694,14 @@ export const getV1auditLogRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1auditLogRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1auditLogRetrieve>>
-  > = ({ signal }) => v1auditLogRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1auditLogRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1auditLogRetrieve>>,
@@ -20325,7 +20735,6 @@ export function useV1auditLogRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -20351,7 +20760,6 @@ export function useV1auditLogRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -20367,7 +20775,6 @@ export function useV1auditLogRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -20384,7 +20791,6 @@ export function useV1auditLogRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -20407,13 +20813,14 @@ export function useV1auditLogRetrieve<
  */
 export const v1codeBlacklistList = (
   params?: V1codeBlacklistListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedCodeBlacklistList>(
-    { url: `/api/v1/security/code-blacklist/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedCodeBlacklistList>({
+    url: `/api/v1/security/code-blacklist/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1codeBlacklistListQueryKey = (
@@ -20438,17 +20845,16 @@ export const getV1codeBlacklistListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1codeBlacklistListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1codeBlacklistList>>
-  > = ({ signal }) => v1codeBlacklistList(params, requestOptions, signal);
+  > = ({ signal }) => v1codeBlacklistList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1codeBlacklistList>>,
@@ -20483,7 +20889,6 @@ export function useV1codeBlacklistList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -20510,7 +20915,6 @@ export function useV1codeBlacklistList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -20527,7 +20931,6 @@ export function useV1codeBlacklistList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -20545,7 +20948,6 @@ export function useV1codeBlacklistList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -20568,19 +20970,15 @@ export function useV1codeBlacklistList<
  */
 export const v1codeBlacklistCreate = (
   codeBlacklistRequest: CodeBlacklistRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<CodeBlacklist>(
-    {
-      url: `/api/v1/security/code-blacklist/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: codeBlacklistRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<CodeBlacklist>({
+    url: `/api/v1/security/code-blacklist/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: codeBlacklistRequest,
+    signal,
+  });
 };
 
 export const getV1codeBlacklistCreateMutationOptions = <
@@ -20593,7 +20991,6 @@ export const getV1codeBlacklistCreateMutationOptions = <
     { data: CodeBlacklistRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1codeBlacklistCreate>>,
   TError,
@@ -20601,13 +20998,13 @@ export const getV1codeBlacklistCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1codeBlacklistCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1codeBlacklistCreate>>,
@@ -20615,7 +21012,7 @@ export const getV1codeBlacklistCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1codeBlacklistCreate(data, requestOptions);
+    return v1codeBlacklistCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -20635,7 +21032,6 @@ export const useV1codeBlacklistCreate = <TError = unknown, TContext = unknown>(
       { data: CodeBlacklistRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -20654,15 +21050,12 @@ export const useV1codeBlacklistCreate = <TError = unknown, TContext = unknown>(
 - Superusers can create, update, delete.
 - Staff members can only view.
  */
-export const v1codeBlacklistRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<CodeBlacklist>(
-    { url: `/api/v1/security/code-blacklist/${id}/`, method: 'GET', signal },
-    options
-  );
+export const v1codeBlacklistRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<CodeBlacklist>({
+    url: `/api/v1/security/code-blacklist/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1codeBlacklistRetrieveQueryKey = (id?: string) => {
@@ -20682,17 +21075,16 @@ export const getV1codeBlacklistRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1codeBlacklistRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1codeBlacklistRetrieve>>
-  > = ({ signal }) => v1codeBlacklistRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1codeBlacklistRetrieve(id, signal);
 
   return {
     queryKey,
@@ -20732,7 +21124,6 @@ export function useV1codeBlacklistRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -20759,7 +21150,6 @@ export function useV1codeBlacklistRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -20776,7 +21166,6 @@ export function useV1codeBlacklistRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -20794,7 +21183,6 @@ export function useV1codeBlacklistRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -20817,18 +21205,14 @@ export function useV1codeBlacklistRetrieve<
  */
 export const v1codeBlacklistUpdate = (
   id: string,
-  codeBlacklistRequest: CodeBlacklistRequest,
-  options?: SecondParameter<typeof fetcher>
+  codeBlacklistRequest: CodeBlacklistRequest
 ) => {
-  return fetcher<CodeBlacklist>(
-    {
-      url: `/api/v1/security/code-blacklist/${id}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: codeBlacklistRequest,
-    },
-    options
-  );
+  return fetcher<CodeBlacklist>({
+    url: `/api/v1/security/code-blacklist/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: codeBlacklistRequest,
+  });
 };
 
 export const getV1codeBlacklistUpdateMutationOptions = <
@@ -20841,7 +21225,6 @@ export const getV1codeBlacklistUpdateMutationOptions = <
     { id: string; data: CodeBlacklistRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1codeBlacklistUpdate>>,
   TError,
@@ -20849,13 +21232,13 @@ export const getV1codeBlacklistUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1codeBlacklistUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1codeBlacklistUpdate>>,
@@ -20863,7 +21246,7 @@ export const getV1codeBlacklistUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1codeBlacklistUpdate(id, data, requestOptions);
+    return v1codeBlacklistUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -20883,7 +21266,6 @@ export const useV1codeBlacklistUpdate = <TError = unknown, TContext = unknown>(
       { id: string; data: CodeBlacklistRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -20904,18 +21286,14 @@ export const useV1codeBlacklistUpdate = <TError = unknown, TContext = unknown>(
  */
 export const v1codeBlacklistPartialUpdate = (
   id: string,
-  patchedCodeBlacklistRequest: PatchedCodeBlacklistRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedCodeBlacklistRequest: PatchedCodeBlacklistRequest
 ) => {
-  return fetcher<CodeBlacklist>(
-    {
-      url: `/api/v1/security/code-blacklist/${id}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedCodeBlacklistRequest,
-    },
-    options
-  );
+  return fetcher<CodeBlacklist>({
+    url: `/api/v1/security/code-blacklist/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedCodeBlacklistRequest,
+  });
 };
 
 export const getV1codeBlacklistPartialUpdateMutationOptions = <
@@ -20928,7 +21306,6 @@ export const getV1codeBlacklistPartialUpdateMutationOptions = <
     { id: string; data: PatchedCodeBlacklistRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1codeBlacklistPartialUpdate>>,
   TError,
@@ -20936,13 +21313,13 @@ export const getV1codeBlacklistPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1codeBlacklistPartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1codeBlacklistPartialUpdate>>,
@@ -20950,7 +21327,7 @@ export const getV1codeBlacklistPartialUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1codeBlacklistPartialUpdate(id, data, requestOptions);
+    return v1codeBlacklistPartialUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -20974,7 +21351,6 @@ export const useV1codeBlacklistPartialUpdate = <
       { id: string; data: PatchedCodeBlacklistRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -20994,14 +21370,11 @@ export const useV1codeBlacklistPartialUpdate = <
 - Superusers can create, update, delete.
 - Staff members can only view.
  */
-export const v1codeBlacklistDestroy = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/security/code-blacklist/${id}/`, method: 'DELETE' },
-    options
-  );
+export const v1codeBlacklistDestroy = (id: string) => {
+  return fetcher<void>({
+    url: `/api/v1/security/code-blacklist/${id}/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1codeBlacklistDestroyMutationOptions = <
@@ -21014,7 +21387,6 @@ export const getV1codeBlacklistDestroyMutationOptions = <
     { id: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1codeBlacklistDestroy>>,
   TError,
@@ -21022,13 +21394,13 @@ export const getV1codeBlacklistDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1codeBlacklistDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1codeBlacklistDestroy>>,
@@ -21036,7 +21408,7 @@ export const getV1codeBlacklistDestroyMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1codeBlacklistDestroy(id, requestOptions);
+    return v1codeBlacklistDestroy(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -21056,7 +21428,6 @@ export const useV1codeBlacklistDestroy = <TError = unknown, TContext = unknown>(
       { id: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -21074,14 +21445,12 @@ export const useV1codeBlacklistDestroy = <TError = unknown, TContext = unknown>(
  * Generate and return a device fingerprint based on the request.
 Useful for testing and debugging. Accessible only to authenticated users.
  */
-export const v1deviceCheckRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/security/device-check/`, method: 'GET', signal },
-    options
-  );
+export const v1deviceCheckRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/security/device-check/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1deviceCheckRetrieveQueryKey = () => {
@@ -21099,15 +21468,14 @@ export const getV1deviceCheckRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1deviceCheckRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1deviceCheckRetrieve>>
-  > = ({ signal }) => v1deviceCheckRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1deviceCheckRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1deviceCheckRetrieve>>,
@@ -21141,7 +21509,6 @@ export function useV1deviceCheckRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -21167,7 +21534,6 @@ export function useV1deviceCheckRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -21183,7 +21549,6 @@ export function useV1deviceCheckRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -21200,7 +21565,6 @@ export function useV1deviceCheckRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -21224,13 +21588,14 @@ export function useV1deviceCheckRetrieve<
  */
 export const v1ipBlacklistList = (
   params?: V1ipBlacklistListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedIPBlacklistList>(
-    { url: `/api/v1/security/ip-blacklist/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedIPBlacklistList>({
+    url: `/api/v1/security/ip-blacklist/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1ipBlacklistListQueryKey = (
@@ -21255,17 +21620,16 @@ export const getV1ipBlacklistListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ipBlacklistListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ipBlacklistList>>
-  > = ({ signal }) => v1ipBlacklistList(params, requestOptions, signal);
+  > = ({ signal }) => v1ipBlacklistList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1ipBlacklistList>>,
@@ -21300,7 +21664,6 @@ export function useV1ipBlacklistList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -21327,7 +21690,6 @@ export function useV1ipBlacklistList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -21344,7 +21706,6 @@ export function useV1ipBlacklistList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -21362,7 +21723,6 @@ export function useV1ipBlacklistList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -21386,19 +21746,15 @@ export function useV1ipBlacklistList<
  */
 export const v1ipBlacklistCreate = (
   iPBlacklistRequest: IPBlacklistRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<IPBlacklist>(
-    {
-      url: `/api/v1/security/ip-blacklist/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: iPBlacklistRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<IPBlacklist>({
+    url: `/api/v1/security/ip-blacklist/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: iPBlacklistRequest,
+    signal,
+  });
 };
 
 export const getV1ipBlacklistCreateMutationOptions = <
@@ -21411,7 +21767,6 @@ export const getV1ipBlacklistCreateMutationOptions = <
     { data: IPBlacklistRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ipBlacklistCreate>>,
   TError,
@@ -21419,13 +21774,13 @@ export const getV1ipBlacklistCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ipBlacklistCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ipBlacklistCreate>>,
@@ -21433,7 +21788,7 @@ export const getV1ipBlacklistCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1ipBlacklistCreate(data, requestOptions);
+    return v1ipBlacklistCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -21453,7 +21808,6 @@ export const useV1ipBlacklistCreate = <TError = unknown, TContext = unknown>(
       { data: IPBlacklistRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -21473,15 +21827,12 @@ export const useV1ipBlacklistCreate = <TError = unknown, TContext = unknown>(
 - Staff members can only view.
 - Supports filtering by IP address, active status, and searching by reason.
  */
-export const v1ipBlacklistRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<IPBlacklist>(
-    { url: `/api/v1/security/ip-blacklist/${id}/`, method: 'GET', signal },
-    options
-  );
+export const v1ipBlacklistRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<IPBlacklist>({
+    url: `/api/v1/security/ip-blacklist/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1ipBlacklistRetrieveQueryKey = (id?: string) => {
@@ -21501,17 +21852,16 @@ export const getV1ipBlacklistRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1ipBlacklistRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1ipBlacklistRetrieve>>
-  > = ({ signal }) => v1ipBlacklistRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1ipBlacklistRetrieve(id, signal);
 
   return {
     queryKey,
@@ -21551,7 +21901,6 @@ export function useV1ipBlacklistRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -21578,7 +21927,6 @@ export function useV1ipBlacklistRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -21595,7 +21943,6 @@ export function useV1ipBlacklistRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -21613,7 +21960,6 @@ export function useV1ipBlacklistRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -21637,18 +21983,14 @@ export function useV1ipBlacklistRetrieve<
  */
 export const v1ipBlacklistUpdate = (
   id: string,
-  iPBlacklistRequest: IPBlacklistRequest,
-  options?: SecondParameter<typeof fetcher>
+  iPBlacklistRequest: IPBlacklistRequest
 ) => {
-  return fetcher<IPBlacklist>(
-    {
-      url: `/api/v1/security/ip-blacklist/${id}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: iPBlacklistRequest,
-    },
-    options
-  );
+  return fetcher<IPBlacklist>({
+    url: `/api/v1/security/ip-blacklist/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: iPBlacklistRequest,
+  });
 };
 
 export const getV1ipBlacklistUpdateMutationOptions = <
@@ -21661,7 +22003,6 @@ export const getV1ipBlacklistUpdateMutationOptions = <
     { id: string; data: IPBlacklistRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ipBlacklistUpdate>>,
   TError,
@@ -21669,13 +22010,13 @@ export const getV1ipBlacklistUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ipBlacklistUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ipBlacklistUpdate>>,
@@ -21683,7 +22024,7 @@ export const getV1ipBlacklistUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1ipBlacklistUpdate(id, data, requestOptions);
+    return v1ipBlacklistUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -21703,7 +22044,6 @@ export const useV1ipBlacklistUpdate = <TError = unknown, TContext = unknown>(
       { id: string; data: IPBlacklistRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -21725,18 +22065,14 @@ export const useV1ipBlacklistUpdate = <TError = unknown, TContext = unknown>(
  */
 export const v1ipBlacklistPartialUpdate = (
   id: string,
-  patchedIPBlacklistRequest: PatchedIPBlacklistRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedIPBlacklistRequest: PatchedIPBlacklistRequest
 ) => {
-  return fetcher<IPBlacklist>(
-    {
-      url: `/api/v1/security/ip-blacklist/${id}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedIPBlacklistRequest,
-    },
-    options
-  );
+  return fetcher<IPBlacklist>({
+    url: `/api/v1/security/ip-blacklist/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedIPBlacklistRequest,
+  });
 };
 
 export const getV1ipBlacklistPartialUpdateMutationOptions = <
@@ -21749,7 +22085,6 @@ export const getV1ipBlacklistPartialUpdateMutationOptions = <
     { id: string; data: PatchedIPBlacklistRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ipBlacklistPartialUpdate>>,
   TError,
@@ -21757,13 +22092,13 @@ export const getV1ipBlacklistPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ipBlacklistPartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ipBlacklistPartialUpdate>>,
@@ -21771,7 +22106,7 @@ export const getV1ipBlacklistPartialUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1ipBlacklistPartialUpdate(id, data, requestOptions);
+    return v1ipBlacklistPartialUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -21794,7 +22129,6 @@ export const useV1ipBlacklistPartialUpdate = <
       { id: string; data: PatchedIPBlacklistRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -21814,14 +22148,11 @@ export const useV1ipBlacklistPartialUpdate = <
 - Staff members can only view.
 - Supports filtering by IP address, active status, and searching by reason.
  */
-export const v1ipBlacklistDestroy = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/security/ip-blacklist/${id}/`, method: 'DELETE' },
-    options
-  );
+export const v1ipBlacklistDestroy = (id: string) => {
+  return fetcher<void>({
+    url: `/api/v1/security/ip-blacklist/${id}/`,
+    method: 'DELETE',
+  });
 };
 
 export const getV1ipBlacklistDestroyMutationOptions = <
@@ -21834,7 +22165,6 @@ export const getV1ipBlacklistDestroyMutationOptions = <
     { id: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1ipBlacklistDestroy>>,
   TError,
@@ -21842,13 +22172,13 @@ export const getV1ipBlacklistDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1ipBlacklistDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1ipBlacklistDestroy>>,
@@ -21856,7 +22186,7 @@ export const getV1ipBlacklistDestroyMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1ipBlacklistDestroy(id, requestOptions);
+    return v1ipBlacklistDestroy(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -21876,7 +22206,6 @@ export const useV1ipBlacklistDestroy = <TError = unknown, TContext = unknown>(
       { id: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -21897,13 +22226,14 @@ export const useV1ipBlacklistDestroy = <TError = unknown, TContext = unknown>(
  */
 export const v1securityLogsList = (
   params?: V1securityLogsListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedSecurityNotificationLogList>(
-    { url: `/api/v1/security/security-logs/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedSecurityNotificationLogList>({
+    url: `/api/v1/security/security-logs/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1securityLogsListQueryKey = (
@@ -21928,17 +22258,16 @@ export const getV1securityLogsListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1securityLogsListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1securityLogsList>>
-  > = ({ signal }) => v1securityLogsList(params, requestOptions, signal);
+  > = ({ signal }) => v1securityLogsList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1securityLogsList>>,
@@ -21973,7 +22302,6 @@ export function useV1securityLogsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -22000,7 +22328,6 @@ export function useV1securityLogsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -22017,7 +22344,6 @@ export function useV1securityLogsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -22035,7 +22361,6 @@ export function useV1securityLogsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -22056,15 +22381,12 @@ export function useV1securityLogsList<
 - Access restricted to staff.
 - Supports filtering by risk level and user.
  */
-export const v1securityLogsRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<SecurityNotificationLog>(
-    { url: `/api/v1/security/security-logs/${id}/`, method: 'GET', signal },
-    options
-  );
+export const v1securityLogsRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<SecurityNotificationLog>({
+    url: `/api/v1/security/security-logs/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1securityLogsRetrieveQueryKey = (id?: string) => {
@@ -22084,17 +22406,16 @@ export const getV1securityLogsRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1securityLogsRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1securityLogsRetrieve>>
-  > = ({ signal }) => v1securityLogsRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1securityLogsRetrieve(id, signal);
 
   return {
     queryKey,
@@ -22134,7 +22455,6 @@ export function useV1securityLogsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -22161,7 +22481,6 @@ export function useV1securityLogsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -22178,7 +22497,6 @@ export function useV1securityLogsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -22196,7 +22514,6 @@ export function useV1securityLogsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -22216,14 +22533,12 @@ export function useV1securityLogsRetrieve<
  * Get current security settings (admin only).
 Returns a subset of Django settings relevant to security.
  */
-export const v1settingsRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/security/settings/`, method: 'GET', signal },
-    options
-  );
+export const v1settingsRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/security/settings/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1settingsRetrieveQueryKey = () => {
@@ -22241,15 +22556,14 @@ export const getV1settingsRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1settingsRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1settingsRetrieve>>
-  > = ({ signal }) => v1settingsRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1settingsRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1settingsRetrieve>>,
@@ -22283,7 +22597,6 @@ export function useV1settingsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -22309,7 +22622,6 @@ export function useV1settingsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -22325,7 +22637,6 @@ export function useV1settingsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -22342,7 +22653,6 @@ export function useV1settingsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -22362,14 +22672,12 @@ export function useV1settingsRetrieve<
  * Return recent suspicious activities (abuse attempts + security logs).
 Admin only. Accepts optional 'limit' query parameter (default 50).
  */
-export const v1suspiciousActivityRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/security/suspicious-activity/`, method: 'GET', signal },
-    options
-  );
+export const v1suspiciousActivityRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/security/suspicious-activity/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1suspiciousActivityRetrieveQueryKey = () => {
@@ -22387,16 +22695,15 @@ export const getV1suspiciousActivityRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1suspiciousActivityRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1suspiciousActivityRetrieve>>
-  > = ({ signal }) => v1suspiciousActivityRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1suspiciousActivityRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1suspiciousActivityRetrieve>>,
@@ -22430,7 +22737,6 @@ export function useV1suspiciousActivityRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -22456,7 +22762,6 @@ export function useV1suspiciousActivityRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -22472,7 +22777,6 @@ export function useV1suspiciousActivityRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -22489,7 +22793,6 @@ export function useV1suspiciousActivityRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -22509,14 +22812,8 @@ export function useV1suspiciousActivityRetrieve<
  * Public endpoint to check API health and version.
 Returns 200 OK when the API is operational.
  */
-export const v1StatusRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/status/`, method: 'GET', signal },
-    options
-  );
+export const v1StatusRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({ url: `/api/v1/status/`, method: 'GET', signal });
 };
 
 export const getV1StatusRetrieveQueryKey = () => {
@@ -22530,15 +22827,14 @@ export const getV1StatusRetrieveQueryOptions = <
   query?: Partial<
     UseQueryOptions<Awaited<ReturnType<typeof v1StatusRetrieve>>, TError, TData>
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1StatusRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1StatusRetrieve>>
-  > = ({ signal }) => v1StatusRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1StatusRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1StatusRetrieve>>,
@@ -22572,7 +22868,6 @@ export function useV1StatusRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -22598,7 +22893,6 @@ export function useV1StatusRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -22614,7 +22908,6 @@ export function useV1StatusRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -22631,7 +22924,6 @@ export function useV1StatusRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -22651,14 +22943,12 @@ export function useV1StatusRetrieve<
  * System configuration endpoint (admin only).
 Returns non‑sensitive configuration parameters.
  */
-export const v1SystemConfigRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/system/config/`, method: 'GET', signal },
-    options
-  );
+export const v1SystemConfigRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/system/config/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1SystemConfigRetrieveQueryKey = () => {
@@ -22676,16 +22966,15 @@ export const getV1SystemConfigRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1SystemConfigRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1SystemConfigRetrieve>>
-  > = ({ signal }) => v1SystemConfigRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1SystemConfigRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1SystemConfigRetrieve>>,
@@ -22719,7 +23008,6 @@ export function useV1SystemConfigRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -22745,7 +23033,6 @@ export function useV1SystemConfigRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -22761,7 +23048,6 @@ export function useV1SystemConfigRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -22778,7 +23064,6 @@ export function useV1SystemConfigRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -22798,14 +23083,12 @@ export function useV1SystemConfigRetrieve<
  * System health check endpoint (admin only).
 Returns status of critical services: database, cache, etc.
  */
-export const v1SystemHealthRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/system/health/`, method: 'GET', signal },
-    options
-  );
+export const v1SystemHealthRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/system/health/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1SystemHealthRetrieveQueryKey = () => {
@@ -22823,16 +23106,15 @@ export const getV1SystemHealthRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1SystemHealthRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1SystemHealthRetrieve>>
-  > = ({ signal }) => v1SystemHealthRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1SystemHealthRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1SystemHealthRetrieve>>,
@@ -22866,7 +23148,6 @@ export function useV1SystemHealthRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -22892,7 +23173,6 @@ export function useV1SystemHealthRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -22908,7 +23188,6 @@ export function useV1SystemHealthRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -22925,7 +23204,6 @@ export function useV1SystemHealthRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -22945,14 +23223,12 @@ export function useV1SystemHealthRetrieve<
  * System metrics endpoint (admin only).
 Returns basic performance metrics (placeholder for now).
  */
-export const v1SystemMetricsRetrieve = (
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/system/metrics/`, method: 'GET', signal },
-    options
-  );
+export const v1SystemMetricsRetrieve = (signal?: AbortSignal) => {
+  return fetcher<void>({
+    url: `/api/v1/system/metrics/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1SystemMetricsRetrieveQueryKey = () => {
@@ -22970,16 +23246,15 @@ export const getV1SystemMetricsRetrieveQueryOptions = <
       TData
     >
   >;
-  request?: SecondParameter<typeof fetcher>;
 }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1SystemMetricsRetrieveQueryKey();
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1SystemMetricsRetrieve>>
-  > = ({ signal }) => v1SystemMetricsRetrieve(requestOptions, signal);
+  > = ({ signal }) => v1SystemMetricsRetrieve(signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1SystemMetricsRetrieve>>,
@@ -23013,7 +23288,6 @@ export function useV1SystemMetricsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -23039,7 +23313,6 @@ export function useV1SystemMetricsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -23055,7 +23328,6 @@ export function useV1SystemMetricsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -23072,7 +23344,6 @@ export function useV1SystemMetricsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -23090,13 +23361,14 @@ export function useV1SystemMetricsRetrieve<
 
 export const v1TicketBansList = (
   params?: V1TicketBansListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedTicketBanList>(
-    { url: `/api/v1/ticket-bans/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedTicketBanList>({
+    url: `/api/v1/ticket-bans/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1TicketBansListQueryKey = (
@@ -23118,17 +23390,16 @@ export const getV1TicketBansListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1TicketBansListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1TicketBansList>>
-  > = ({ signal }) => v1TicketBansList(params, requestOptions, signal);
+  > = ({ signal }) => v1TicketBansList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1TicketBansList>>,
@@ -23163,7 +23434,6 @@ export function useV1TicketBansList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -23190,7 +23460,6 @@ export function useV1TicketBansList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -23207,7 +23476,6 @@ export function useV1TicketBansList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -23225,7 +23493,6 @@ export function useV1TicketBansList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -23243,19 +23510,15 @@ export function useV1TicketBansList<
 
 export const v1TicketBansCreate = (
   ticketBanCreateRequest: TicketBanCreateRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<TicketBanCreate>(
-    {
-      url: `/api/v1/ticket-bans/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: ticketBanCreateRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<TicketBanCreate>({
+    url: `/api/v1/ticket-bans/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: ticketBanCreateRequest,
+    signal,
+  });
 };
 
 export const getV1TicketBansCreateMutationOptions = <
@@ -23268,7 +23531,6 @@ export const getV1TicketBansCreateMutationOptions = <
     { data: TicketBanCreateRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1TicketBansCreate>>,
   TError,
@@ -23276,13 +23538,13 @@ export const getV1TicketBansCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1TicketBansCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1TicketBansCreate>>,
@@ -23290,7 +23552,7 @@ export const getV1TicketBansCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1TicketBansCreate(data, requestOptions);
+    return v1TicketBansCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -23310,7 +23572,6 @@ export const useV1TicketBansCreate = <TError = unknown, TContext = unknown>(
       { data: TicketBanCreateRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -23324,15 +23585,12 @@ export const useV1TicketBansCreate = <TError = unknown, TContext = unknown>(
   return useMutation(mutationOptions, queryClient);
 };
 
-export const v1TicketBansRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<TicketBan>(
-    { url: `/api/v1/ticket-bans/${id}/`, method: 'GET', signal },
-    options
-  );
+export const v1TicketBansRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<TicketBan>({
+    url: `/api/v1/ticket-bans/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1TicketBansRetrieveQueryKey = (id?: string) => {
@@ -23352,17 +23610,16 @@ export const getV1TicketBansRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1TicketBansRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1TicketBansRetrieve>>
-  > = ({ signal }) => v1TicketBansRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1TicketBansRetrieve(id, signal);
 
   return {
     queryKey,
@@ -23402,7 +23659,6 @@ export function useV1TicketBansRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -23429,7 +23685,6 @@ export function useV1TicketBansRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -23446,7 +23701,6 @@ export function useV1TicketBansRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -23464,7 +23718,6 @@ export function useV1TicketBansRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -23482,18 +23735,14 @@ export function useV1TicketBansRetrieve<
 
 export const v1TicketBansUpdate = (
   id: string,
-  ticketBanRequest: TicketBanRequest,
-  options?: SecondParameter<typeof fetcher>
+  ticketBanRequest: TicketBanRequest
 ) => {
-  return fetcher<TicketBan>(
-    {
-      url: `/api/v1/ticket-bans/${id}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: ticketBanRequest,
-    },
-    options
-  );
+  return fetcher<TicketBan>({
+    url: `/api/v1/ticket-bans/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: ticketBanRequest,
+  });
 };
 
 export const getV1TicketBansUpdateMutationOptions = <
@@ -23506,7 +23755,6 @@ export const getV1TicketBansUpdateMutationOptions = <
     { id: string; data: TicketBanRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1TicketBansUpdate>>,
   TError,
@@ -23514,13 +23762,13 @@ export const getV1TicketBansUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1TicketBansUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1TicketBansUpdate>>,
@@ -23528,7 +23776,7 @@ export const getV1TicketBansUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1TicketBansUpdate(id, data, requestOptions);
+    return v1TicketBansUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -23548,7 +23796,6 @@ export const useV1TicketBansUpdate = <TError = unknown, TContext = unknown>(
       { id: string; data: TicketBanRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -23564,18 +23811,14 @@ export const useV1TicketBansUpdate = <TError = unknown, TContext = unknown>(
 
 export const v1TicketBansPartialUpdate = (
   id: string,
-  patchedTicketBanRequest: PatchedTicketBanRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedTicketBanRequest: PatchedTicketBanRequest
 ) => {
-  return fetcher<TicketBan>(
-    {
-      url: `/api/v1/ticket-bans/${id}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedTicketBanRequest,
-    },
-    options
-  );
+  return fetcher<TicketBan>({
+    url: `/api/v1/ticket-bans/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedTicketBanRequest,
+  });
 };
 
 export const getV1TicketBansPartialUpdateMutationOptions = <
@@ -23588,7 +23831,6 @@ export const getV1TicketBansPartialUpdateMutationOptions = <
     { id: string; data: PatchedTicketBanRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1TicketBansPartialUpdate>>,
   TError,
@@ -23596,13 +23838,13 @@ export const getV1TicketBansPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1TicketBansPartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1TicketBansPartialUpdate>>,
@@ -23610,7 +23852,7 @@ export const getV1TicketBansPartialUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1TicketBansPartialUpdate(id, data, requestOptions);
+    return v1TicketBansPartialUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -23633,7 +23875,6 @@ export const useV1TicketBansPartialUpdate = <
       { id: string; data: PatchedTicketBanRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -23647,14 +23888,8 @@ export const useV1TicketBansPartialUpdate = <
   return useMutation(mutationOptions, queryClient);
 };
 
-export const v1TicketBansDestroy = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/ticket-bans/${id}/`, method: 'DELETE' },
-    options
-  );
+export const v1TicketBansDestroy = (id: string) => {
+  return fetcher<void>({ url: `/api/v1/ticket-bans/${id}/`, method: 'DELETE' });
 };
 
 export const getV1TicketBansDestroyMutationOptions = <
@@ -23667,7 +23902,6 @@ export const getV1TicketBansDestroyMutationOptions = <
     { id: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1TicketBansDestroy>>,
   TError,
@@ -23675,13 +23909,13 @@ export const getV1TicketBansDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1TicketBansDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1TicketBansDestroy>>,
@@ -23689,7 +23923,7 @@ export const getV1TicketBansDestroyMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1TicketBansDestroy(id, requestOptions);
+    return v1TicketBansDestroy(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -23709,7 +23943,6 @@ export const useV1TicketBansDestroy = <TError = unknown, TContext = unknown>(
       { id: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -23725,13 +23958,14 @@ export const useV1TicketBansDestroy = <TError = unknown, TContext = unknown>(
 
 export const v1TicketsList = (
   params?: V1TicketsListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedTicketListList>(
-    { url: `/api/v1/tickets/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedTicketListList>({
+    url: `/api/v1/tickets/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getV1TicketsListQueryKey = (params?: V1TicketsListParams) => {
@@ -23747,16 +23981,15 @@ export const getV1TicketsListQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof v1TicketsList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1TicketsListQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof v1TicketsList>>> = ({
     signal,
-  }) => v1TicketsList(params, requestOptions, signal);
+  }) => v1TicketsList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof v1TicketsList>>,
@@ -23787,7 +24020,6 @@ export function useV1TicketsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -23810,7 +24042,6 @@ export function useV1TicketsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -23823,7 +24054,6 @@ export function useV1TicketsList<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof v1TicketsList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -23837,7 +24067,6 @@ export function useV1TicketsList<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof v1TicketsList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -23855,19 +24084,15 @@ export function useV1TicketsList<
 
 export const v1TicketsCreate = (
   ticketCreateRequest: TicketCreateRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<TicketCreate>(
-    {
-      url: `/api/v1/tickets/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: ticketCreateRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<TicketCreate>({
+    url: `/api/v1/tickets/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: ticketCreateRequest,
+    signal,
+  });
 };
 
 export const getV1TicketsCreateMutationOptions = <
@@ -23880,7 +24105,6 @@ export const getV1TicketsCreateMutationOptions = <
     { data: TicketCreateRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1TicketsCreate>>,
   TError,
@@ -23888,13 +24112,13 @@ export const getV1TicketsCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1TicketsCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1TicketsCreate>>,
@@ -23902,7 +24126,7 @@ export const getV1TicketsCreateMutationOptions = <
   > = (props) => {
     const { data } = props ?? {};
 
-    return v1TicketsCreate(data, requestOptions);
+    return v1TicketsCreate(data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -23922,7 +24146,6 @@ export const useV1TicketsCreate = <TError = unknown, TContext = unknown>(
       { data: TicketCreateRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -23936,15 +24159,12 @@ export const useV1TicketsCreate = <TError = unknown, TContext = unknown>(
   return useMutation(mutationOptions, queryClient);
 };
 
-export const v1TicketsRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<TicketDetail>(
-    { url: `/api/v1/tickets/${id}/`, method: 'GET', signal },
-    options
-  );
+export const v1TicketsRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<TicketDetail>({
+    url: `/api/v1/tickets/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1TicketsRetrieveQueryKey = (id?: string) => {
@@ -23964,16 +24184,15 @@ export const getV1TicketsRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getV1TicketsRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1TicketsRetrieve>>
-  > = ({ signal }) => v1TicketsRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1TicketsRetrieve(id, signal);
 
   return {
     queryKey,
@@ -24013,7 +24232,6 @@ export function useV1TicketsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -24040,7 +24258,6 @@ export function useV1TicketsRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -24057,7 +24274,6 @@ export function useV1TicketsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -24075,7 +24291,6 @@ export function useV1TicketsRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -24093,18 +24308,14 @@ export function useV1TicketsRetrieve<
 
 export const v1TicketsUpdate = (
   id: string,
-  ticketUpdateRequest: TicketUpdateRequest,
-  options?: SecondParameter<typeof fetcher>
+  ticketUpdateRequest: TicketUpdateRequest
 ) => {
-  return fetcher<TicketUpdate>(
-    {
-      url: `/api/v1/tickets/${id}/`,
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      data: ticketUpdateRequest,
-    },
-    options
-  );
+  return fetcher<TicketUpdate>({
+    url: `/api/v1/tickets/${id}/`,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    data: ticketUpdateRequest,
+  });
 };
 
 export const getV1TicketsUpdateMutationOptions = <
@@ -24117,7 +24328,6 @@ export const getV1TicketsUpdateMutationOptions = <
     { id: string; data: TicketUpdateRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1TicketsUpdate>>,
   TError,
@@ -24125,13 +24335,13 @@ export const getV1TicketsUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1TicketsUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1TicketsUpdate>>,
@@ -24139,7 +24349,7 @@ export const getV1TicketsUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1TicketsUpdate(id, data, requestOptions);
+    return v1TicketsUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -24159,7 +24369,6 @@ export const useV1TicketsUpdate = <TError = unknown, TContext = unknown>(
       { id: string; data: TicketUpdateRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -24175,18 +24384,14 @@ export const useV1TicketsUpdate = <TError = unknown, TContext = unknown>(
 
 export const v1TicketsPartialUpdate = (
   id: string,
-  patchedTicketUpdateRequest: PatchedTicketUpdateRequest,
-  options?: SecondParameter<typeof fetcher>
+  patchedTicketUpdateRequest: PatchedTicketUpdateRequest
 ) => {
-  return fetcher<TicketUpdate>(
-    {
-      url: `/api/v1/tickets/${id}/`,
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      data: patchedTicketUpdateRequest,
-    },
-    options
-  );
+  return fetcher<TicketUpdate>({
+    url: `/api/v1/tickets/${id}/`,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    data: patchedTicketUpdateRequest,
+  });
 };
 
 export const getV1TicketsPartialUpdateMutationOptions = <
@@ -24199,7 +24404,6 @@ export const getV1TicketsPartialUpdateMutationOptions = <
     { id: string; data: PatchedTicketUpdateRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1TicketsPartialUpdate>>,
   TError,
@@ -24207,13 +24411,13 @@ export const getV1TicketsPartialUpdateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1TicketsPartialUpdate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1TicketsPartialUpdate>>,
@@ -24221,7 +24425,7 @@ export const getV1TicketsPartialUpdateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1TicketsPartialUpdate(id, data, requestOptions);
+    return v1TicketsPartialUpdate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -24241,7 +24445,6 @@ export const useV1TicketsPartialUpdate = <TError = unknown, TContext = unknown>(
       { id: string; data: PatchedTicketUpdateRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -24255,14 +24458,8 @@ export const useV1TicketsPartialUpdate = <TError = unknown, TContext = unknown>(
   return useMutation(mutationOptions, queryClient);
 };
 
-export const v1TicketsDestroy = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>
-) => {
-  return fetcher<void>(
-    { url: `/api/v1/tickets/${id}/`, method: 'DELETE' },
-    options
-  );
+export const v1TicketsDestroy = (id: string) => {
+  return fetcher<void>({ url: `/api/v1/tickets/${id}/`, method: 'DELETE' });
 };
 
 export const getV1TicketsDestroyMutationOptions = <
@@ -24275,7 +24472,6 @@ export const getV1TicketsDestroyMutationOptions = <
     { id: string },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1TicketsDestroy>>,
   TError,
@@ -24283,13 +24479,13 @@ export const getV1TicketsDestroyMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1TicketsDestroy'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1TicketsDestroy>>,
@@ -24297,7 +24493,7 @@ export const getV1TicketsDestroyMutationOptions = <
   > = (props) => {
     const { id } = props ?? {};
 
-    return v1TicketsDestroy(id, requestOptions);
+    return v1TicketsDestroy(id);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -24317,7 +24513,6 @@ export const useV1TicketsDestroy = <TError = unknown, TContext = unknown>(
       { id: string },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -24331,15 +24526,12 @@ export const useV1TicketsDestroy = <TError = unknown, TContext = unknown>(
   return useMutation(mutationOptions, queryClient);
 };
 
-export const v1TicketsMessagesRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<TicketDetail>(
-    { url: `/api/v1/tickets/${id}/messages/`, method: 'GET', signal },
-    options
-  );
+export const v1TicketsMessagesRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<TicketDetail>({
+    url: `/api/v1/tickets/${id}/messages/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getV1TicketsMessagesRetrieveQueryKey = (id?: string) => {
@@ -24359,17 +24551,16 @@ export const getV1TicketsMessagesRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getV1TicketsMessagesRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof v1TicketsMessagesRetrieve>>
-  > = ({ signal }) => v1TicketsMessagesRetrieve(id, requestOptions, signal);
+  > = ({ signal }) => v1TicketsMessagesRetrieve(id, signal);
 
   return {
     queryKey,
@@ -24409,7 +24600,6 @@ export function useV1TicketsMessagesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -24436,7 +24626,6 @@ export function useV1TicketsMessagesRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -24453,7 +24642,6 @@ export function useV1TicketsMessagesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -24471,7 +24659,6 @@ export function useV1TicketsMessagesRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -24490,19 +24677,15 @@ export function useV1TicketsMessagesRetrieve<
 export const v1TicketsMessagesCreate = (
   id: string,
   ticketDetailRequest: TicketDetailRequest,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<TicketDetail>(
-    {
-      url: `/api/v1/tickets/${id}/messages/`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      data: ticketDetailRequest,
-      signal,
-    },
-    options
-  );
+  return fetcher<TicketDetail>({
+    url: `/api/v1/tickets/${id}/messages/`,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    data: ticketDetailRequest,
+    signal,
+  });
 };
 
 export const getV1TicketsMessagesCreateMutationOptions = <
@@ -24515,7 +24698,6 @@ export const getV1TicketsMessagesCreateMutationOptions = <
     { id: string; data: TicketDetailRequest },
     TContext
   >;
-  request?: SecondParameter<typeof fetcher>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof v1TicketsMessagesCreate>>,
   TError,
@@ -24523,13 +24705,13 @@ export const getV1TicketsMessagesCreateMutationOptions = <
   TContext
 > => {
   const mutationKey = ['v1TicketsMessagesCreate'];
-  const { mutation: mutationOptions, request: requestOptions } = options
+  const { mutation: mutationOptions } = options
     ? options.mutation &&
       'mutationKey' in options.mutation &&
       options.mutation.mutationKey
       ? options
       : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
+    : { mutation: { mutationKey } };
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof v1TicketsMessagesCreate>>,
@@ -24537,7 +24719,7 @@ export const getV1TicketsMessagesCreateMutationOptions = <
   > = (props) => {
     const { id, data } = props ?? {};
 
-    return v1TicketsMessagesCreate(id, data, requestOptions);
+    return v1TicketsMessagesCreate(id, data);
   };
 
   return { mutationFn, ...mutationOptions };
@@ -24560,7 +24742,6 @@ export const useV1TicketsMessagesCreate = <
       { id: string; data: TicketDetailRequest },
       TContext
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseMutationResult<
@@ -24582,13 +24763,13 @@ Requires authentication and a valid license.
  */
 export const distributionFileRetrieve = (
   versionId: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<void>(
-    { url: `/distribution/file/${versionId}/`, method: 'GET', signal },
-    options
-  );
+  return fetcher<void>({
+    url: `/distribution/file/${versionId}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getDistributionFileRetrieveQueryKey = (versionId?: string) => {
@@ -24608,18 +24789,16 @@ export const getDistributionFileRetrieveQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getDistributionFileRetrieveQueryKey(versionId);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof distributionFileRetrieve>>
-  > = ({ signal }) =>
-    distributionFileRetrieve(versionId, requestOptions, signal);
+  > = ({ signal }) => distributionFileRetrieve(versionId, signal);
 
   return {
     queryKey,
@@ -24659,7 +24838,6 @@ export function useDistributionFileRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -24686,7 +24864,6 @@ export function useDistributionFileRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -24703,7 +24880,6 @@ export function useDistributionFileRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -24721,7 +24897,6 @@ export function useDistributionFileRetrieve<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -24749,17 +24924,13 @@ Requires authentication and a valid license.
 export const distributionFileRetrieve2 = (
   versionId: string,
   artifactType: string,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<void>(
-    {
-      url: `/distribution/file/${versionId}/${artifactType}/`,
-      method: 'GET',
-      signal,
-    },
-    options
-  );
+  return fetcher<void>({
+    url: `/distribution/file/${versionId}/${artifactType}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getDistributionFileRetrieve2QueryKey = (
@@ -24783,10 +24954,9 @@ export const getDistributionFileRetrieve2QueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ??
@@ -24795,7 +24965,7 @@ export const getDistributionFileRetrieve2QueryOptions = <
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof distributionFileRetrieve2>>
   > = ({ signal }) =>
-    distributionFileRetrieve2(versionId, artifactType, requestOptions, signal);
+    distributionFileRetrieve2(versionId, artifactType, signal);
 
   return {
     queryKey,
@@ -24836,7 +25006,6 @@ export function useDistributionFileRetrieve2<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -24864,7 +25033,6 @@ export function useDistributionFileRetrieve2<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -24882,7 +25050,6 @@ export function useDistributionFileRetrieve2<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -24901,7 +25068,6 @@ export function useDistributionFileRetrieve2<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -24926,13 +25092,14 @@ export function useDistributionFileRetrieve2<
  */
 export const distributionMirrorsList = (
   params?: DistributionMirrorsListParams,
-  options?: SecondParameter<typeof fetcher>,
   signal?: AbortSignal
 ) => {
-  return fetcher<PaginatedMirrorList>(
-    { url: `/distribution/mirrors/`, method: 'GET', params, signal },
-    options
-  );
+  return fetcher<PaginatedMirrorList>({
+    url: `/distribution/mirrors/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getDistributionMirrorsListQueryKey = (
@@ -24954,17 +25121,16 @@ export const getDistributionMirrorsListQueryOptions = <
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey =
     queryOptions?.queryKey ?? getDistributionMirrorsListQueryKey(params);
 
   const queryFn: QueryFunction<
     Awaited<ReturnType<typeof distributionMirrorsList>>
-  > = ({ signal }) => distributionMirrorsList(params, requestOptions, signal);
+  > = ({ signal }) => distributionMirrorsList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof distributionMirrorsList>>,
@@ -24999,7 +25165,6 @@ export function useDistributionMirrorsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -25026,7 +25191,6 @@ export function useDistributionMirrorsList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -25043,7 +25207,6 @@ export function useDistributionMirrorsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -25061,7 +25224,6 @@ export function useDistributionMirrorsList<
         TData
       >
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -25080,15 +25242,13 @@ export function useDistributionMirrorsList<
 /**
  * List notifications for the authenticated user.
  */
-export const apiList = (
-  params?: ApiListParams,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<PaginatedNotificationList>(
-    { url: `/notifications/api/notifications/`, method: 'GET', params, signal },
-    options
-  );
+export const apiList = (params?: ApiListParams, signal?: AbortSignal) => {
+  return fetcher<PaginatedNotificationList>({
+    url: `/notifications/api/notifications/`,
+    method: 'GET',
+    params,
+    signal,
+  });
 };
 
 export const getApiListQueryKey = (params?: ApiListParams) => {
@@ -25107,16 +25267,15 @@ export const getApiListQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof apiList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getApiListQueryKey(params);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof apiList>>> = ({
     signal,
-  }) => apiList(params, requestOptions, signal);
+  }) => apiList(params, signal);
 
   return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof apiList>>,
@@ -25147,7 +25306,6 @@ export function useApiList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -25170,7 +25328,6 @@ export function useApiList<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -25183,7 +25340,6 @@ export function useApiList<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof apiList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -25197,7 +25353,6 @@ export function useApiList<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof apiList>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -25216,15 +25371,12 @@ export function useApiList<
 /**
  * Retrieve a single notification (and mark it as read automatically).
  */
-export const apiRetrieve = (
-  id: string,
-  options?: SecondParameter<typeof fetcher>,
-  signal?: AbortSignal
-) => {
-  return fetcher<Notification>(
-    { url: `/notifications/api/notifications/${id}/`, method: 'GET', signal },
-    options
-  );
+export const apiRetrieve = (id: string, signal?: AbortSignal) => {
+  return fetcher<Notification>({
+    url: `/notifications/api/notifications/${id}/`,
+    method: 'GET',
+    signal,
+  });
 };
 
 export const getApiRetrieveQueryKey = (id?: string) => {
@@ -25240,16 +25392,15 @@ export const getApiRetrieveQueryOptions = <
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof apiRetrieve>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   }
 ) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const { query: queryOptions } = options ?? {};
 
   const queryKey = queryOptions?.queryKey ?? getApiRetrieveQueryKey(id);
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof apiRetrieve>>> = ({
     signal,
-  }) => apiRetrieve(id, requestOptions, signal);
+  }) => apiRetrieve(id, signal);
 
   return {
     queryKey,
@@ -25285,7 +25436,6 @@ export function useApiRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & {
@@ -25308,7 +25458,6 @@ export function useApiRetrieve<
         >,
         'initialData'
       >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -25321,7 +25470,6 @@ export function useApiRetrieve<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof apiRetrieve>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> };
@@ -25335,7 +25483,6 @@ export function useApiRetrieve<
     query?: Partial<
       UseQueryOptions<Awaited<ReturnType<typeof apiRetrieve>>, TError, TData>
     >;
-    request?: SecondParameter<typeof fetcher>;
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData> } {
@@ -25970,6 +26117,551 @@ export const getV1AuthUsersMeRetrieveResponseMock = (
     `${faker.date.past().toISOString().split('.')[0]}Z`,
     null,
   ]),
+  ...overrideResponse,
+});
+
+export const getV1ChatBansListResponseMock = (
+  overrideResponse: Partial<PaginatedChatBanList> = {}
+): PaginatedChatBanList => ({
+  count: faker.number.int({ min: undefined, max: undefined }),
+  next: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.internet.url(), null]),
+    undefined,
+  ]),
+  previous: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.internet.url(), null]),
+    undefined,
+  ]),
+  results: Array.from(
+    { length: faker.number.int({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.string.uuid(),
+    email: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.internet.email(), null]),
+      undefined,
+    ]),
+    ip_address: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 20 } }),
+        null,
+      ]),
+      undefined,
+    ]),
+    reason: faker.string.alpha({ length: { min: 10, max: 20 } }),
+    is_permanent: faker.helpers.arrayElement([
+      faker.datatype.boolean(),
+      undefined,
+    ]),
+    expires_at: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([
+        `${faker.date.past().toISOString().split('.')[0]}Z`,
+        null,
+      ]),
+      undefined,
+    ]),
+    created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    created_by: faker.helpers.arrayElement([faker.string.uuid(), null]),
+    created_by_email: faker.internet.email(),
+    is_active: faker.datatype.boolean(),
+  })),
+  ...overrideResponse,
+});
+
+export const getV1ChatBansCreateResponseMock = (
+  overrideResponse: Partial<ChatBanCreate> = {}
+): ChatBanCreate => ({
+  email: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.internet.email(), null]),
+    undefined,
+  ]),
+  ip_address: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+      null,
+    ]),
+    undefined,
+  ]),
+  reason: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  is_permanent: faker.helpers.arrayElement([
+    faker.datatype.boolean(),
+    undefined,
+  ]),
+  expires_at: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      `${faker.date.past().toISOString().split('.')[0]}Z`,
+      null,
+    ]),
+    undefined,
+  ]),
+  ...overrideResponse,
+});
+
+export const getV1ChatBansRetrieveResponseMock = (
+  overrideResponse: Partial<ChatBan> = {}
+): ChatBan => ({
+  id: faker.string.uuid(),
+  email: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.internet.email(), null]),
+    undefined,
+  ]),
+  ip_address: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+      null,
+    ]),
+    undefined,
+  ]),
+  reason: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  is_permanent: faker.helpers.arrayElement([
+    faker.datatype.boolean(),
+    undefined,
+  ]),
+  expires_at: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      `${faker.date.past().toISOString().split('.')[0]}Z`,
+      null,
+    ]),
+    undefined,
+  ]),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  created_by: faker.helpers.arrayElement([faker.string.uuid(), null]),
+  created_by_email: faker.internet.email(),
+  is_active: faker.datatype.boolean(),
+  ...overrideResponse,
+});
+
+export const getV1ChatBansUpdateResponseMock = (
+  overrideResponse: Partial<ChatBan> = {}
+): ChatBan => ({
+  id: faker.string.uuid(),
+  email: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.internet.email(), null]),
+    undefined,
+  ]),
+  ip_address: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+      null,
+    ]),
+    undefined,
+  ]),
+  reason: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  is_permanent: faker.helpers.arrayElement([
+    faker.datatype.boolean(),
+    undefined,
+  ]),
+  expires_at: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      `${faker.date.past().toISOString().split('.')[0]}Z`,
+      null,
+    ]),
+    undefined,
+  ]),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  created_by: faker.helpers.arrayElement([faker.string.uuid(), null]),
+  created_by_email: faker.internet.email(),
+  is_active: faker.datatype.boolean(),
+  ...overrideResponse,
+});
+
+export const getV1ChatBansPartialUpdateResponseMock = (
+  overrideResponse: Partial<ChatBan> = {}
+): ChatBan => ({
+  id: faker.string.uuid(),
+  email: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.internet.email(), null]),
+    undefined,
+  ]),
+  ip_address: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      faker.string.alpha({ length: { min: 10, max: 20 } }),
+      null,
+    ]),
+    undefined,
+  ]),
+  reason: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  is_permanent: faker.helpers.arrayElement([
+    faker.datatype.boolean(),
+    undefined,
+  ]),
+  expires_at: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([
+      `${faker.date.past().toISOString().split('.')[0]}Z`,
+      null,
+    ]),
+    undefined,
+  ]),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  created_by: faker.helpers.arrayElement([faker.string.uuid(), null]),
+  created_by_email: faker.internet.email(),
+  is_active: faker.datatype.boolean(),
+  ...overrideResponse,
+});
+
+export const getV1ChatSessionsListResponseMock = (
+  overrideResponse: Partial<PaginatedChatSessionList> = {}
+): PaginatedChatSessionList => ({
+  count: faker.number.int({ min: undefined, max: undefined }),
+  next: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.internet.url(), null]),
+    undefined,
+  ]),
+  previous: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.internet.url(), null]),
+    undefined,
+  ]),
+  results: Array.from(
+    { length: faker.number.int({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.string.uuid(),
+    visitor_name: faker.string.alpha({ length: { min: 10, max: 100 } }),
+    visitor_email: faker.internet.email(),
+    visitor_phone: faker.string.alpha({ length: { min: 10, max: 17 } }),
+    status: faker.helpers.arrayElement([
+      faker.helpers.arrayElement(Object.values(ChatSessionStatusEnum)),
+      undefined,
+    ]),
+    assigned_to: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.uuid(), null]),
+      undefined,
+    ]),
+    assigned_to_email: faker.internet.email(),
+    created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    updated_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    closed_at: faker.helpers.arrayElement([
+      `${faker.date.past().toISOString().split('.')[0]}Z`,
+      null,
+    ]),
+    messages: Array.from(
+      { length: faker.number.int({ min: 1, max: 10 }) },
+      (_, i) => i + 1
+    ).map(() => ({
+      id: faker.string.uuid(),
+      sender: faker.helpers.arrayElement([
+        faker.helpers.arrayElement([faker.string.uuid(), null]),
+        undefined,
+      ]),
+      sender_email: faker.helpers.arrayElement([faker.internet.email(), null]),
+      sender_name: faker.helpers.arrayElement([
+        faker.string.alpha({ length: { min: 10, max: 100 } }),
+        undefined,
+      ]),
+      content: faker.string.alpha({ length: { min: 1, max: 20 } }),
+      created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+      is_admin: faker.datatype.boolean(),
+    })),
+    last_message: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  })),
+  ...overrideResponse,
+});
+
+export const getV1ChatSessionsCreateResponseMock = (
+  overrideResponse: Partial<ChatSession> = {}
+): ChatSession => ({
+  id: faker.string.uuid(),
+  visitor_name: faker.string.alpha({ length: { min: 10, max: 100 } }),
+  visitor_email: faker.internet.email(),
+  visitor_phone: faker.string.alpha({ length: { min: 10, max: 17 } }),
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(ChatSessionStatusEnum)),
+    undefined,
+  ]),
+  assigned_to: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.uuid(), null]),
+    undefined,
+  ]),
+  assigned_to_email: faker.internet.email(),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  updated_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  closed_at: faker.helpers.arrayElement([
+    `${faker.date.past().toISOString().split('.')[0]}Z`,
+    null,
+  ]),
+  messages: Array.from(
+    { length: faker.number.int({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.string.uuid(),
+    sender: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.uuid(), null]),
+      undefined,
+    ]),
+    sender_email: faker.helpers.arrayElement([faker.internet.email(), null]),
+    sender_name: faker.helpers.arrayElement([
+      faker.string.alpha({ length: { min: 10, max: 100 } }),
+      undefined,
+    ]),
+    content: faker.string.alpha({ length: { min: 1, max: 20 } }),
+    created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    is_admin: faker.datatype.boolean(),
+  })),
+  last_message: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+});
+
+export const getV1ChatSessionsRetrieveResponseMock = (
+  overrideResponse: Partial<ChatSession> = {}
+): ChatSession => ({
+  id: faker.string.uuid(),
+  visitor_name: faker.string.alpha({ length: { min: 10, max: 100 } }),
+  visitor_email: faker.internet.email(),
+  visitor_phone: faker.string.alpha({ length: { min: 10, max: 17 } }),
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(ChatSessionStatusEnum)),
+    undefined,
+  ]),
+  assigned_to: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.uuid(), null]),
+    undefined,
+  ]),
+  assigned_to_email: faker.internet.email(),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  updated_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  closed_at: faker.helpers.arrayElement([
+    `${faker.date.past().toISOString().split('.')[0]}Z`,
+    null,
+  ]),
+  messages: Array.from(
+    { length: faker.number.int({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.string.uuid(),
+    sender: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.uuid(), null]),
+      undefined,
+    ]),
+    sender_email: faker.helpers.arrayElement([faker.internet.email(), null]),
+    sender_name: faker.helpers.arrayElement([
+      faker.string.alpha({ length: { min: 10, max: 100 } }),
+      undefined,
+    ]),
+    content: faker.string.alpha({ length: { min: 1, max: 20 } }),
+    created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    is_admin: faker.datatype.boolean(),
+  })),
+  last_message: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+});
+
+export const getV1ChatSessionsUpdateResponseMock = (
+  overrideResponse: Partial<ChatSession> = {}
+): ChatSession => ({
+  id: faker.string.uuid(),
+  visitor_name: faker.string.alpha({ length: { min: 10, max: 100 } }),
+  visitor_email: faker.internet.email(),
+  visitor_phone: faker.string.alpha({ length: { min: 10, max: 17 } }),
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(ChatSessionStatusEnum)),
+    undefined,
+  ]),
+  assigned_to: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.uuid(), null]),
+    undefined,
+  ]),
+  assigned_to_email: faker.internet.email(),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  updated_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  closed_at: faker.helpers.arrayElement([
+    `${faker.date.past().toISOString().split('.')[0]}Z`,
+    null,
+  ]),
+  messages: Array.from(
+    { length: faker.number.int({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.string.uuid(),
+    sender: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.uuid(), null]),
+      undefined,
+    ]),
+    sender_email: faker.helpers.arrayElement([faker.internet.email(), null]),
+    sender_name: faker.helpers.arrayElement([
+      faker.string.alpha({ length: { min: 10, max: 100 } }),
+      undefined,
+    ]),
+    content: faker.string.alpha({ length: { min: 1, max: 20 } }),
+    created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    is_admin: faker.datatype.boolean(),
+  })),
+  last_message: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+});
+
+export const getV1ChatSessionsPartialUpdateResponseMock = (
+  overrideResponse: Partial<ChatSession> = {}
+): ChatSession => ({
+  id: faker.string.uuid(),
+  visitor_name: faker.string.alpha({ length: { min: 10, max: 100 } }),
+  visitor_email: faker.internet.email(),
+  visitor_phone: faker.string.alpha({ length: { min: 10, max: 17 } }),
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(ChatSessionStatusEnum)),
+    undefined,
+  ]),
+  assigned_to: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.uuid(), null]),
+    undefined,
+  ]),
+  assigned_to_email: faker.internet.email(),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  updated_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  closed_at: faker.helpers.arrayElement([
+    `${faker.date.past().toISOString().split('.')[0]}Z`,
+    null,
+  ]),
+  messages: Array.from(
+    { length: faker.number.int({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.string.uuid(),
+    sender: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.uuid(), null]),
+      undefined,
+    ]),
+    sender_email: faker.helpers.arrayElement([faker.internet.email(), null]),
+    sender_name: faker.helpers.arrayElement([
+      faker.string.alpha({ length: { min: 10, max: 100 } }),
+      undefined,
+    ]),
+    content: faker.string.alpha({ length: { min: 1, max: 20 } }),
+    created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    is_admin: faker.datatype.boolean(),
+  })),
+  last_message: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+});
+
+export const getV1ChatSessionsAssignCreateResponseMock = (
+  overrideResponse: Partial<ChatSession> = {}
+): ChatSession => ({
+  id: faker.string.uuid(),
+  visitor_name: faker.string.alpha({ length: { min: 10, max: 100 } }),
+  visitor_email: faker.internet.email(),
+  visitor_phone: faker.string.alpha({ length: { min: 10, max: 17 } }),
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(ChatSessionStatusEnum)),
+    undefined,
+  ]),
+  assigned_to: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.uuid(), null]),
+    undefined,
+  ]),
+  assigned_to_email: faker.internet.email(),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  updated_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  closed_at: faker.helpers.arrayElement([
+    `${faker.date.past().toISOString().split('.')[0]}Z`,
+    null,
+  ]),
+  messages: Array.from(
+    { length: faker.number.int({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.string.uuid(),
+    sender: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.uuid(), null]),
+      undefined,
+    ]),
+    sender_email: faker.helpers.arrayElement([faker.internet.email(), null]),
+    sender_name: faker.helpers.arrayElement([
+      faker.string.alpha({ length: { min: 10, max: 100 } }),
+      undefined,
+    ]),
+    content: faker.string.alpha({ length: { min: 1, max: 20 } }),
+    created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    is_admin: faker.datatype.boolean(),
+  })),
+  last_message: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+});
+
+export const getV1ChatSessionsCloseCreateResponseMock = (
+  overrideResponse: Partial<ChatSession> = {}
+): ChatSession => ({
+  id: faker.string.uuid(),
+  visitor_name: faker.string.alpha({ length: { min: 10, max: 100 } }),
+  visitor_email: faker.internet.email(),
+  visitor_phone: faker.string.alpha({ length: { min: 10, max: 17 } }),
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(ChatSessionStatusEnum)),
+    undefined,
+  ]),
+  assigned_to: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.uuid(), null]),
+    undefined,
+  ]),
+  assigned_to_email: faker.internet.email(),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  updated_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  closed_at: faker.helpers.arrayElement([
+    `${faker.date.past().toISOString().split('.')[0]}Z`,
+    null,
+  ]),
+  messages: Array.from(
+    { length: faker.number.int({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.string.uuid(),
+    sender: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.uuid(), null]),
+      undefined,
+    ]),
+    sender_email: faker.helpers.arrayElement([faker.internet.email(), null]),
+    sender_name: faker.helpers.arrayElement([
+      faker.string.alpha({ length: { min: 10, max: 100 } }),
+      undefined,
+    ]),
+    content: faker.string.alpha({ length: { min: 1, max: 20 } }),
+    created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    is_admin: faker.datatype.boolean(),
+  })),
+  last_message: faker.string.alpha({ length: { min: 10, max: 20 } }),
+  ...overrideResponse,
+});
+
+export const getV1ChatSessionsMessagesCreateResponseMock = (
+  overrideResponse: Partial<ChatSession> = {}
+): ChatSession => ({
+  id: faker.string.uuid(),
+  visitor_name: faker.string.alpha({ length: { min: 10, max: 100 } }),
+  visitor_email: faker.internet.email(),
+  visitor_phone: faker.string.alpha({ length: { min: 10, max: 17 } }),
+  status: faker.helpers.arrayElement([
+    faker.helpers.arrayElement(Object.values(ChatSessionStatusEnum)),
+    undefined,
+  ]),
+  assigned_to: faker.helpers.arrayElement([
+    faker.helpers.arrayElement([faker.string.uuid(), null]),
+    undefined,
+  ]),
+  assigned_to_email: faker.internet.email(),
+  created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  updated_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+  closed_at: faker.helpers.arrayElement([
+    `${faker.date.past().toISOString().split('.')[0]}Z`,
+    null,
+  ]),
+  messages: Array.from(
+    { length: faker.number.int({ min: 1, max: 10 }) },
+    (_, i) => i + 1
+  ).map(() => ({
+    id: faker.string.uuid(),
+    sender: faker.helpers.arrayElement([
+      faker.helpers.arrayElement([faker.string.uuid(), null]),
+      undefined,
+    ]),
+    sender_email: faker.helpers.arrayElement([faker.internet.email(), null]),
+    sender_name: faker.helpers.arrayElement([
+      faker.string.alpha({ length: { min: 10, max: 100 } }),
+      undefined,
+    ]),
+    content: faker.string.alpha({ length: { min: 1, max: 20 } }),
+    created_at: `${faker.date.past().toISOString().split('.')[0]}Z`,
+    is_admin: faker.datatype.boolean(),
+  })),
+  last_message: faker.string.alpha({ length: { min: 10, max: 20 } }),
   ...overrideResponse,
 });
 
@@ -34525,6 +35217,412 @@ export const getV1CatalogRetrieveMockHandler = (
   );
 };
 
+export const getV1ChatBansListMockHandler = (
+  overrideResponse?:
+    | PaginatedChatBanList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) => Promise<PaginatedChatBanList> | PaginatedChatBanList),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    '*/api/v1/chat/bans/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1ChatBansListResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1ChatBansCreateMockHandler = (
+  overrideResponse?:
+    | ChatBanCreate
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0]
+      ) => Promise<ChatBanCreate> | ChatBanCreate),
+  options?: RequestHandlerOptions
+) => {
+  return http.post(
+    '*/api/v1/chat/bans/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1ChatBansCreateResponseMock()
+        ),
+        { status: 201, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1ChatBansRetrieveMockHandler = (
+  overrideResponse?:
+    | ChatBan
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) => Promise<ChatBan> | ChatBan),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    '*/api/v1/chat/bans/:id/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1ChatBansRetrieveResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1ChatBansUpdateMockHandler = (
+  overrideResponse?:
+    | ChatBan
+    | ((
+        info: Parameters<Parameters<typeof http.put>[1]>[0]
+      ) => Promise<ChatBan> | ChatBan),
+  options?: RequestHandlerOptions
+) => {
+  return http.put(
+    '*/api/v1/chat/bans/:id/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1ChatBansUpdateResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1ChatBansPartialUpdateMockHandler = (
+  overrideResponse?:
+    | ChatBan
+    | ((
+        info: Parameters<Parameters<typeof http.patch>[1]>[0]
+      ) => Promise<ChatBan> | ChatBan),
+  options?: RequestHandlerOptions
+) => {
+  return http.patch(
+    '*/api/v1/chat/bans/:id/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1ChatBansPartialUpdateResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1ChatBansDestroyMockHandler = (
+  overrideResponse?:
+    | void
+    | ((
+        info: Parameters<Parameters<typeof http.delete>[1]>[0]
+      ) => Promise<void> | void),
+  options?: RequestHandlerOptions
+) => {
+  return http.delete(
+    '*/api/v1/chat/bans/:id/',
+    async (info) => {
+      await delay(1000);
+      if (typeof overrideResponse === 'function') {
+        await overrideResponse(info);
+      }
+      return new HttpResponse(null, { status: 204 });
+    },
+    options
+  );
+};
+
+export const getV1ChatSessionsListMockHandler = (
+  overrideResponse?:
+    | PaginatedChatSessionList
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) => Promise<PaginatedChatSessionList> | PaginatedChatSessionList),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    '*/api/v1/chat/sessions/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1ChatSessionsListResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1ChatSessionsCreateMockHandler = (
+  overrideResponse?:
+    | ChatSession
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0]
+      ) => Promise<ChatSession> | ChatSession),
+  options?: RequestHandlerOptions
+) => {
+  return http.post(
+    '*/api/v1/chat/sessions/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1ChatSessionsCreateResponseMock()
+        ),
+        { status: 201, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1ChatSessionsRetrieveMockHandler = (
+  overrideResponse?:
+    | ChatSession
+    | ((
+        info: Parameters<Parameters<typeof http.get>[1]>[0]
+      ) => Promise<ChatSession> | ChatSession),
+  options?: RequestHandlerOptions
+) => {
+  return http.get(
+    '*/api/v1/chat/sessions/:id/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1ChatSessionsRetrieveResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1ChatSessionsUpdateMockHandler = (
+  overrideResponse?:
+    | ChatSession
+    | ((
+        info: Parameters<Parameters<typeof http.put>[1]>[0]
+      ) => Promise<ChatSession> | ChatSession),
+  options?: RequestHandlerOptions
+) => {
+  return http.put(
+    '*/api/v1/chat/sessions/:id/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1ChatSessionsUpdateResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1ChatSessionsPartialUpdateMockHandler = (
+  overrideResponse?:
+    | ChatSession
+    | ((
+        info: Parameters<Parameters<typeof http.patch>[1]>[0]
+      ) => Promise<ChatSession> | ChatSession),
+  options?: RequestHandlerOptions
+) => {
+  return http.patch(
+    '*/api/v1/chat/sessions/:id/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1ChatSessionsPartialUpdateResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1ChatSessionsDestroyMockHandler = (
+  overrideResponse?:
+    | void
+    | ((
+        info: Parameters<Parameters<typeof http.delete>[1]>[0]
+      ) => Promise<void> | void),
+  options?: RequestHandlerOptions
+) => {
+  return http.delete(
+    '*/api/v1/chat/sessions/:id/',
+    async (info) => {
+      await delay(1000);
+      if (typeof overrideResponse === 'function') {
+        await overrideResponse(info);
+      }
+      return new HttpResponse(null, { status: 204 });
+    },
+    options
+  );
+};
+
+export const getV1ChatSessionsAssignCreateMockHandler = (
+  overrideResponse?:
+    | ChatSession
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0]
+      ) => Promise<ChatSession> | ChatSession),
+  options?: RequestHandlerOptions
+) => {
+  return http.post(
+    '*/api/v1/chat/sessions/:id/assign/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1ChatSessionsAssignCreateResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1ChatSessionsCloseCreateMockHandler = (
+  overrideResponse?:
+    | ChatSession
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0]
+      ) => Promise<ChatSession> | ChatSession),
+  options?: RequestHandlerOptions
+) => {
+  return http.post(
+    '*/api/v1/chat/sessions/:id/close/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1ChatSessionsCloseCreateResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
+export const getV1ChatSessionsMessagesCreateMockHandler = (
+  overrideResponse?:
+    | ChatSession
+    | ((
+        info: Parameters<Parameters<typeof http.post>[1]>[0]
+      ) => Promise<ChatSession> | ChatSession),
+  options?: RequestHandlerOptions
+) => {
+  return http.post(
+    '*/api/v1/chat/sessions/:id/messages/',
+    async (info) => {
+      await delay(1000);
+
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getV1ChatSessionsMessagesCreateResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    },
+    options
+  );
+};
+
 export const getV1analyticsRetrieveMockHandler = (
   overrideResponse?:
     | void
@@ -38795,6 +39893,21 @@ export const getSoftwareDistributionPlatformAPIMock = () => [
   getV1AuthUsersMeRetrieveMockHandler(),
   getV1AuthVerifyEmailRetrieveMockHandler(),
   getV1CatalogRetrieveMockHandler(),
+  getV1ChatBansListMockHandler(),
+  getV1ChatBansCreateMockHandler(),
+  getV1ChatBansRetrieveMockHandler(),
+  getV1ChatBansUpdateMockHandler(),
+  getV1ChatBansPartialUpdateMockHandler(),
+  getV1ChatBansDestroyMockHandler(),
+  getV1ChatSessionsListMockHandler(),
+  getV1ChatSessionsCreateMockHandler(),
+  getV1ChatSessionsRetrieveMockHandler(),
+  getV1ChatSessionsUpdateMockHandler(),
+  getV1ChatSessionsPartialUpdateMockHandler(),
+  getV1ChatSessionsDestroyMockHandler(),
+  getV1ChatSessionsAssignCreateMockHandler(),
+  getV1ChatSessionsCloseCreateMockHandler(),
+  getV1ChatSessionsMessagesCreateMockHandler(),
   getV1analyticsRetrieveMockHandler(),
   getV1licenseUsageRetrieveMockHandler(),
   getV1overviewRetrieveMockHandler(),
