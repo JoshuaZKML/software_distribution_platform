@@ -17,7 +17,7 @@ import {
   ChartBarIcon,
   UserGroupIcon,
   ClipboardDocumentListIcon,
-  ChatBubbleLeftRightIcon,  // 👈 Import chat icon
+  ChatBubbleLeftRightIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '@/lib/hooks/useAuth';
 
